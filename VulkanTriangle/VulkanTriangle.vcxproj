@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VulkanDebugMessenger.cpp" />
     <ClCompile Include="VulkanInstance.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
@@ -149,8 +150,9 @@
     <None Include="PropertySheet.props" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utilities.h" />
-    <ClInclude Include="VulkanInstance.h" />
+    <ClInclude Include="utilities.hpp" />
+    <ClInclude Include="VulkanDebugMessenger.hpp" />
+    <ClInclude Include="VulkanInstance.hpp" />
     <ClInclude Include="window.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

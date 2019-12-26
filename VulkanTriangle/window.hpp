@@ -1,4 +1,6 @@
-#pragma once
+#ifndef APP_WINDOW
+#define APP_WINDOW
+
 #include <GLFW/glfw3.h>
 
 namespace app
@@ -25,4 +27,6 @@ namespace app
 	};
 
 } // namespace app
+
+#endif
 

@@ -1,9 +1,12 @@
-#pragma once
+#ifndef APP_VULKAN_INSTANCE
+#define APP_VULKAN_INSTANCE
+
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
-#include "utilities.h"
+#include "utilities.hpp"
+#include "VulkanDebugMessenger.hpp"
 
 namespace app
 {
@@ -12,13 +15,16 @@ namespace app
 	public:
 		using ExtensionName = const char*;
 		using ExtensionContainer = std::vector<ExtensionName>;
-		VulkanInstance(const std::string& app_name);
+		VulkanInstance(const std::string&);
 		VulkanInstance(const VulkanInstance&) = delete;
 		VulkanInstance(VulkanInstance&&) noexcept = delete;
 		~VulkanInstance() = default;
 
 		VulkanInstance& operator=(const VulkanInstance&) noexcept = delete;
 		VulkanInstance& operator=(VulkanInstance&&) noexcept = delete;
+
+		VkInstance* operator&();
+		VkInstance	operator*();
 
 		void createInstance();
 		void destroyInstance();
@@ -29,31 +35,26 @@ namespace app
 #else
 		const bool enable_validation_layer = true;
 #endif // NDEBUG
-
-		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-			VkDebugUtilsMessageTypeFlagsEXT messageType,
-			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-			void* pUserData);
+		friend class debug::VulkanDebugMessenger;
 	private:
 		VkInstance											_instance;
 		utils::Uptr<VkInstanceCreateInfo>					_info;
+		utils::Uptr<VkApplicationInfo>						_app_info;
 		ExtensionContainer									_extensions;
-		utils::Uptr<VkDebugUtilsMessengerCreateInfoEXT>		_debugCreate_info;
-	
-		VkDebugUtilsMessengerEXT							_debugmessenger;
-		utils::Uptr<VkDebugUtilsMessengerCreateInfoEXT>		_debugmessenger_info;
 
-		void init(utils::Uptr<VkApplicationInfo>);
+		utils::Uptr<debug::VulkanDebugMessenger>			_debugger;
+		debug::VulkanDebugMessenger::DebugMsgInfoPtr		_debug_create_info;
+
+		void setup_application_info(const std::string&);
+		void init();
 
 		void setup_debug_messenger();
-		utils::Uptr<VkDebugUtilsMessengerCreateInfoEXT> populate_debug_messenger_info();
-		VkResult CreateDebugUtilsMessengerEXT(const VkAllocationCallbacks*);
-		void DestroyDebugUtilsMessengerEXT(const VkAllocationCallbacks*);
-
+		
 		void validate_glfw_extensions(ExtensionContainer&);
 		bool check_validation_layer_support();
 		auto get_extensions()->ExtensionContainer;
 	};
 } // namespace app
+
+#endif
 

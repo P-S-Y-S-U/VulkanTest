@@ -1,4 +1,6 @@
-#pragma once
+#ifndef APP_UTILS
+#define APP_UTILS
+
 #include <memory>
 
 namespace app::utils
@@ -9,3 +11,5 @@ namespace app::utils
 	template<class _Type>
 	using Uptr = std::unique_ptr< _Type, std::default_delete<_Type> >;
 } // namespace app::utils
+
+#endif

@@ -20,6 +20,9 @@
     <ClCompile Include="VulkanInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanDebugMessenger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="PropertySheet.props" />
@@ -28,10 +31,13 @@
     <ClInclude Include="window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanInstance.h">
+    <ClInclude Include="VulkanDebugMessenger.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utilities.h">
+    <ClInclude Include="VulkanInstance.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

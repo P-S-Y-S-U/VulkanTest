@@ -1,4 +1,4 @@
-#include "VulkanInstance.h"
+#include "VulkanInstance.hpp"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -11,15 +11,23 @@ namespace app
 		{
 			throw std::runtime_error("Validation layers requested, not available");
 		}
-		auto application_info = std::make_unique<VkApplicationInfo>();
-		application_info->sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		application_info->pApplicationName = app_name.c_str();
-		application_info->applicationVersion = VK_MAKE_VERSION(1, 1, 0);
-		application_info->pEngineName = "No Engine";
-		application_info->engineVersion = VK_MAKE_VERSION(1, 1, 0);
-		application_info->apiVersion = VK_API_VERSION_1_1;
-		//application_info->pNext = nullptr;
-		init(std::move(application_info));
+		if (enable_validation_layer)
+		{
+			_debugger = std::make_unique<debug::VulkanDebugMessenger>();
+			_debug_create_info = _debugger->populate_debug_messenger_info();
+		}
+		setup_application_info(app_name);
+		init();
+	}
+
+	VkInstance* VulkanInstance::operator&()
+	{
+		return &_instance;
+	}
+
+	VkInstance VulkanInstance::operator*()
+	{
+		return _instance;
 	}
 
 	void VulkanInstance::createInstance()
@@ -30,7 +38,6 @@ namespace app
 			throw std::runtime_error("failed to create instance!");
 		}
 		std::cout << "Created Vulkan instance successfully" << std::endl;
-		
 		setup_debug_messenger();
 	}
 
@@ -38,29 +45,29 @@ namespace app
 	{
 		if (enable_validation_layer)
 		{
-			DestroyDebugUtilsMessengerEXT(nullptr);
-			_debugmessenger_info.reset();
+			_debugger->destroy_debug_messenger(&_instance, nullptr);
 		}
 		vkDestroyInstance(_instance, nullptr);
 		_info.reset();
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanInstance::debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData)
+	void VulkanInstance::setup_application_info(const std::string& app_name)
 	{
-		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-		return VK_FALSE;
+		_app_info = std::make_unique<VkApplicationInfo>();
+		_app_info->sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		_app_info->pApplicationName = app_name.c_str();
+		_app_info->applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		_app_info->pEngineName = "No Engine";
+		_app_info->engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		_app_info->apiVersion = VK_API_VERSION_1_0;
+		_app_info->pNext = nullptr;
 	}
 
-	void VulkanInstance::init(utils::Uptr<VkApplicationInfo> app_info)
+	void VulkanInstance::init()
 	{
 		_info = std::make_unique<VkInstanceCreateInfo>();
 		_info->sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		_info->pApplicationInfo = app_info.get();
+		_info->pApplicationInfo = _app_info.get();
 		
 		_extensions = get_extensions();
 		_info->enabledExtensionCount = static_cast<std::uint32_t>(_extensions.size());
@@ -70,9 +77,7 @@ namespace app
 		{
 			_info->enabledLayerCount = static_cast<std::uint32_t>(validation_layers.size());
 			_info->ppEnabledLayerNames = validation_layers.data();
-
-			_debugCreate_info = std::move(populate_debug_messenger_info());
-			_info->pNext = (VkDebugUtilsMessengerCreateInfoEXT*)_debugCreate_info.get();
+			_info->pNext = (VkDebugUtilsMessengerCreateInfoEXT*)_debug_create_info.get();
 		}
 		else {
 			_info->enabledLayerCount = 0;
@@ -84,43 +89,7 @@ namespace app
 	void VulkanInstance::setup_debug_messenger()
 	{
 		if (!enable_validation_layer) { return; }
-
-		_debugmessenger_info = std::move(populate_debug_messenger_info());
-		_debugmessenger_info->pUserData = nullptr;
-		if (CreateDebugUtilsMessengerEXT( nullptr ) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to setup debug messenger!");
-		}
-	}
-
-	utils::Uptr<VkDebugUtilsMessengerCreateInfoEXT> VulkanInstance::populate_debug_messenger_info()
-	{
-		auto debugmessenger_info = std::make_unique<VkDebugUtilsMessengerCreateInfoEXT>();
-		debugmessenger_info->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		debugmessenger_info->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		debugmessenger_info->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugmessenger_info->pfnUserCallback = debugCallback;
-	
-		return std::move(debugmessenger_info);
-	}
-
-	VkResult VulkanInstance::CreateDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator )
-	{
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT");
-		if (func != nullptr) {
-			return func(_instance, _debugmessenger_info.get(), pAllocator, &_debugmessenger);
-		}
-		else {
-			return VK_ERROR_EXTENSION_NOT_PRESENT;
-		}
-	}
-
-	void VulkanInstance::DestroyDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator) 
-	{
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (func != nullptr) {
-			func(_instance, _debugmessenger, pAllocator);
-		}
+		_debugger->create_debug_messenger(&_instance, nullptr);
 	}
 
 	void VulkanInstance::validate_glfw_extensions(VulkanInstance::ExtensionContainer& extensions)
@@ -199,4 +168,4 @@ namespace app
 		
 		return extensions;
 	}
-}
+} // namespace appp

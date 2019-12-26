@@ -5,13 +5,15 @@
 #include <vector>
 
 #include "window.hpp"
-#include "VulkanInstance.h"
+#include "VulkanInstance.hpp"
+#include "VulkanDebugMessenger.hpp"
+#include "utilities.hpp"
 
 class HelloTriangleApplication {
 public:
     HelloTriangleApplication()
         :_window{}
-        ,_instance{ "Hello Triangle" }
+        ,_instance{ std::make_unique<app::VulkanInstance>("Hello Triangle") }
     {}
     ~HelloTriangleApplication() = default;
 
@@ -32,7 +34,7 @@ private:
     }
     void createInstance()
     {
-        _instance.createInstance();
+        _instance->createInstance();
     }
 
     void mainLoop() {
@@ -40,12 +42,12 @@ private:
     }
 
     void cleanup() {
-        _instance.destroyInstance();
+        _instance->destroyInstance();
         _window.destroy();
     }
 
-    app::Window             _window;
-    app::VulkanInstance     _instance;
+    app::Window                               _window;
+    app::utils::Uptr<app::VulkanInstance>     _instance;
 };
 
 int main() {
