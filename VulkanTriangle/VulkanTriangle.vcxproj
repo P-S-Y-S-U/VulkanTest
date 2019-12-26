@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="HelloTriangleApplication.cpp" />
     <ClCompile Include="VulkanDebugMessenger.cpp" />
     <ClCompile Include="VulkanInstance.cpp" />
     <ClCompile Include="window.cpp" />
@@ -150,6 +151,7 @@
     <None Include="PropertySheet.props" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HellloTriangleApplication.hpp" />
     <ClInclude Include="utilities.hpp" />
     <ClInclude Include="VulkanDebugMessenger.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />

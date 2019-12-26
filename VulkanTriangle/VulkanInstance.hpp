@@ -22,10 +22,9 @@ namespace app
 
 		VulkanInstance& operator=(const VulkanInstance&) noexcept = delete;
 		VulkanInstance& operator=(VulkanInstance&&) noexcept = delete;
-
-		VkInstance* operator&();
-		VkInstance	operator*();
-
+		
+		VkInstance* get_instance();
+		const VkInstance* get_instance() const;
 		void createInstance();
 		void destroyInstance();
 		
@@ -42,14 +41,11 @@ namespace app
 		utils::Uptr<VkApplicationInfo>						_app_info;
 		ExtensionContainer									_extensions;
 
-		utils::Uptr<debug::VulkanDebugMessenger>			_debugger;
-		debug::VulkanDebugMessenger::DebugMsgInfoPtr		_debug_create_info;
+		debug::DebugMsgInfoPtr								_debug_create_info;
 
 		void setup_application_info(const std::string&);
 		void init();
 
-		void setup_debug_messenger();
-		
 		void validate_glfw_extensions(ExtensionContainer&);
 		bool check_validation_layer_support();
 		auto get_extensions()->ExtensionContainer;

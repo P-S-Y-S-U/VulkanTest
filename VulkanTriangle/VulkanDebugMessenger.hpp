@@ -6,11 +6,11 @@
 
 namespace app::debug
 {
-	
+	using DebugMsgInfoPtr = utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>;
+	DebugMsgInfoPtr populate_debug_messenger_info();
 	class VulkanDebugMessenger
 	{
 	public:
-		using DebugMsgInfoPtr = utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>;
 		VulkanDebugMessenger();
 		VulkanDebugMessenger(const VulkanDebugMessenger&) = delete;
 		VulkanDebugMessenger(VulkanDebugMessenger&&) = delete;
@@ -27,7 +27,6 @@ namespace app::debug
 			VkDebugUtilsMessageTypeFlagsEXT messageType,
 			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 			void* pUserData);
-		DebugMsgInfoPtr populate_debug_messenger_info();
 	private:
 		VkDebugUtilsMessengerEXT	_debug_messenger;
 		DebugMsgInfoPtr				_debug_messenger_info;

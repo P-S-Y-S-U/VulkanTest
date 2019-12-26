@@ -13,21 +13,20 @@ namespace app
 		}
 		if (enable_validation_layer)
 		{
-			_debugger = std::make_unique<debug::VulkanDebugMessenger>();
-			_debug_create_info = _debugger->populate_debug_messenger_info();
+			_debug_create_info = debug::populate_debug_messenger_info();
 		}
 		setup_application_info(app_name);
 		init();
 	}
-
-	VkInstance* VulkanInstance::operator&()
+	
+	VkInstance* VulkanInstance::get_instance()
 	{
 		return &_instance;
 	}
 
-	VkInstance VulkanInstance::operator*()
+	const VkInstance* VulkanInstance::get_instance() const
 	{
-		return _instance;
+		return &_instance;
 	}
 
 	void VulkanInstance::createInstance()
@@ -38,15 +37,10 @@ namespace app
 			throw std::runtime_error("failed to create instance!");
 		}
 		std::cout << "Created Vulkan instance successfully" << std::endl;
-		setup_debug_messenger();
 	}
 
 	void VulkanInstance::destroyInstance()
 	{
-		if (enable_validation_layer)
-		{
-			_debugger->destroy_debug_messenger(&_instance, nullptr);
-		}
 		vkDestroyInstance(_instance, nullptr);
 		_info.reset();
 	}
@@ -84,12 +78,6 @@ namespace app
 		}
 
 		validate_glfw_extensions(_extensions);
-	}
-
-	void VulkanInstance::setup_debug_messenger()
-	{
-		if (!enable_validation_layer) { return; }
-		_debugger->create_debug_messenger(&_instance, nullptr);
 	}
 
 	void VulkanInstance::validate_glfw_extensions(VulkanInstance::ExtensionContainer& extensions)

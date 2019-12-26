@@ -21,13 +21,13 @@ namespace app::debug
 		destroy_debug_utils_messenger_EXT(vulkan_instance, pAllocator);
 	}
 
-	VulkanDebugMessenger::DebugMsgInfoPtr VulkanDebugMessenger::populate_debug_messenger_info()
+	DebugMsgInfoPtr populate_debug_messenger_info()
 	{
 		auto debugmessenger_info = std::make_shared<VkDebugUtilsMessengerCreateInfoEXT>();
 		debugmessenger_info->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugmessenger_info->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		debugmessenger_info->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugmessenger_info->pfnUserCallback = debugCallback;
+		debugmessenger_info->pfnUserCallback = VulkanDebugMessenger::debugCallback;
 
 		return debugmessenger_info;
 	}
