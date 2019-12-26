@@ -1,8 +1,9 @@
-#ifndef APP_VULKAN_DEBUGGER_EXT
-#define APP_VULKAN_DEBUGGER_EXT
+#ifndef APP_VULKAN_DEBUGGER_EXT_HPP
+#define APP_VULKAN_DEBUGGER_EXT_HPP
 
 #include <vulkan/vulkan.h>
 #include "utilities.hpp"
+#include "VulkanInstance.hpp"
 
 namespace app::debug
 {
@@ -19,8 +20,8 @@ namespace app::debug
 		VulkanDebugMessenger& operator=(const VulkanDebugMessenger&) = delete;
 		VulkanDebugMessenger& operator=(VulkanDebugMessenger&&) = delete;
 
-		void create_debug_messenger(VkInstance*, const VkAllocationCallbacks*);
-		void destroy_debug_messenger(VkInstance*, const VkAllocationCallbacks*);
+		void create_debug_messenger(utils::Uptr<VulkanInstance>&, const VkAllocationCallbacks*);
+		void destroy_debug_messenger(utils::Uptr<VulkanInstance>&, const VkAllocationCallbacks*);
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -31,8 +32,8 @@ namespace app::debug
 		VkDebugUtilsMessengerEXT	_debug_messenger;
 		DebugMsgInfoPtr				_debug_messenger_info;
 
-		VkResult create_debug_utils_messenger_EXT(VkInstance*, const VkAllocationCallbacks*);
-		void destroy_debug_utils_messenger_EXT(VkInstance*, const VkAllocationCallbacks*);
+		VkResult create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>&, const VkAllocationCallbacks*);
+		void destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>&, const VkAllocationCallbacks*);
 	};
 
 } // namespace app::debug

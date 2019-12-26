@@ -8,7 +8,7 @@ namespace app::debug
 		_debug_messenger_info = populate_debug_messenger_info();
 	}
 
-	void VulkanDebugMessenger::create_debug_messenger(VkInstance* vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::create_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
 	{
 		if (create_debug_utils_messenger_EXT(vulkan_instance, pAllocator) != VK_SUCCESS)
 		{
@@ -16,7 +16,7 @@ namespace app::debug
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_messenger(VkInstance* vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroy_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
 	{
 		destroy_debug_utils_messenger_EXT(vulkan_instance, pAllocator);
 	}
@@ -32,23 +32,23 @@ namespace app::debug
 		return debugmessenger_info;
 	}
 
-	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(VkInstance* vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
 	{
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(*vulkan_instance, "vkCreateDebugUtilsMessengerEXT");
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance->get_instance(), "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
-			return func(*vulkan_instance, _debug_messenger_info.get(), pAllocator, &_debug_messenger);
+			return func(vulkan_instance->get_instance(), _debug_messenger_info.get(), pAllocator, &_debug_messenger);
 		}
 		else {
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(VkInstance* vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
 	{
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(*vulkan_instance, "vkDestroyDebugUtilsMessengerEXT");
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance->get_instance(), "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr)
 		{
-			func(*vulkan_instance, _debug_messenger, pAllocator);
+			func(vulkan_instance->get_instance(), _debug_messenger, pAllocator);
 		}
 	}
 

@@ -1,12 +1,11 @@
-#ifndef APP_VULKAN_INSTANCE
-#define APP_VULKAN_INSTANCE
+#ifndef APP_VULKAN_INSTANCE_HPP
+#define APP_VULKAN_INSTANCE_HPP
 
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
 #include "utilities.hpp"
-#include "VulkanDebugMessenger.hpp"
 
 namespace app
 {
@@ -23,8 +22,8 @@ namespace app
 		VulkanInstance& operator=(const VulkanInstance&) noexcept = delete;
 		VulkanInstance& operator=(VulkanInstance&&) noexcept = delete;
 		
-		VkInstance* get_instance();
-		const VkInstance* get_instance() const;
+		VkInstance get_instance();
+		const VkInstance get_instance() const;
 		void createInstance();
 		void destroyInstance();
 		
@@ -34,14 +33,13 @@ namespace app
 #else
 		const bool enable_validation_layer = true;
 #endif // NDEBUG
-		friend class debug::VulkanDebugMessenger;
 	private:
 		VkInstance											_instance;
 		utils::Uptr<VkInstanceCreateInfo>					_info;
 		utils::Uptr<VkApplicationInfo>						_app_info;
 		ExtensionContainer									_extensions;
 
-		debug::DebugMsgInfoPtr								_debug_create_info;
+		utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>								_debug_create_info;
 
 		void setup_application_info(const std::string&);
 		void init();

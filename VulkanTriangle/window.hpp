@@ -1,5 +1,5 @@
-#ifndef APP_WINDOW
-#define APP_WINDOW
+#ifndef APP_WINDOW_HPP
+#define APP_WINDOW_HPP
 
 #include <GLFW/glfw3.h>
 

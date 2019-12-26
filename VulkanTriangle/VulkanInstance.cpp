@@ -1,4 +1,5 @@
 #include "VulkanInstance.hpp"
+#include "VulkanDebugMessenger.hpp"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -19,14 +20,14 @@ namespace app
 		init();
 	}
 	
-	VkInstance* VulkanInstance::get_instance()
+	VkInstance VulkanInstance::get_instance()
 	{
-		return &_instance;
+		return _instance;
 	}
 
-	const VkInstance* VulkanInstance::get_instance() const
+	const VkInstance VulkanInstance::get_instance() const
 	{
-		return &_instance;
+		return _instance;
 	}
 
 	void VulkanInstance::createInstance()

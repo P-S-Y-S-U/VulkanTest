@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HelloTriangleApplication.cpp" />
+    <ClCompile Include="VulkanPhysicalDevice.cpp" />
     <ClCompile Include="VulkanDebugMessenger.cpp" />
     <ClCompile Include="VulkanInstance.cpp" />
     <ClCompile Include="window.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="utilities.hpp" />
     <ClInclude Include="VulkanDebugMessenger.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />
+    <ClInclude Include="VulkanPhysicalDevice.hpp" />
     <ClInclude Include="window.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,9 +1,10 @@
-#ifndef APP_TRIANGLE
-#define APP_TRIANGLE
+#ifndef APP_TRIANGLE_HPP
+#define APP_TRIANGLE_HPP
 
 #include "window.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanDebugMessenger.hpp"
+#include "VulkanPhysicalDevice.hpp"
 #include "utilities.hpp"
 
 namespace app
@@ -22,12 +23,14 @@ namespace app
         void initVulkan();
         void createInstance();
         void setup_debug_messenger();
+        void pick_physical_device();
         void mainLoop();
         void cleanup();
 
         Window                                          _window;
         utils::Uptr<VulkanInstance>                     _instance;
         utils::Uptr<debug::VulkanDebugMessenger>        _debugger;
+        app::VulkanPhysicalDevice                       _device;
     };
 
 }// namespace app
