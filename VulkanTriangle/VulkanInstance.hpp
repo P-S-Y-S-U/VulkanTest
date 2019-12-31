@@ -9,6 +9,11 @@
 
 namespace app
 {
+	namespace debug
+	{
+		class VulkanDebugMessenger;
+	} // namespace debug;
+
 	class VulkanInstance
 	{
 	public:
@@ -22,8 +27,6 @@ namespace app
 		VulkanInstance& operator=(const VulkanInstance&) noexcept = delete;
 		VulkanInstance& operator=(VulkanInstance&&) noexcept = delete;
 		
-		VkInstance get_instance();
-		const VkInstance get_instance() const;
 		void createInstance();
 		void destroyInstance();
 		
@@ -41,6 +44,9 @@ namespace app
 
 		utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>								_debug_create_info;
 
+		friend class debug::VulkanDebugMessenger;
+		friend class VulkanPhysicalDevice;
+		
 		void setup_application_info(const std::string&);
 		void init();
 

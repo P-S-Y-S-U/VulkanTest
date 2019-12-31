@@ -40,7 +40,7 @@ namespace app
 
 	void VulkanPhysicalDevice::get_physical_devices()
 	{
-		const auto& instance = _vulkan_instance->get_instance();
+		auto& instance = _vulkan_instance->_instance;
 		std::uint32_t devices_count = 0;
 
 		vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );

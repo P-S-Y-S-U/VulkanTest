@@ -20,16 +20,6 @@ namespace app
 		init();
 	}
 	
-	VkInstance VulkanInstance::get_instance()
-	{
-		return _instance;
-	}
-
-	const VkInstance VulkanInstance::get_instance() const
-	{
-		return _instance;
-	}
-
 	void VulkanInstance::createInstance()
 	{
 		// creating Vulkan Instance
