@@ -10,7 +10,11 @@ namespace app
 	{
 	public:
 		VulkanPhysicalDevice(utils::Uptr<VulkanInstance>&);
+		VulkanPhysicalDevice(const VulkanPhysicalDevice&) = delete;
 		~VulkanPhysicalDevice() = default;
+		
+		VulkanPhysicalDevice& operator=(const VulkanPhysicalDevice&) = delete;
+		VulkanPhysicalDevice& operator=(VulkanPhysicalDevice&&) = delete;
 
 		void get_physical_devices();
 	private:
@@ -18,9 +22,15 @@ namespace app
 		VkPhysicalDevice									_device;
 		utils::Sptr<VkPhysicalDeviceFeatures>				_device_features;
 		utils::Sptr<VkPhysicalDeviceProperties>				_device_properties;
-	
+		
+		VulkanPhysicalDevice(utils::Uptr<VulkanInstance>&, VkPhysicalDevice);
+		auto populate_device_properties(VkPhysicalDevice device)->std::pair<utils::Sptr<VkPhysicalDeviceFeatures>, utils::Sptr<VkPhysicalDeviceProperties>>;
+
+
 		bool is_device_suitable(VkPhysicalDevice);
 		void probe_physical_device(VkPhysicalDevice);
+
+		friend class VulkanQueueFamily;
 	};
 
 } // namespace app
