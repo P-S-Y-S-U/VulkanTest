@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="HelloTriangleApplication.cpp" />
+    <ClCompile Include="VulkanLogicalDevice.cpp" />
     <ClCompile Include="VulkanPhysicalDevice.cpp" />
     <ClCompile Include="VulkanDebugMessenger.cpp" />
     <ClCompile Include="VulkanInstance.cpp" />
@@ -156,7 +157,9 @@
     <ClInclude Include="HellloTriangleApplication.hpp" />
     <ClInclude Include="utilities.hpp" />
     <ClInclude Include="VulkanDebugMessenger.hpp" />
+    <ClInclude Include="VulkanLayer.hpp" />
     <ClInclude Include="VulkanInstance.hpp" />
+    <ClInclude Include="VulkanLogicalDevice.hpp" />
     <ClInclude Include="VulkanPhysicalDevice.hpp" />
     <ClInclude Include="VulkanQueueFamily.hpp" />
     <ClInclude Include="window.hpp" />

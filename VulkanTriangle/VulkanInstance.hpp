@@ -12,7 +12,7 @@ namespace app
 	namespace debug
 	{
 		class VulkanDebugMessenger;
-	} // namespace debug;
+	} // namespace app::debug;
 
 	class VulkanInstance
 	{
@@ -30,7 +30,7 @@ namespace app
 		void createInstance();
 		void destroyInstance();
 		
-		const ExtensionContainer validation_layers = ExtensionContainer{ "VK_LAYER_KHRONOS_validation" };
+		//const ExtensionContainer validation_layers = ExtensionContainer{ "VK_LAYER_KHRONOS_validation" };
 #ifdef NDEBUG
 		const bool enable_validation_layer = false;
 #else

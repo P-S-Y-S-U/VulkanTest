@@ -9,27 +9,19 @@ namespace app
 		:_vulkan_instance{vulkan_instance}
 	{}
 
-	VulkanPhysicalDevice::VulkanPhysicalDevice(utils::Uptr<VulkanInstance>& vulkan_instance, VkPhysicalDevice device)
-		:_vulkan_instance{ vulkan_instance }
-		,_device{device}
-	{
-		auto [device_features, device_properties] = populate_device_properties(_device);
-		_device_features = device_features;
-		_device_properties = device_properties;
-	}
-
 	bool VulkanPhysicalDevice::is_device_suitable(VkPhysicalDevice device)
 	{
 		auto [device_features, device_properties] = populate_device_properties(device);
+		auto vk_device = get_temp_device(device);
+		auto queue_family_indices = app::VulkanQueueFamily::find_queue_family(vk_device.get());
 
 		auto is_suitable = [&, device_properties = device_properties, device_features = device_features]() -> bool {
-			auto vk_device = VulkanPhysicalDevice{ _vulkan_instance, device };
 			bool shader = device_properties->deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && device_features->geometryShader;
-			bool queue_family = app::VulkanQueueFamily::find_queue_family(vk_device).is_valid();
+			queue_family_indices = app::VulkanQueueFamily::find_queue_family(vk_device.get());
+			bool queue_family = queue_family_indices.graphics_family.has_value();
 
 			return shader && queue_family;
 		}();
-
 		if ( is_suitable )
 		{
 			_device_features = device_features;
@@ -69,6 +61,17 @@ namespace app
 		{
 			throw std::runtime_error("failed to select compatible vulkan GPU!");
 		}
+	}
+
+	auto VulkanPhysicalDevice::get_temp_device(const VkPhysicalDevice& device) -> utils::Uptr<VulkanPhysicalDevice>
+	{
+		auto temp_device = std::make_unique<VulkanPhysicalDevice>(_vulkan_instance);
+		temp_device->_device = device;
+		auto [device_features, device_properties] = populate_device_properties(temp_device->_device);
+		temp_device->_device_features = device_features;
+		temp_device->_device_properties = device_properties;
+
+		return std::move(temp_device);
 	}
 
 	void VulkanPhysicalDevice::probe_physical_device(VkPhysicalDevice device)

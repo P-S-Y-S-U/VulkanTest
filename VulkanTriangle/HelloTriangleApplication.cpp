@@ -4,8 +4,9 @@ namespace app
 {
     HelloTriangleApplication::HelloTriangleApplication()
         :_window{}
-        , _instance{ std::make_unique<app::VulkanInstance>("Hello Triangle") }
-        ,_device{ _instance }
+        ,_instance{ std::make_unique<app::VulkanInstance>("Hello Triangle") }
+        ,_device{ std::make_unique<VulkanPhysicalDevice>(_instance) }
+        ,_logical_device{ std::make_unique<VulkanLogicalDevice>(_device) }
     {}
 
     void HelloTriangleApplication::run() {
@@ -24,6 +25,7 @@ namespace app
         createInstance();
         setup_debug_messenger();
         pick_physical_device();
+        create_logical_device();
     }
     void HelloTriangleApplication::createInstance()
     {
@@ -37,7 +39,11 @@ namespace app
     }
     void HelloTriangleApplication::pick_physical_device()
     {
-        _device.get_physical_devices();
+        _device->get_physical_devices();
+    }
+    void HelloTriangleApplication::create_logical_device()
+    {
+        _logical_device->create_logical_device();
     }
     void HelloTriangleApplication::mainLoop()
     {
@@ -45,6 +51,7 @@ namespace app
     }
     void HelloTriangleApplication::cleanup()
     {
+        _logical_device->destroy_logical_device();
         if (_instance->enable_validation_layer)
         {
             _debugger->destroy_debug_messenger(_instance, nullptr);

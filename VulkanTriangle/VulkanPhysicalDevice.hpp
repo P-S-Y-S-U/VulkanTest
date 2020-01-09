@@ -23,13 +23,13 @@ namespace app
 		utils::Sptr<VkPhysicalDeviceFeatures>				_device_features;
 		utils::Sptr<VkPhysicalDeviceProperties>				_device_properties;
 		
-		VulkanPhysicalDevice(utils::Uptr<VulkanInstance>&, VkPhysicalDevice);
+		auto get_temp_device(const VkPhysicalDevice&)->utils::Uptr<app::VulkanPhysicalDevice>;
 		auto populate_device_properties(VkPhysicalDevice device)->std::pair<utils::Sptr<VkPhysicalDeviceFeatures>, utils::Sptr<VkPhysicalDeviceProperties>>;
-
 
 		bool is_device_suitable(VkPhysicalDevice);
 		void probe_physical_device(VkPhysicalDevice);
 
+		friend class VulkanLogicalDevice;
 		friend class VulkanQueueFamily;
 	};
 

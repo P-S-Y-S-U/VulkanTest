@@ -20,9 +20,8 @@ namespace app
 		VulkanQueueFamily() = default;
 		~VulkanQueueFamily() = default;
 
-		static QueueFamilyIndex find_queue_family(VulkanPhysicalDevice&);
+		static QueueFamilyIndex find_queue_family(VulkanPhysicalDevice*);
 	};
-	
 } // namespace app
 
 #endif

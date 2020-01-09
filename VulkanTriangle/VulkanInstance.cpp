@@ -1,5 +1,6 @@
 #include "VulkanInstance.hpp"
 #include "VulkanDebugMessenger.hpp"
+#include "VulkanLayer.hpp"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -60,8 +61,8 @@ namespace app
 		
 		if (enable_validation_layer)
 		{
-			_info->enabledLayerCount = static_cast<std::uint32_t>(validation_layers.size());
-			_info->ppEnabledLayerNames = validation_layers.data();
+			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
+			_info->ppEnabledLayerNames = layer::validation_layer.layers.data();
 			_info->pNext = (VkDebugUtilsMessengerCreateInfoEXT*)_debug_create_info.get();
 		}
 		else {
@@ -112,7 +113,7 @@ namespace app
 		vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
 
 		// validating Layer support
-		for (const auto& layer_name : validation_layers)
+		for (const auto& layer_name : layer::validation_layer.layers)
 		{
 			bool layer_found = false;
 

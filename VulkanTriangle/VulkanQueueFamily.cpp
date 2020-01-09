@@ -4,17 +4,17 @@
 namespace app
 {
 	
-	QueueFamilyIndex VulkanQueueFamily::find_queue_family(app::VulkanPhysicalDevice& vulkan_device)
+	QueueFamilyIndex VulkanQueueFamily::find_queue_family(app::VulkanPhysicalDevice* vulkan_device)
 	{
 		auto queue_family_index = QueueFamilyIndex{};
-
+		auto& vulkan_physical_device = vulkan_device->_device;
 		std::uint32_t queue_family_count = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(vulkan_device._device, &queue_family_count, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, nullptr);
 		
 		auto queue_families = std::vector<VkQueueFamilyProperties>{};
 		queue_families.resize(queue_family_count);
 		queue_families.shrink_to_fit();
-		vkGetPhysicalDeviceQueueFamilyProperties(vulkan_device._device, &queue_family_count, queue_families.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(vulkan_physical_device, &queue_family_count, queue_families.data());
 
 		int valid_queues_index = 0;
 
