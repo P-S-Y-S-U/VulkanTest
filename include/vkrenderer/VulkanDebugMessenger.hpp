@@ -2,14 +2,15 @@
 #define APP_VULKAN_DEBUGGER_EXT_HPP
 
 #include <vulkan/vulkan.h>
-#include "utilities.hpp"
-#include "VulkanInstance.hpp"
+#include "utilities/memory.hpp"
+#include "vkrenderer/VulkanInstance.hpp"
+#include "exports.hpp"
 
 namespace app::debug
 {
 	using DebugMsgInfoPtr = utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>;
 	DebugMsgInfoPtr populate_debug_messenger_info();
-	class VulkanDebugMessenger
+	class VULKAN_EXPORTS VulkanDebugMessenger
 	{
 	public:
 		VulkanDebugMessenger();

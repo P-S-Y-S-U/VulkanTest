@@ -1,0 +1,23 @@
+# project files src files list #
+set(PROJECT_SRC_FILES       vkrenderer/VulkanDebugMessenger.cpp
+                            vkrenderer/VulkanInstance.cpp
+                            vkrenderer/VulkanLogicalDevice.cpp 
+                            vkrenderer/VulkanPhysicalDevice.cpp 
+                            vkrenderer/VulkanQueueFamily.cpp
+                            window/window.cpp
+                            )
+
+# library & executable config #
+add_library(vulkanrenderer ${PROJECT_SRC_FILES})
+target_include_directories(vulkanrenderer PUBLIC    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                                                    $<INSTALL_INTERFACE:include>)
+target_link_libraries(vulkanrenderer PUBLIC ${CONAN_TARGETS})                                                
+
+# cmake install config #
+install(TARGETS vulkanrenderer  EXPORT ${_EXPORT_PREFIX}
+                                RUNTIME DESTINATION ${PROJECT_BIN}
+                                LIBRARY DESTINATION ${PROJECT_LIB}
+                                ARCHIVE DESTINATION ${PROJECT_ARCHIVE}
+)
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION ${PROJECT_INSTALL}/include)

@@ -1,12 +1,12 @@
 #ifndef APP_TRIANGLE_HPP
 #define APP_TRIANGLE_HPP
 
-#include "window.hpp"
-#include "VulkanInstance.hpp"
-#include "VulkanDebugMessenger.hpp"
-#include "VulkanPhysicalDevice.hpp"
-#include "VulkanLogicalDevice.hpp"
-#include "utilities.hpp"
+#include "window/window.hpp"
+#include "vkrenderer/VulkanInstance.hpp"
+#include "vkrenderer/VulkanDebugMessenger.hpp"
+#include "vkrenderer/VulkanPhysicalDevice.hpp"
+#include "vkrenderer/VulkanLogicalDevice.hpp"
+#include "utilities/memory.hpp"
 
 namespace app
 {

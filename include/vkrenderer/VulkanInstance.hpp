@@ -5,7 +5,8 @@
 #include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
-#include "utilities.hpp"
+#include "utilities/memory.hpp"
+#include "exports.hpp"
 
 namespace app
 {
@@ -14,7 +15,7 @@ namespace app
 		class VulkanDebugMessenger;
 	} // namespace app::debug;
 
-	class VulkanInstance
+	class VULKAN_EXPORTS VulkanInstance
 	{
 	public:
 		using ExtensionName = const char*;

@@ -2,10 +2,11 @@
 #define APP_WINDOW_HPP
 
 #include <GLFW/glfw3.h>
+#include "exports.hpp"
 
 namespace app
 {
-	class Window
+	class VULKAN_EXPORTS Window
 	{
 	public:
 		explicit Window();

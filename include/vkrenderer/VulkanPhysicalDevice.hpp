@@ -3,10 +3,11 @@
 
 #include <vulkan/vulkan.h>
 #include "VulkanInstance.hpp"
+#include "exports.hpp"
 
 namespace app
 {
-	class VulkanPhysicalDevice
+	class VULKAN_EXPORTS VulkanPhysicalDevice
 	{
 	public:
 		VulkanPhysicalDevice(utils::Uptr<VulkanInstance>&);

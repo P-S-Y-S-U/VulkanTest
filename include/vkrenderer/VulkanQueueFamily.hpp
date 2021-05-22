@@ -3,7 +3,8 @@
 
 #include <optional>
 #include "VulkanPhysicalDevice.hpp"
-#include "utilities.hpp"
+#include "utilities/memory.hpp"
+#include "exports.hpp"
 
 namespace app
 {
@@ -14,7 +15,7 @@ namespace app
 		constexpr bool is_valid() { return graphics_family.has_value(); }
 	};
 
-	class VulkanQueueFamily
+	class VULKAN_EXPORTS VulkanQueueFamily
 	{
 	public:
 		VulkanQueueFamily() = default;

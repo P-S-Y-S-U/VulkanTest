@@ -4,10 +4,11 @@
 #include "vulkan/vulkan.h"
 #include "VulkanPhysicalDevice.hpp"
 #include "VulkanQueueFamily.hpp"
+#include "exports.hpp"
 
 namespace app
 {
-	class VulkanLogicalDevice
+	class VULKAN_EXPORTS VulkanLogicalDevice
 	{
 	public:
 		explicit VulkanLogicalDevice(utils::Uptr<VulkanPhysicalDevice>&);
