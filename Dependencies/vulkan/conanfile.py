@@ -4,7 +4,7 @@ from conans.errors import ConanInvalidConfiguration
 
 class VulkanConan(ConanFile):
     name = "vulkan"
-    version = "1.2.176.1"
+    version = "1.3.216.0"
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 
@@ -24,5 +24,5 @@ class VulkanConan(ConanFile):
         self.copy("vulkan-1.lib", dst="lib", src=f"{vulkan_sdk}/Lib")
 
     def package_info(self):
-        self.cpp_info.libs = ['vulkan-1']
+        self.cpp_info.libs = tools.collect_libs(self)
         self.output.info(f"Libs : {self.cpp_info.libs}")

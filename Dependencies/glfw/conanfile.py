@@ -4,7 +4,7 @@ from conans.errors import ConanInvalidConfiguration
 
 class GLFWConan(ConanFile):
     name = "glfw"
-    version = "3.3.4"
+    version = "3.3.8"
     license = "MIT"
     url = "https://github.com/glfw/glfw"
     description = "A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input"
@@ -15,7 +15,7 @@ class GLFWConan(ConanFile):
     exports_sources = [f'glfw-{version}/*']
 
     def source(self):
-        tools.get(url=f'https://github.com/glfw/glfw/archive/refs/tags/{self.version}.zip', sha256='19A1048439A35E49F9B48FBE2E42787CFABAE70DF80FFD096B3B553BBD8A09F7')
+        tools.get(url=f'https://github.com/glfw/glfw/archive/refs/tags/{self.version}.zip')
 
     def configure_cmake(self):
         cmake = CMake(self)
@@ -36,8 +36,5 @@ class GLFWConan(ConanFile):
         cmake.install()
         
     def package_info(self):
-        if self.settings.os != 'Windows':
-            self.cpp_info.libs = ['glfw']
-        else:
-            self.cpp_info.libs = ['glfw3dll']
+        self.cpp_info.libs = tools.collect_libs(self)
         self.output.info(f'LIBS : {self.cpp_info.libs}')
