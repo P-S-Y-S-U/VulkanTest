@@ -1,0 +1,2 @@
+add_executable(VulkanContextTest vulkan_context_test.cpp)
+target_link_libraries(VulkanContextTest PUBLIC ${CONAN_TARGETS})

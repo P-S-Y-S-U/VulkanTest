@@ -10,6 +10,12 @@
 *.userosscache
 *.sln.docstates
 
+# User-specific files ( conan )
+source
+build*
+install*
+package
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -341,3 +347,5 @@ healthchecksdb
 
 # vscode config files
 .vscode/
+
+*_info
