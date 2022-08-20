@@ -14,7 +14,7 @@ set(PROJECT_INSTALL ${CMAKE_INSTALL_PREFIX})
 # PROJECT CMAKE SCRIPT REQUIREMENTS (Dependencies cmake script)#
 
 # CONAN SETUP #
-include(${CMAKE_BINARY_DIR}/../conanbuildinfo.cmake)
+include(${CONAN_INSTALL_INFO}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
 # Additional cmake scripts in sub-directory #

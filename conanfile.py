@@ -3,16 +3,16 @@ from conans.errors import ConanInvalidConfiguration
 
 class VulkanRendererConan(ConanFile):
     name = "VulkanRenderer"
-    version = "0.1"
+    version = "0.1.0"
     url = "https://github.com/P-S-Y-S-U/VulkanTest"
     settings = "os", "compiler", "build_type", "arch"
     options = { 'shared':[True, False] }
     default_options = "shared=True"
     generators = [ "cmake", "virtualrunenv" ]
     requires = [
-        "glfw/3.3.4@psy/dev",
+        "glfw/3.3.8@psy/dev",
         "glm/0.9.9.8@psy/dev",
-        "vulkan/1.2.176.1@psy/dev"
+        "vulkan/1.3.216.0@psy/dev"
     ] 
 
     @property
@@ -28,8 +28,9 @@ class VulkanRendererConan(ConanFile):
 
         # CMAKE DEFINITIONS #
         cmake.definitions['BUILD_SHARED_LIBS'] = 'ON' if self.options.shared == True else 'OFF'
+        cmake.definitions["CONAN_INSTALL_INFO"] = self.install_folder
         
-        cmake.configure(source_folder=self.source_folder, build_folder= f'{self.build_folder}/build' )
+        cmake.configure(source_folder=self.source_folder, build_folder=f'{self.build_folder}/build-{self.settings.build_type}' )
         return cmake
 
     def build(self):

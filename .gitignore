@@ -347,3 +347,5 @@ healthchecksdb
 
 # vscode config files
 .vscode/
+
+*_info
