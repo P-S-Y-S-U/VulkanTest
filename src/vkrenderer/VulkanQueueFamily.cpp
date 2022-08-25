@@ -15,7 +15,7 @@ namespace app
 
 		for (const auto& queue_family : queue_families)
 		{
-			if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics ) // TODO check this works in debug mode
+			if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics )
 			{
 				queue_family_index.graphics_family = valid_queues_index;
 			}
