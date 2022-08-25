@@ -24,7 +24,7 @@ namespace app
 	void VulkanInstance::createInstance()
 	{
 		// creating Vulkan Instance
-		if (vkCreateInstance(_info.get(), nullptr, &_instance) != VK_SUCCESS)
+		if (vk::createInstance(_info.get(), nullptr, &_instance) != vk::Result::eSuccess)
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
@@ -39,20 +39,20 @@ namespace app
 
 	void VulkanInstance::setup_application_info(const std::string& app_name)
 	{
-		_app_info = std::make_unique<VkApplicationInfo>();
-		_app_info->sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		_app_info = std::make_unique<vk::ApplicationInfo>();
+		_app_info->sType = vk::StructureType::eApplicationInfo;
 		_app_info->pApplicationName = app_name.c_str();
 		_app_info->applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		_app_info->pEngineName = "No Engine";
 		_app_info->engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		_app_info->apiVersion = VK_API_VERSION_1_0;
+		_app_info->apiVersion = VK_API_VERSION_1_3;
 		_app_info->pNext = nullptr;
 	}
 
 	void VulkanInstance::init()
 	{
-		_info = std::make_unique<VkInstanceCreateInfo>();
-		_info->sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		_info = std::make_unique<vk::InstanceCreateInfo>();
+		_info->sType = vk::StructureType::eInstanceCreateInfo;
 		_info->pApplicationInfo = _app_info.get();
 		
 		_extensions = get_extensions();
@@ -63,7 +63,7 @@ namespace app
 		{
 			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
 			_info->ppEnabledLayerNames = layer::validation_layer.layers.data();
-			_info->pNext = (VkDebugUtilsMessengerCreateInfoEXT*)_debug_create_info.get();
+			_info->pNext = _debug_create_info.get();
 		}
 		else {
 			_info->enabledLayerCount = 0;
@@ -76,11 +76,11 @@ namespace app
 	{
 		// Checking for Vulkan Instance extensions
 		std::uint32_t vulkan_extensions_count = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, nullptr);
-		auto vulkan_extension_properties = std::vector<VkExtensionProperties>{};
+		vk::enumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, nullptr);
+		auto vulkan_extension_properties = std::vector<vk::ExtensionProperties>{};
 		vulkan_extension_properties.resize(vulkan_extensions_count);
 		vulkan_extension_properties.shrink_to_fit();
-		vkEnumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, vulkan_extension_properties.data());
+		vk::enumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, vulkan_extension_properties.data());
 
 		for (auto extension_name : extensions)
 		{
@@ -103,14 +103,14 @@ namespace app
 	{
 		// getting Instance layer properties count
 		std::uint32_t layer_count;
-		vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+		vk::enumerateInstanceLayerProperties(&layer_count, nullptr);
 
-		std::vector<VkLayerProperties> available_layers;
+		std::vector<vk::LayerProperties> available_layers;
 		available_layers.resize(layer_count);
 		available_layers.shrink_to_fit();
 		
 		// Enumerating Insatnce layer properties
-		vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
+		vk::enumerateInstanceLayerProperties(&layer_count, available_layers.data());
 
 		// validating Layer support
 		for (const auto& layer_name : layer::validation_layer.layers)

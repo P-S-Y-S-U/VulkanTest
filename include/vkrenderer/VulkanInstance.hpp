@@ -2,7 +2,7 @@
 #define APP_VULKAN_INSTANCE_HPP
 
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include <string>
 #include <vector>
 #include "utilities/memory.hpp"
@@ -38,12 +38,12 @@ namespace app
 		const bool enable_validation_layer = true;
 #endif // NDEBUG
 	private:
-		VkInstance											_instance;
-		utils::Uptr<VkInstanceCreateInfo>					_info;
-		utils::Uptr<VkApplicationInfo>						_app_info;
+		vk::Instance											_instance;
+		utils::Uptr<vk::InstanceCreateInfo>					_info;
+		utils::Uptr<vk::ApplicationInfo>						_app_info;
 		ExtensionContainer									_extensions;
 
-		utils::Sptr<VkDebugUtilsMessengerCreateInfoEXT>								_debug_create_info;
+		utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>								_debug_create_info;
 
 		friend class debug::VulkanDebugMessenger;
 		friend class VulkanPhysicalDevice;
