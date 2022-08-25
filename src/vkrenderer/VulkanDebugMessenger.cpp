@@ -8,7 +8,7 @@ namespace app::debug
 		_debug_messenger_info = populate_debug_messenger_info();
 	}
 
-	void VulkanDebugMessenger::create_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::create_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
 		if (create_debug_utils_messenger_EXT(vulkan_instance, pAllocator) != VK_SUCCESS)
 		{
@@ -16,41 +16,50 @@ namespace app::debug
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroy_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
 		destroy_debug_utils_messenger_EXT(vulkan_instance, pAllocator);
 	}
 
-	DebugMsgInfoPtr populate_debug_messenger_info()
+	utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populate_debug_messenger_info()
 	{
-		auto debugmessenger_info = std::make_shared<VkDebugUtilsMessengerCreateInfoEXT>();
-		debugmessenger_info->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		debugmessenger_info->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		debugmessenger_info->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		auto debugmessenger_info = std::make_shared<vk::DebugUtilsMessengerCreateInfoEXT>();
+		debugmessenger_info->sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT;
+		debugmessenger_info->messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+		debugmessenger_info->messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 		debugmessenger_info->pfnUserCallback = VulkanDebugMessenger::debugCallback;
 
 		return debugmessenger_info;
 	}
 
-	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
 		auto& instance = vulkan_instance->_instance;
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+		auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
 		if (func != nullptr) {
-			return func(instance, _debug_messenger_info.get(), pAllocator, &_debug_messenger);
+			return func( 
+				instance,
+				reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>( _debug_messenger_info.get() ), 
+				reinterpret_cast<const VkAllocationCallbacks*>( pAllocator ),
+				reinterpret_cast<VkDebugUtilsMessengerEXT*>( &_debug_messenger )
+			);
 		}
 		else {
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const VkAllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
 		auto& instance = vulkan_instance->_instance;
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+		auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT") );
 		if (func != nullptr)
 		{
-			func(instance, _debug_messenger, pAllocator);
+			func(
+				instance, 
+				_debug_messenger, 
+				reinterpret_cast<const VkAllocationCallbacks*>(pAllocator)
+			);
 		}
 	}
 
