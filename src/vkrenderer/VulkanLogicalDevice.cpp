@@ -14,22 +14,19 @@ namespace app
 		populate_device_queue_info();
 		populate_device_features();
 		populate_create_info();
-
-		if (vkCreateDevice(_physical_device->_device, _info.get(), nullptr, &_device))
-		{
-			throw std::runtime_error("failed to create logical device!");
-		}
+		
+		_device = _physical_device->_device.createDevice( *_info );
 		create_queue();
 	}
 	
 	void VulkanLogicalDevice::destroy_logical_device()
 	{
-		vkDestroyDevice(_device, nullptr);
+		_device.destroy();
 	}
 
 	void VulkanLogicalDevice::populate_device_features()
 	{
-		_device_features = std::make_shared<VkPhysicalDeviceFeatures>();
+		_device_features = std::make_shared<vk::PhysicalDeviceFeatures>();
 	}
 
 	void VulkanLogicalDevice::populate_device_queue_info()
@@ -37,8 +34,8 @@ namespace app
 		_queue_family_indices = VulkanQueueFamily::find_queue_family(_physical_device.get());
 		auto& vulkan_physical_device = _physical_device->_device;
 
-		auto queue_create_info = std::make_shared<VkDeviceQueueCreateInfo>();
-		queue_create_info->sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		auto queue_create_info = std::make_shared<vk::DeviceQueueCreateInfo>();
+		queue_create_info->sType = vk::StructureType::eDeviceQueueCreateInfo;
 		queue_create_info->queueFamilyIndex = _queue_family_indices.graphics_family.value();
 		queue_create_info->queueCount = 1;
 
@@ -50,8 +47,8 @@ namespace app
 
 	void VulkanLogicalDevice::populate_create_info()
 	{
-		_info = std::make_shared<VkDeviceCreateInfo>();
-		_info->sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		_info = std::make_shared<vk::DeviceCreateInfo>();
+		_info->sType = vk::StructureType::eDeviceCreateInfo;
 		_info->enabledExtensionCount = 0;
 		_info->pQueueCreateInfos = _device_queue_info.get();
 		_info->queueCreateInfoCount = 1;
@@ -68,6 +65,6 @@ namespace app
 
 	void VulkanLogicalDevice::create_queue()
 	{
-		vkGetDeviceQueue(_device, _queue_family_indices.graphics_family.value(), 0, &_graphics_queue);
+		_graphics_queue = _device.getQueue( _queue_family_indices.graphics_family.value(), 0 );
 	}
 } // namespace app

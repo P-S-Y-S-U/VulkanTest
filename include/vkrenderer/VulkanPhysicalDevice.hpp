@@ -1,7 +1,7 @@
 #ifndef APP_VULKAN_PHYSICAL_DEVICE_HPP
 #define APP_VULKAN_PHYSICAL_DEVICE_HPP
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 #include "VulkanInstance.hpp"
 #include "exports.hpp"
 
@@ -20,15 +20,15 @@ namespace app
 		void get_physical_devices();
 	private:
 		utils::Uptr<VulkanInstance>&						_vulkan_instance;
-		VkPhysicalDevice									_device;
-		utils::Sptr<VkPhysicalDeviceFeatures>				_device_features;
-		utils::Sptr<VkPhysicalDeviceProperties>				_device_properties;
+		vk::PhysicalDevice									_device;
+		utils::Sptr<vk::PhysicalDeviceFeatures>				_device_features;
+		utils::Sptr<vk::PhysicalDeviceProperties>				_device_properties;
 		
-		auto get_temp_device(const VkPhysicalDevice&)->utils::Uptr<app::VulkanPhysicalDevice>;
-		auto populate_device_properties(VkPhysicalDevice device)->std::pair<utils::Sptr<VkPhysicalDeviceFeatures>, utils::Sptr<VkPhysicalDeviceProperties>>;
+		auto get_temp_device(const vk::PhysicalDevice&)->utils::Uptr<app::VulkanPhysicalDevice>;
+		auto populate_device_properties(vk::PhysicalDevice device)->std::pair<utils::Sptr<vk::PhysicalDeviceFeatures>, utils::Sptr<vk::PhysicalDeviceProperties>>;
 
-		bool is_device_suitable(VkPhysicalDevice);
-		void probe_physical_device(VkPhysicalDevice);
+		bool is_device_suitable(vk::PhysicalDevice);
+		void probe_physical_device(vk::PhysicalDevice);
 
 		friend class VulkanLogicalDevice;
 		friend class VulkanQueueFamily;

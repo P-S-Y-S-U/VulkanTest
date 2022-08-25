@@ -9,14 +9,14 @@ namespace app
 		:_vulkan_instance{vulkan_instance}
 	{}
 
-	bool VulkanPhysicalDevice::is_device_suitable(VkPhysicalDevice device)
+	bool VulkanPhysicalDevice::is_device_suitable(vk::PhysicalDevice device)
 	{
 		auto [device_features, device_properties] = populate_device_properties(device);
 		auto vk_device = get_temp_device(device);
 		auto queue_family_indices = app::VulkanQueueFamily::find_queue_family(vk_device.get());
 
 		auto is_suitable = [&, device_properties = device_properties, device_features = device_features]() -> bool {
-			bool shader = device_properties->deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && device_features->geometryShader;
+			bool shader = device_properties->deviceType == vk::PhysicalDeviceType::eDiscreteGpu && device_features->geometryShader;
 			queue_family_indices = app::VulkanQueueFamily::find_queue_family(vk_device.get());
 			bool queue_family = queue_family_indices.graphics_family.has_value();
 
@@ -33,19 +33,13 @@ namespace app
 	void VulkanPhysicalDevice::get_physical_devices()
 	{
 		auto& instance = _vulkan_instance->_instance;
-		std::uint32_t devices_count = 0;
 
-		vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
+		std::vector<vk::PhysicalDevice, std::allocator<vk::PhysicalDevice> > devices = instance.enumeratePhysicalDevices();
 
-		if (devices_count == 0)
+		if (devices.empty())
 		{
 			throw std::runtime_error("no suitable vulkan device found!");
 		}
-
-		auto devices = std::vector<VkPhysicalDevice>{};
-		devices.resize(devices_count);
-		devices.shrink_to_fit();
-		vkEnumeratePhysicalDevices( instance, &devices_count, devices.data() );
 
 		for (const auto& device : devices)
 		{
@@ -53,17 +47,14 @@ namespace app
 			if ( is_device_suitable(device) )
 			{
 				_device = device;
-				break;
+				return;
 			}
 		}
 
-		if (_device == VK_NULL_HANDLE)
-		{
-			throw std::runtime_error("failed to select compatible vulkan GPU!");
-		}
+		throw std::runtime_error("failed to select compatible vulkan GPU!");
 	}
 
-	auto VulkanPhysicalDevice::get_temp_device(const VkPhysicalDevice& device) -> utils::Uptr<VulkanPhysicalDevice>
+	auto VulkanPhysicalDevice::get_temp_device(const vk::PhysicalDevice& device) -> utils::Uptr<VulkanPhysicalDevice>
 	{
 		auto temp_device = std::make_unique<VulkanPhysicalDevice>(_vulkan_instance);
 		temp_device->_device = device;
@@ -74,21 +65,19 @@ namespace app
 		return std::move(temp_device);
 	}
 
-	void VulkanPhysicalDevice::probe_physical_device(VkPhysicalDevice device)
+	void VulkanPhysicalDevice::probe_physical_device(vk::PhysicalDevice device)
 	{
-		auto device_properties = std::make_shared<VkPhysicalDeviceProperties>();
-		//vkGetPhysicalDeviceFeatures(device, device_features.get());
-		vkGetPhysicalDeviceProperties(device, device_properties.get());
+		auto device_properties = std::make_shared<vk::PhysicalDeviceProperties>();
+		device.getProperties( device_properties.get() );
 		std::cout << "Device ID : " << device_properties->deviceID << " Device Name : " << device_properties->deviceName << " Vendor : " << device_properties->vendorID << std::endl;
 	}
 
-	auto VulkanPhysicalDevice::populate_device_properties(VkPhysicalDevice device)->std::pair< utils::Sptr<VkPhysicalDeviceFeatures>,
-																		utils::Sptr<VkPhysicalDeviceProperties> >
+	auto VulkanPhysicalDevice::populate_device_properties(vk::PhysicalDevice device)->std::pair<utils::Sptr<vk::PhysicalDeviceFeatures>, utils::Sptr<vk::PhysicalDeviceProperties>>
 	{
-		auto device_properties = std::make_shared<VkPhysicalDeviceProperties>();
-		auto device_features = std::make_shared<VkPhysicalDeviceFeatures>();
-		vkGetPhysicalDeviceProperties(device, device_properties.get());
-		vkGetPhysicalDeviceFeatures(device, device_features.get());
+		auto device_properties = std::make_shared<vk::PhysicalDeviceProperties>();
+		auto device_features = std::make_shared<vk::PhysicalDeviceFeatures>();
+		device.getProperties( device_properties.get() );
+		device.getFeatures( device_features.get() );
 
 		return std::make_pair(device_features, device_properties);
 	}
