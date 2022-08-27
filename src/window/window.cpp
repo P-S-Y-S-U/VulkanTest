@@ -1,25 +1,30 @@
-#include "window/window.hpp"
+#include "window/window.h"
 
-namespace app
+namespace vkrender
 {
 	Window::Window()
-		:_window{ nullptr }
-		,window_width{ 800 }
-		,window_height{ 600 }
+		:m_pWindow{ nullptr }
+		,m_windowWidth{ 800 }
+		,m_windowHeight{ 600 }
 	{
-		glfwInit();
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	}
+
+	Window::~Window()
+	{
+		destroy();
 	}
 
 	void Window::init()
 	{
-		_window = glfwCreateWindow(window_width, window_height, "Vulkan", nullptr, nullptr );
+		glfwInit();
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
 	}
 
 	void Window::loop()
 	{
-		while ( !glfwWindowShouldClose(_window) )
+		while ( !glfwWindowShouldClose(m_pWindow) )
 		{
 			glfwPollEvents();
 		}
@@ -27,7 +32,10 @@ namespace app
 
 	void Window::destroy()
 	{
-		glfwDestroyWindow(_window);
+		if( m_pWindow )
+		{
+			glfwDestroyWindow(m_pWindow);
+		}
 		glfwTerminate();
 	}
-} // namespace app
+} // namespace vkrender
