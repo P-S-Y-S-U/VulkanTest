@@ -1,11 +1,11 @@
 # project files src files list #
-set(PROJECT_SRC_FILES       vkrenderer/VulkanDebugMessenger.cpp
-                            vkrenderer/VulkanInstance.cpp
-                            vkrenderer/VulkanLogicalDevice.cpp 
-                            vkrenderer/VulkanPhysicalDevice.cpp 
-                            vkrenderer/VulkanQueueFamily.cpp
-                            window/window.cpp
-                            )
+set(PROJECT_SRC_FILES       window/window.cpp
+                            #vkrenderer/VulkanDebugMessenger.cpp
+                            #vkrenderer/VulkanInstance.cpp
+                            #vkrenderer/VulkanLogicalDevice.cpp 
+                            #vkrenderer/VulkanPhysicalDevice.cpp 
+                            #vkrenderer/VulkanQueueFamily.cpp
+)
 
 # library & executable config #
 add_library(vulkanrenderer ${PROJECT_SRC_FILES})
