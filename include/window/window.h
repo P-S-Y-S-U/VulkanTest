@@ -21,16 +21,19 @@ namespace vkrender
 		Window& operator=(Window&&) noexcept = delete;
 
 		void init();
-		void loop();
+		void processEvents();
 		void destroy();
-		
-		std::pair<std::uint32_t, std::uint32_t> getDimensions() const;
+		bool quit() const;
+
+		std::pair<std::uint32_t, std::uint32_t> getDimensions();
 		
 	private:
 		GLFWwindow*		m_pWindow;
 
 		std::uint32_t	m_windowWidth;
 		std::uint32_t	m_windowHeight;
+
+		bool m_bQuit;
 	};
 
 } // namespace vkrender

@@ -6,6 +6,7 @@ namespace vkrender
 		:m_pWindow{ nullptr }
 		,m_windowWidth{ 800 }
 		,m_windowHeight{ 600 }
+		,m_bQuit{ false }
 	{
 	}
 
@@ -22,9 +23,11 @@ namespace vkrender
 		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
 	}
 
-	void Window::loop()
+	void Window::processEvents()
 	{
-		while ( !glfwWindowShouldClose(m_pWindow) )
+		m_bQuit = glfwWindowShouldClose(m_pWindow);
+
+		if( !m_bQuit )
 		{
 			glfwPollEvents();
 		}
@@ -38,4 +41,15 @@ namespace vkrender
 		}
 		glfwTerminate();
 	}
+
+	bool Window::quit() const 
+	{
+		return m_bQuit;
+	}
+
+	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() 
+	{
+		return std::pair{ m_windowWidth, m_windowHeight };
+	}
+
 } // namespace vkrender

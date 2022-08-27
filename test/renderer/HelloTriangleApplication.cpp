@@ -50,7 +50,7 @@ namespace app
     }
     void HelloTriangleApplication::mainLoop()
     {
-        _window.loop();
+        _window.processEvents();
     }
     void HelloTriangleApplication::cleanup()
     {
