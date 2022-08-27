@@ -70,6 +70,12 @@ namespace vkrender
 		m_upInstanceCreateInfo->pApplicationInfo = m_upApplicationInfo.get();
 		
 		m_extensionContainer = Window::populateAvailableExtensions();
+
+		if( ENABLE_VALIDATION_LAYER )
+		{
+			m_extensionContainer.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+		
 		m_upInstanceCreateInfo->enabledExtensionCount = static_cast<std::uint32_t>(m_extensionContainer.size());
 		m_upInstanceCreateInfo->ppEnabledExtensionNames = m_extensionContainer.data();
 		

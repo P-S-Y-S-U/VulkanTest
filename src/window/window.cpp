@@ -63,12 +63,6 @@ namespace vkrender
 
 		std::vector<const char*> extensionContainer( extensionNames, extensionNames + extensionCount );
 
-		if( VulkanInstance::ENABLE_VALIDATION_LAYER )
-		{
-			extensionContainer.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
-		extensionContainer.shrink_to_fit();
-
 		return extensionContainer;
 	}
 } // namespace vkrender
