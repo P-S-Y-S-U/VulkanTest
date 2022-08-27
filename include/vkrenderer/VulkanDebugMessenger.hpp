@@ -1,14 +1,13 @@
-#ifndef APP_VULKAN_DEBUGGER_EXT_HPP
-#define APP_VULKAN_DEBUGGER_EXT_HPP
+#ifndef VKRENDER_VULKAN_DEBUGGER_EXT_HPP
+#define VKRENDER_VULKAN_DEBUGGER_EXT_HPP
 
 #include <vulkan/vulkan.hpp>
 #include "utilities/memory.hpp"
-#include "vkrenderer/VulkanInstance.hpp"
+#include "vkrenderer/VulkanInstance.h"
 #include "exports.hpp"
 
-namespace app::debug
+namespace vkrender
 {
-	utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populate_debug_messenger_info();
 	class VULKAN_EXPORTS VulkanDebugMessenger
 	{
 	public:
@@ -20,6 +19,7 @@ namespace app::debug
 		VulkanDebugMessenger& operator=(const VulkanDebugMessenger&) = delete;
 		VulkanDebugMessenger& operator=(VulkanDebugMessenger&&) = delete;
 
+		void init(const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo);
 		void create_debug_messenger(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
 		void destroy_debug_messenger(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
 

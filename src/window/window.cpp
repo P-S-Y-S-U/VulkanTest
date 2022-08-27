@@ -1,4 +1,5 @@
 #include "window/window.h"
+#include "vkrenderer/VulkanInstance.h"
 
 namespace vkrender
 {
@@ -52,4 +53,22 @@ namespace vkrender
 		return std::pair{ m_windowWidth, m_windowHeight };
 	}
 
+	std::vector<const char*> Window::populateAvailableExtensions()
+	{
+		glfwInit();
+		
+		std::uint32_t extensionCount = 0;
+		const char** extensionNames;
+		extensionNames = glfwGetRequiredInstanceExtensions( &extensionCount );
+
+		std::vector<const char*> extensionContainer( extensionNames, extensionNames + extensionCount );
+
+		if( VulkanInstance::ENABLE_VALIDATION_LAYER )
+		{
+			extensionContainer.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+		extensionContainer.shrink_to_fit();
+
+		return extensionContainer;
+	}
 } // namespace vkrender

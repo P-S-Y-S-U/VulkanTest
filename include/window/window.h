@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <cstdint>
 #include <utility>
+#include <vector>
 
 #include "exports.hpp"
 
@@ -27,6 +28,7 @@ namespace vkrender
 
 		std::pair<std::uint32_t, std::uint32_t> getDimensions();
 		
+		static std::vector<const char*> populateAvailableExtensions();
 	private:
 		GLFWwindow*		m_pWindow;
 

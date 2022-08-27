@@ -1,11 +1,14 @@
 #include "vkrenderer/VulkanDebugMessenger.hpp"
 #include <iostream>
 
-namespace app::debug
+namespace vkrender
 {
 	VulkanDebugMessenger::VulkanDebugMessenger()
+	{}
+	
+	void VulkanDebugMessenger::init( const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo )
 	{
-		_debug_messenger_info = populate_debug_messenger_info();
+		_debug_messenger_info = pDebugMessengerCreateInfo;
 	}
 
 	void VulkanDebugMessenger::create_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
@@ -21,20 +24,9 @@ namespace app::debug
 		destroy_debug_utils_messenger_EXT(vulkan_instance, pAllocator);
 	}
 
-	utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populate_debug_messenger_info()
-	{
-		auto debugmessenger_info = std::make_shared<vk::DebugUtilsMessengerCreateInfoEXT>();
-		debugmessenger_info->sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT;
-		debugmessenger_info->messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-		debugmessenger_info->messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-		debugmessenger_info->pfnUserCallback = VulkanDebugMessenger::debugCallback;
-
-		return debugmessenger_info;
-	}
-
 	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
-		auto& instance = vulkan_instance->_instance;
+		auto& instance = vulkan_instance->m_instance;
 		auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
 		if (func != nullptr) {
 			return func( 
@@ -51,7 +43,7 @@ namespace app::debug
 
 	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
 	{
-		auto& instance = vulkan_instance->_instance;
+		auto& instance = vulkan_instance->m_instance;
 		auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT") );
 		if (func != nullptr)
 		{

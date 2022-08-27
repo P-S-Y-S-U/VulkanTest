@@ -1,30 +1,42 @@
-#include "vkrenderer/VulkanInstance.hpp"
+#include "vkrenderer/VulkanInstance.h"
 #include "vkrenderer/VulkanDebugMessenger.hpp"
 #include "vkrenderer/VulkanLayer.hpp"
+#include "window/window.h"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
 
-namespace app
+namespace vkrender
 {
-	VulkanInstance::VulkanInstance(const std::string& app_name)
+	VulkanInstance::VulkanInstance(const std::string& applicationName)
+		:m_applicationName{ applicationName }
+	{}
+	
+	VulkanInstance::~VulkanInstance()
 	{
-		if (enable_validation_layer && !check_validation_layer_support())
+		destroyInstance();
+	}
+
+	void VulkanInstance::init( const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo )
+	{
+		if (ENABLE_VALIDATION_LAYER && !checkValidationLayerSupport())
 		{
 			throw std::runtime_error("Validation layers requested, not available");
 		}
-		if (enable_validation_layer)
+		if (ENABLE_VALIDATION_LAYER)
 		{
-			_debug_create_info = debug::populate_debug_messenger_info();
+			m_spDebugMessengerCreateInfo = pDebugMessengerCreateInfo;
 		}
-		setup_application_info(app_name);
-		init();
+
+		populateApplicationInfo();
+		populateInstanceCreateInfo();
+		validateWindowExtensions();
 	}
-	
+
 	void VulkanInstance::createInstance()
 	{
 		// creating Vulkan Instance
-		if (vk::createInstance(_info.get(), nullptr, &_instance) != vk::Result::eSuccess)
+		if (vk::createInstance(m_upInstanceCreateInfo.get(), nullptr, &m_instance) != vk::Result::eSuccess)
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
@@ -33,62 +45,57 @@ namespace app
 
 	void VulkanInstance::destroyInstance()
 	{
-		vkDestroyInstance(_instance, nullptr);
-		_info.reset();
+		vkDestroyInstance(m_instance, nullptr);
+		m_upInstanceCreateInfo.reset();
+		m_upApplicationInfo.reset();
+		m_spDebugMessengerCreateInfo.reset();
 	}
 
-	void VulkanInstance::setup_application_info(const std::string& app_name)
+	void VulkanInstance::populateApplicationInfo()
 	{
-		_app_info = std::make_unique<vk::ApplicationInfo>();
-		_app_info->sType = vk::StructureType::eApplicationInfo;
-		_app_info->pApplicationName = app_name.c_str();
-		_app_info->applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		_app_info->pEngineName = "No Engine";
-		_app_info->engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		_app_info->apiVersion = VK_API_VERSION_1_3;
-		_app_info->pNext = nullptr;
+		m_upApplicationInfo = std::make_unique<vk::ApplicationInfo>();
+		m_upApplicationInfo->sType = vk::StructureType::eApplicationInfo;
+		m_upApplicationInfo->pApplicationName = m_applicationName.c_str();
+		m_upApplicationInfo->applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		m_upApplicationInfo->pEngineName = "No Engine";
+		m_upApplicationInfo->engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		m_upApplicationInfo->apiVersion = VK_API_VERSION_1_3;
+		m_upApplicationInfo->pNext = nullptr;
 	}
 
-	void VulkanInstance::init()
+	void VulkanInstance::populateInstanceCreateInfo()
 	{
-		_info = std::make_unique<vk::InstanceCreateInfo>();
-		_info->sType = vk::StructureType::eInstanceCreateInfo;
-		_info->pApplicationInfo = _app_info.get();
+		m_upInstanceCreateInfo = std::make_unique<vk::InstanceCreateInfo>();
+		m_upInstanceCreateInfo->sType = vk::StructureType::eInstanceCreateInfo;
+		m_upInstanceCreateInfo->pApplicationInfo = m_upApplicationInfo.get();
 		
-		_extensions = get_extensions();
-		_info->enabledExtensionCount = static_cast<std::uint32_t>(_extensions.size());
-		_info->ppEnabledExtensionNames = _extensions.data();
+		m_extensionContainer = Window::populateAvailableExtensions();
+		m_upInstanceCreateInfo->enabledExtensionCount = static_cast<std::uint32_t>(m_extensionContainer.size());
+		m_upInstanceCreateInfo->ppEnabledExtensionNames = m_extensionContainer.data();
 		
-		if (enable_validation_layer)
+		if (ENABLE_VALIDATION_LAYER)
 		{
-			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
-			_info->ppEnabledLayerNames = layer::validation_layer.layers.data();
-			_info->pNext = _debug_create_info.get();
+			m_upInstanceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
+			m_upInstanceCreateInfo->ppEnabledLayerNames = layer::validation_layer.layers.data();
+			m_upInstanceCreateInfo->pNext = m_spDebugMessengerCreateInfo.get();
 		}
 		else {
-			_info->enabledLayerCount = 0;
+			m_upInstanceCreateInfo->enabledLayerCount = 0;
 		}
-
-		validate_glfw_extensions(_extensions);
 	}
 
-	void VulkanInstance::validate_glfw_extensions(VulkanInstance::ExtensionContainer& extensions)
+	void VulkanInstance::validateWindowExtensions()
 	{
 		// Checking for Vulkan Instance extensions
-		std::uint32_t vulkan_extensions_count = 0;
-		vk::enumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, nullptr);
-		auto vulkan_extension_properties = std::vector<vk::ExtensionProperties>{};
-		vulkan_extension_properties.resize(vulkan_extensions_count);
-		vulkan_extension_properties.shrink_to_fit();
-		vk::enumerateInstanceExtensionProperties(nullptr, &vulkan_extensions_count, vulkan_extension_properties.data());
+		std::vector<vk::ExtensionProperties> vulkanExtensionProperties = vk::enumerateInstanceExtensionProperties( nullptr );
 
-		for (auto extension_name : extensions)
+		for (auto extensionName : m_extensionContainer)
 		{
 			bool found = false;
-			for (const auto& vulkan_extension : vulkan_extension_properties)
+			for (const auto& vulkanExtension : vulkanExtensionProperties)
 			{
-				if (std::strcmp(extension_name, vulkan_extension.extensionName) == 0) {
-					std::cout << extension_name << " Extension found" << std::endl;
+				if (std::strcmp(extensionName, vulkanExtension.extensionName) == 0) {
+					std::cout << "\t" <<  extensionName << " Extension found" << std::endl;
 					found = true;
 				}
 			}
@@ -99,7 +106,7 @@ namespace app
 		}
 	}
 
-	bool VulkanInstance::check_validation_layer_support()
+	bool VulkanInstance::checkValidationLayerSupport()
 	{
 		// getting Instance layer properties count
 		std::uint32_t layer_count;
@@ -130,22 +137,4 @@ namespace app
 		return true;
 	}
 
-	auto VulkanInstance::get_extensions() -> VulkanInstance::ExtensionContainer
-	{
-		std::uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-		ExtensionContainer extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-		
-		if (enable_validation_layer)
-		{
-			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		}
-		
-		extensions.shrink_to_fit();
-		
-		return extensions;
-	}
 } // namespace appp

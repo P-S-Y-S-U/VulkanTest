@@ -32,7 +32,7 @@ namespace app
 
 	void VulkanPhysicalDevice::get_physical_devices()
 	{
-		auto& instance = _vulkan_instance->_instance;
+		auto& instance = _vulkan_instance->m_instance;
 
 		std::vector<vk::PhysicalDevice, std::allocator<vk::PhysicalDevice> > devices = instance.enumeratePhysicalDevices();
 

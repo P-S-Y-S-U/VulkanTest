@@ -53,7 +53,7 @@ namespace app
 		_info->pQueueCreateInfos = _device_queue_info.get();
 		_info->queueCreateInfoCount = 1;
 		_info->pEnabledFeatures = _device_features.get();
-		if (enable_validation_layer)
+		if (ENABLE_VALIDATION_LAYER)
 		{
 			_info->ppEnabledLayerNames = layer::validation_layer.layers.data();
 			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());

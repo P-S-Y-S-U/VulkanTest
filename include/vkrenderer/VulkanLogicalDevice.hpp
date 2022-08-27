@@ -17,9 +17,9 @@ namespace app
 		void create_logical_device();
 		void destroy_logical_device();
 #if NDEBUG
-		const bool enable_validation_layer = false;
+		const bool ENABLE_VALIDATION_LAYER = false;
 #else
-		const bool enable_validation_layer = true;
+		const bool ENABLE_VALIDATION_LAYER = true;
 #endif // NDEBUG
 	private:
 		vk::Device								_device;
