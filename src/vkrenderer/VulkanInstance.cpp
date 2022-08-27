@@ -75,8 +75,8 @@ namespace vkrender
 		
 		if (ENABLE_VALIDATION_LAYER)
 		{
-			m_upInstanceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
-			m_upInstanceCreateInfo->ppEnabledLayerNames = layer::validation_layer.layers.data();
+			m_upInstanceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.layers.size());
+			m_upInstanceCreateInfo->ppEnabledLayerNames = layer::VALIDATION_LAYER.layers.data();
 			m_upInstanceCreateInfo->pNext = m_spDebugMessengerCreateInfo.get();
 		}
 		else {
@@ -120,7 +120,7 @@ namespace vkrender
 		vk::enumerateInstanceLayerProperties(&layer_count, available_layers.data());
 
 		// validating Layer support
-		for (const auto& layer_name : layer::validation_layer.layers)
+		for (const auto& layer_name : layer::VALIDATION_LAYER.layers)
 		{
 			bool layer_found = false;
 

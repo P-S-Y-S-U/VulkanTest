@@ -1,18 +1,20 @@
-#ifndef APP_VULKAN_EXTENSIONS_HPP
-#define APP_VULKAN_EXTENSIONS_HPP
+#ifndef VKRENDER_VULKAN_EXTENSIONS_HPP
+#define VKRENDER_VULKAN_EXTENSIONS_HPP
 
 #include <initializer_list>
 #include <vector>
 
-namespace app
+namespace vkrender
 {
 	struct VulkanLayer
 	{
 	public:
 		enum class name { VK_KHR_VALIDATION };
+		
 		using Layer = const char*;
 		using LayerContainer = std::vector<Layer>;
-		VulkanLayer(const std::initializer_list<name>& layer_names)
+		
+		explicit VulkanLayer(const std::initializer_list<name>& layer_names)
 		{
 			append(layer_names);
 		}
@@ -39,8 +41,8 @@ namespace app
 
 	namespace layer
 	{
-	const auto validation_layer = VulkanLayer{ VulkanLayer::name::VK_KHR_VALIDATION };
+		const VulkanLayer VALIDATION_LAYER{ VulkanLayer::name::VK_KHR_VALIDATION };
 	}
-} // namespace app
+} // namespace vkrender
 
-#endif // !APP_VULKAN_EXTENSIONS_HPP
+#endif
