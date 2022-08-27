@@ -19,4 +19,4 @@ conan_basic_setup(TARGETS)
 
 # Additional cmake scripts in sub-directory #
 add_subdirectory(src)
-add_subdirectory(test)
+# add_subdirectory(test) REMOVED_FOR_NOW

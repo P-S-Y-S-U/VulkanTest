@@ -1,5 +1,5 @@
-#ifndef VKRENDER_VULKAN_DEBUGGER_EXT_HPP
-#define VKRENDER_VULKAN_DEBUGGER_EXT_HPP
+#ifndef VKRENDER_VULKAN_DEBUGGER_EXT_H
+#define VKRENDER_VULKAN_DEBUGGER_EXT_H
 
 #include <vulkan/vulkan.hpp>
 #include "utilities/memory.hpp"
@@ -14,29 +14,30 @@ namespace vkrender
 		VulkanDebugMessenger();
 		VulkanDebugMessenger(const VulkanDebugMessenger&) = delete;
 		VulkanDebugMessenger(VulkanDebugMessenger&&) = delete;
-		~VulkanDebugMessenger() = default;
+		~VulkanDebugMessenger();
 
 		VulkanDebugMessenger& operator=(const VulkanDebugMessenger&) = delete;
 		VulkanDebugMessenger& operator=(VulkanDebugMessenger&&) = delete;
 
 		void init(const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo);
-		void create_debug_messenger(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
-		void destroy_debug_messenger(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
+		void createDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB );
+		void destroyDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB );
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 			VkDebugUtilsMessageTypeFlagsEXT messageType,
 			const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-			void* pUserData);
+			void* pUserData
+		);
 	private:
-		vk::DebugUtilsMessengerEXT	_debug_messenger;
-		utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>				_debug_messenger_info;
+		vk::DebugUtilsMessengerEXT	m_debugMessenger;
+		utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>	m_spDebugMessengerCreateInfo;
 
-		VkResult create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
-		void destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>&, const vk::AllocationCallbacks*);
+		VkResult createDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB );
+		void destroyDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB );
 	};
 
-} // namespace app::debug
+} // namespace vkrender
 
 #endif
 

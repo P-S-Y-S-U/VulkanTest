@@ -2,7 +2,7 @@
 #define APP_VULKAN_PHYSICAL_DEVICE_HPP
 
 #include <vulkan/vulkan.hpp>
-#include "VulkanInstance.hpp"
+#include "VulkanInstance.h"
 #include "exports.hpp"
 
 namespace app

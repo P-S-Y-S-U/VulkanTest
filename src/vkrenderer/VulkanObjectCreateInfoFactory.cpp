@@ -1,5 +1,5 @@
 #include "vkrenderer/VulkanObjectCreateInfoFactory.h"
-#include "vkrenderer/VulkanDebugMessenger.hpp"
+#include "vkrenderer/VulkanDebugMessenger.h"
 
 namespace vkrender
 {
