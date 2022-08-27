@@ -4,7 +4,7 @@
 namespace vkrender
 {
 
-utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populateDebugMessengerCreateInfoExt()
+utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> VulkanObjectCreateInfoFactory::populateDebugMessengerCreateInfoExt()
 {
 	utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> debugMessengerInfo = std::make_shared<vk::DebugUtilsMessengerCreateInfoEXT>();
 	debugMessengerInfo->sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT;

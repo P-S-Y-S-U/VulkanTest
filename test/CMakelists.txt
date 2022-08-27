@@ -1,2 +1,2 @@
-add_subdirectory(renderer)
+#add_subdirectory(renderer) REMOVED_FOR_NOW
 add_subdirectory(vulkan)

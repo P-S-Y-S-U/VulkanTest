@@ -6,6 +6,9 @@ namespace vkrender
 	VulkanDebugMessenger::VulkanDebugMessenger()
 	{}
 	
+	VulkanDebugMessenger::~VulkanDebugMessenger()
+	{}
+
 	void VulkanDebugMessenger::init( const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo )
 	{
 		m_spDebugMessengerCreateInfo = pDebugMessengerCreateInfo;
