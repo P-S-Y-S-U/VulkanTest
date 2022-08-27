@@ -1,5 +1,5 @@
-#ifndef APP_EXPORTS_HPP
-#define APP_EXPORTS_HPP
+#ifndef VKRENDER_EXPORTS_HPP
+#define VKRENDER_EXPORTS_HPP
 
 #ifdef WIN32
     #ifdef vulkanrenderer_EXPORTS
