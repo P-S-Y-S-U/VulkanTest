@@ -75,8 +75,8 @@ namespace vkrender
 		
 		if (ENABLE_VALIDATION_LAYER)
 		{
-			m_upInstanceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.layers.size());
-			m_upInstanceCreateInfo->ppEnabledLayerNames = layer::VALIDATION_LAYER.layers.data();
+			m_upInstanceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.m_layers.size());
+			m_upInstanceCreateInfo->ppEnabledLayerNames = layer::VALIDATION_LAYER.m_layers.data();
 			m_upInstanceCreateInfo->pNext = m_spDebugMessengerCreateInfo.get();
 		}
 		else {
@@ -108,30 +108,22 @@ namespace vkrender
 
 	bool VulkanInstance::checkValidationLayerSupport()
 	{
-		// getting Instance layer properties count
-		std::uint32_t layer_count;
-		vk::enumerateInstanceLayerProperties(&layer_count, nullptr);
-
-		std::vector<vk::LayerProperties> available_layers;
-		available_layers.resize(layer_count);
-		available_layers.shrink_to_fit();
-		
 		// Enumerating Insatnce layer properties
-		vk::enumerateInstanceLayerProperties(&layer_count, available_layers.data());
+		std::vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
 
 		// validating Layer support
-		for (const auto& layer_name : layer::VALIDATION_LAYER.layers)
+		for (const auto& layerName : layer::VALIDATION_LAYER.m_layers)
 		{
-			bool layer_found = false;
+			bool bLayerFound = false;
 
-			for (const auto& layer_properties : available_layers)
+			for (const auto& layerProperties : availableLayers)
 			{
-				if (strcmp(layer_name, layer_properties.layerName) == 0)
+				if (strcmp(layerName, layerProperties.layerName) == 0)
 				{
-					layer_found = true;
+					bLayerFound = true;
 				}
 			}
-			if (!layer_found) { return false;  }
+			if (!bLayerFound) { return false;  }
 		}
 
 		return true;

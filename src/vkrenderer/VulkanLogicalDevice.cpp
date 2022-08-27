@@ -55,8 +55,8 @@ namespace app
 		_info->pEnabledFeatures = _device_features.get();
 		if (ENABLE_VALIDATION_LAYER)
 		{
-			_info->ppEnabledLayerNames = layer::VALIDATION_LAYER.layers.data();
-			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.layers.size());
+			_info->ppEnabledLayerNames = layer::VALIDATION_LAYER.m_layers.data();
+			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.m_layers.size());
 		}
 		else {
 			_info->enabledLayerCount = 0;

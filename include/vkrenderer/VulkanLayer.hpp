@@ -20,7 +20,7 @@ namespace vkrender
 		}
 		~VulkanLayer() = default;	
 
-		LayerContainer layers;
+		LayerContainer m_layers;
 	private:
 		void append(const std::initializer_list<name>& layer_names)
 		{
@@ -29,13 +29,13 @@ namespace vkrender
 				switch (layer)
 				{
 				case name::VK_KHR_VALIDATION:
-					layers.push_back("VK_LAYER_KHRONOS_validation");
+					m_layers.push_back("VK_LAYER_KHRONOS_validation");
 					break;
 				default:
 					break;
 				}
 			}
-			layers.shrink_to_fit();
+			m_layers.shrink_to_fit();
 		}
 	};
 
