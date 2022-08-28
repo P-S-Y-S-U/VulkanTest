@@ -18,7 +18,6 @@ int main(int argc, const char* argv[])
 
     // debugMessenger should be destroyed before deleteing VulkanInstance
     // Should throw error message by Validation Layer if DebugMessengerExt is setup properly
-    instance.destroyInstance();
 
     return 0;
 }

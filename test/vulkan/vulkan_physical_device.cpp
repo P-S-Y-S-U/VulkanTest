@@ -27,7 +27,5 @@ int main(int argc, const char* argv[])
 
     debugMessenger.destroyDebugMessenger( &instance, nullptr );
     
-    instance.destroyInstance();
-
     return 0;
 }
