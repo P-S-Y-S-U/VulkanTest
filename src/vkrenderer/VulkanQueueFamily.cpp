@@ -1,29 +1,27 @@
-#include "vkrenderer/VulkanQueueFamily.hpp"
+#include "vkrenderer/VulkanQueueFamily.h"
 #include <vector>
 
-namespace app
+namespace vkrender
 {
-	
-	QueueFamilyIndex VulkanQueueFamily::find_queue_family(app::VulkanPhysicalDevice* vulkan_device)
+	QueueFamilyIndices VulkanQueueFamily::findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice )
 	{
-		auto queue_family_index = QueueFamilyIndex{};
-		auto& vulkan_physical_device = vulkan_device->_device;
+		QueueFamilyIndices queueFamilyIndices;
+		vk::PhysicalDevice* pDeviceHandle = physicalDevice.m_pDeviceHandle;
 
-		std::vector<vk::QueueFamilyProperties> queue_families = vulkan_device->_device.getQueueFamilyProperties();
+		std::vector<vk::QueueFamilyProperties> queueFamilyProperties = pDeviceHandle->getQueueFamilyProperties();
 		
-		int valid_queues_index = 0;
+		int validQueueIndex = 0;
 
-		for (const auto& queue_family : queue_families)
+		for (const auto& prop : queueFamilyProperties)
 		{
-			if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics )
+			if (prop.queueFlags & vk::QueueFlagBits::eGraphics )
 			{
-				queue_family_index.graphics_family = valid_queues_index;
+				queueFamilyIndices.m_graphicsFamily = validQueueIndex;
 			}
 
-			if (queue_family_index.is_valid()) { break; }
-			valid_queues_index++;
+			validQueueIndex++;
 		}
 
-		return queue_family_index;
+		return queueFamilyIndices;
 	}
-} // namespace app
+} // namespace vkrender

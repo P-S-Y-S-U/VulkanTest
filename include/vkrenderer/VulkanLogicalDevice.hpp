@@ -27,7 +27,7 @@ namespace app
 		utils::Sptr<vk::PhysicalDeviceFeatures>	_device_features;
 		utils::Sptr<vk::DeviceQueueCreateInfo>	_device_queue_info;
 		utils::Sptr<vk::DeviceCreateInfo>			_info;
-		QueueFamilyIndex						_queue_family_indices;
+		QueueFamilyIndices						_queue_family_indices;
 		vk::Queue									_graphics_queue;
 		
 		void populate_device_queue_info();

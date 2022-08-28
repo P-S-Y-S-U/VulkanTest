@@ -42,7 +42,7 @@ namespace app
     }
     void HelloTriangleApplication::pick_physical_device()
     {
-        _device->get_physical_devices();
+        _device->getPhysicalDevices();
     }
     void HelloTriangleApplication::create_logical_device()
     {

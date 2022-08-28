@@ -31,12 +31,12 @@ namespace app
 
 	void VulkanLogicalDevice::populate_device_queue_info()
 	{
-		_queue_family_indices = VulkanQueueFamily::find_queue_family(_physical_device.get());
+		_queue_family_indices = VulkanQueueFamily::findQueueFamilyIndices(_physical_device.get());
 		auto& vulkan_physical_device = _physical_device->_device;
 
 		auto queue_create_info = std::make_shared<vk::DeviceQueueCreateInfo>();
 		queue_create_info->sType = vk::StructureType::eDeviceQueueCreateInfo;
-		queue_create_info->queueFamilyIndex = _queue_family_indices.graphics_family.value();
+		queue_create_info->queueFamilyIndex = _queue_family_indices.m_graphicsFamily.value();
 		queue_create_info->queueCount = 1;
 
 		float queue_priority = 1.0f;
@@ -65,6 +65,6 @@ namespace app
 
 	void VulkanLogicalDevice::create_queue()
 	{
-		_graphics_queue = _device.getQueue( _queue_family_indices.graphics_family.value(), 0 );
+		_graphics_queue = _device.getQueue( _queue_family_indices.m_graphicsFamily.value(), 0 );
 	}
 } // namespace app
