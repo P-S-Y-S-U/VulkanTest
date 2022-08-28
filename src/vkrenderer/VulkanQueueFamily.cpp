@@ -6,9 +6,9 @@ namespace vkrender
 	QueueFamilyIndices VulkanQueueFamily::findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice )
 	{
 		QueueFamilyIndices queueFamilyIndices;
-		vk::PhysicalDevice* pDeviceHandle = physicalDevice.m_pDeviceHandle;
+		const vk::PhysicalDevice& deviceHandle = physicalDevice.m_deviceHandle;
 
-		std::vector<vk::QueueFamilyProperties> queueFamilyProperties = pDeviceHandle->getQueueFamilyProperties();
+		std::vector<vk::QueueFamilyProperties> queueFamilyProperties = deviceHandle.getQueueFamilyProperties();
 		
 		int validQueueIndex = 0;
 

@@ -16,6 +16,8 @@ namespace vkrender
         using DeviceCapabilitiesPair = std::pair<utils::Sptr<vk::PhysicalDeviceProperties>, utils::Sptr<vk::PhysicalDeviceFeatures>>;
 
         VulkanPhysicalDeviceManager( VulkanInstance* pInstance );
+        VulkanPhysicalDeviceManager(const VulkanPhysicalDeviceManager&) = delete;
+        VulkanPhysicalDeviceManager& operator=(const VulkanPhysicalDeviceManager&) = delete;
         ~VulkanPhysicalDeviceManager();
 
         VulkanPhysicalDevice* CreateSuitableDevice();
@@ -26,11 +28,11 @@ namespace vkrender
 
         std::vector<vk::PhysicalDevice, std::allocator<vk::PhysicalDevice>> getAvailableDevices();
 
-        VulkanPhysicalDevice&& createTemporaryDevice( vk::PhysicalDevice* pDeviceHandle );
+        VulkanPhysicalDevice createTemporaryDevice( vk::PhysicalDevice& deviceHandle );
         bool isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice );
 
         void probePhysicalDeviceHandle(const vk::PhysicalDevice& deviceHandle );
-        DeviceCapabilitiesPair populateDeviceProperties( vk::PhysicalDevice* pDeviceHandle );
+        DeviceCapabilitiesPair populateDeviceProperties( vk::PhysicalDevice& deviceHandle );
     }; 
 } // namespace vkrender
 

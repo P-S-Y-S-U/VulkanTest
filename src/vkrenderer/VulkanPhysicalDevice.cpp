@@ -5,9 +5,9 @@
 
 namespace vkrender
 {
-	VulkanPhysicalDevice::VulkanPhysicalDevice( VulkanInstance* pVulkanInstance, vk::PhysicalDevice* pPhysicalDeviceHandle )
+	VulkanPhysicalDevice::VulkanPhysicalDevice( VulkanInstance* pVulkanInstance, const vk::PhysicalDevice& pPhysicalDeviceHandle )
 		:m_pVulkanInstance{ pVulkanInstance }
-		,m_pDeviceHandle{ pPhysicalDeviceHandle }
+		,m_deviceHandle{ pPhysicalDeviceHandle }
 	{}
 
 } // namespace app

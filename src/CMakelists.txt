@@ -3,6 +3,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanInstance.cpp
                             vkrenderer/VulkanObjectCreateInfoFactory.cpp
                             vkrenderer/VulkanDebugMessenger.cpp
+                            vkrenderer/VulkanPhysicalDeviceManager.cpp 
                             vkrenderer/VulkanPhysicalDevice.cpp 
                             vkrenderer/VulkanQueueFamily.cpp
                             #vkrenderer/VulkanLogicalDevice.cpp 

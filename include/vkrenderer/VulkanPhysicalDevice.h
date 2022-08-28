@@ -10,20 +10,21 @@ namespace vkrender
 	class VULKAN_EXPORTS VulkanPhysicalDevice
 	{
 	public:
-		VulkanPhysicalDevice(const VulkanPhysicalDevice&) = delete;
+		VulkanPhysicalDevice(const VulkanPhysicalDevice&) = default;
 		VulkanPhysicalDevice(VulkanPhysicalDevice&&) noexcept = default;
-		VulkanPhysicalDevice& operator=(const VulkanPhysicalDevice&) = delete;
+		VulkanPhysicalDevice& operator=(const VulkanPhysicalDevice&) = default;
 		VulkanPhysicalDevice& operator=(VulkanPhysicalDevice&&) noexcept = default;
 		~VulkanPhysicalDevice() = default;
 
 	private:
 		VulkanPhysicalDevice(
 			VulkanInstance* pVulkanInstance, 
-			vk::PhysicalDevice* pPhysicalDeviceHandle 
+			const vk::PhysicalDevice& pPhysicalDeviceHandle 
 		);
 
 		VulkanInstance*		m_pVulkanInstance;
-		vk::PhysicalDevice*	m_pDeviceHandle;
+		vk::PhysicalDevice	m_deviceHandle;
+
 		utils::Sptr<vk::PhysicalDeviceFeatures>		m_spDeviceFeatures;
 		utils::Sptr<vk::PhysicalDeviceProperties>	m_spDeviceProperties;
 		
@@ -33,5 +34,6 @@ namespace vkrender
 		friend class VulkanPhysicalDeviceManager;
 	};
 
-} // namespace app
+} // namespace vkrender
+
 #endif

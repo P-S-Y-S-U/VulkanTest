@@ -24,11 +24,11 @@ namespace vkrender
         for( auto& deviceHandle : devices )
         {
             probePhysicalDeviceHandle( deviceHandle );
-            VulkanPhysicalDevice&& temporaryDevice( createTemporaryDevice( &deviceHandle ) );
+            VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle ) );
 
             if( isDeviceSuitable( temporaryDevice ) )
             {
-                utils::Uptr<VulkanPhysicalDevice> upPhysicalDevice = std::make_unique<VulkanPhysicalDevice>( std::move(temporaryDevice) );
+                auto upPhysicalDevice = std::make_unique<VulkanPhysicalDevice>(temporaryDevice);
                 VulkanPhysicalDevice* pPhysicalDevice = upPhysicalDevice.get();
                 m_ActiveDevices.push_back( std::move(upPhysicalDevice) );
 
@@ -42,7 +42,7 @@ namespace vkrender
 
     void VulkanPhysicalDeviceManager::probePhysicalDevice( const VulkanPhysicalDevice& physicalDevice )
     {
-        probePhysicalDeviceHandle( *physicalDevice.m_pDeviceHandle );
+        probePhysicalDeviceHandle( physicalDevice.m_deviceHandle) ;
     }
 
     std::vector<vk::PhysicalDevice, std::allocator<vk::PhysicalDevice>> VulkanPhysicalDeviceManager::getAvailableDevices()
@@ -50,15 +50,15 @@ namespace vkrender
         return m_pInstance->m_instance.enumeratePhysicalDevices();
     }
 
-    VulkanPhysicalDevice&& VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice* pDeviceHandle )
+    VulkanPhysicalDevice VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice& deviceHandle )
     {
-       VulkanPhysicalDevice pTemporaryDevice{ m_pInstance, pDeviceHandle };
+        VulkanPhysicalDevice temporaryDevice{ m_pInstance, deviceHandle };
         
-        auto&& [pDeviceProperties, pDeviceFeatures] = populateDeviceProperties( pDeviceHandle );
-        pTemporaryDevice.m_spDeviceProperties = pDeviceProperties;
-        pTemporaryDevice.m_spDeviceFeatures = pDeviceFeatures;
+        auto&& [pDeviceProperties, pDeviceFeatures] = populateDeviceProperties( deviceHandle );
+        temporaryDevice.m_spDeviceProperties = pDeviceProperties;
+        temporaryDevice.m_spDeviceFeatures = pDeviceFeatures;
 
-        return std::move( pTemporaryDevice );
+        return temporaryDevice;
     }
 
     bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice )
@@ -79,13 +79,13 @@ namespace vkrender
         std::cout << "Device ID : " << deviceProperties.deviceID << " Device Name : " << deviceProperties.deviceName << " Vendor : " << deviceProperties.vendorID << std::endl;
     }
 
-    VulkanPhysicalDeviceManager::DeviceCapabilitiesPair VulkanPhysicalDeviceManager::populateDeviceProperties( vk::PhysicalDevice* pDeviceHandle )
+    VulkanPhysicalDeviceManager::DeviceCapabilitiesPair VulkanPhysicalDeviceManager::populateDeviceProperties( vk::PhysicalDevice& pDeviceHandle )
     {
         utils::Sptr<vk::PhysicalDeviceProperties> pDeviceProperties = std::make_shared<vk::PhysicalDeviceProperties>();
         utils::Sptr<vk::PhysicalDeviceFeatures> pDeviceFeatures = std::make_shared<vk::PhysicalDeviceFeatures>();
 
-        pDeviceHandle->getProperties( pDeviceProperties.get() );
-        pDeviceHandle->getFeatures( pDeviceFeatures.get() );
+        pDeviceHandle.getProperties( pDeviceProperties.get() );
+        pDeviceHandle.getFeatures( pDeviceFeatures.get() );
 
         return std::make_pair( pDeviceProperties, pDeviceFeatures );
     }
