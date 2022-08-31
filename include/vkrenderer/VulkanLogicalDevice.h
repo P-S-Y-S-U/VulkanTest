@@ -1,5 +1,5 @@
-#ifndef VKRENDER_VULKAN_LOGICAL_DEVICE_HPP
-#define VKRENDER_VULKAN_LOGICAL_DEVICE_HPP
+#ifndef VKRENDER_VULKAN_LOGICAL_DEVICE_H
+#define VKRENDER_VULKAN_LOGICAL_DEVICE_H
 
 #include <vulkan/vulkan.hpp>
 #include "vkrenderer/VulkanPhysicalDevice.h"
@@ -15,7 +15,7 @@ namespace vkrender
 		~VulkanLogicalDevice();
 
 		void createLogicalDevice();
-		void destroyLogicaDevice();
+		void destroyLogicalDevice();
 	private:
 		vk::Device								m_deviceHandle;
 
@@ -31,6 +31,8 @@ namespace vkrender
 		void populateDeviceCreateInfo();
 	
 		void createDeviceQueue();
+
+		friend class VulkanLogicalDeviceManager;
 	};
 } // namespace vkrender
 

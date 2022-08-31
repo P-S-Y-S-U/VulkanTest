@@ -12,7 +12,7 @@ namespace vkrender
 
 	VulkanLogicalDevice::~VulkanLogicalDevice()
 	{
-		destroyLogicaDevice();
+		destroyLogicalDevice();
 	}
 
 	void VulkanLogicalDevice::createLogicalDevice()
@@ -24,7 +24,7 @@ namespace vkrender
 		createDeviceQueue();
 	}
 	
-	void VulkanLogicalDevice::destroyLogicaDevice()
+	void VulkanLogicalDevice::destroyLogicalDevice()
 	{
 		m_deviceHandle.destroy();
 	}

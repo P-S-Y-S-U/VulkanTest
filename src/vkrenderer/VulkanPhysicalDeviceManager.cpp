@@ -12,7 +12,7 @@ namespace vkrender
     VulkanPhysicalDeviceManager::~VulkanPhysicalDeviceManager()
     {}
 
-    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::CreateSuitableDevice()
+    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::createSuitableDevice()
     {
         auto devices = getAvailableDevices();
 

@@ -20,7 +20,7 @@ namespace vkrender
         VulkanPhysicalDeviceManager& operator=(const VulkanPhysicalDeviceManager&) = delete;
         ~VulkanPhysicalDeviceManager();
 
-        VulkanPhysicalDevice* CreateSuitableDevice();
+        VulkanPhysicalDevice* createSuitableDevice();
         void probePhysicalDevice( const VulkanPhysicalDevice& physicalDevice );
     private:
         VulkanInstance*     m_pInstance;
