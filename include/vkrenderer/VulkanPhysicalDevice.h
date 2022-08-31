@@ -17,7 +17,7 @@ namespace vkrender
 		~VulkanPhysicalDevice() = default;
 
 	private:
-		VulkanPhysicalDevice(
+		explicit VulkanPhysicalDevice(
 			VulkanInstance* pVulkanInstance, 
 			const vk::PhysicalDevice& pPhysicalDeviceHandle 
 		);
