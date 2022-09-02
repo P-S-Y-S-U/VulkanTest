@@ -1,70 +1,67 @@
-#include "vkrenderer/VulkanLogicalDevice.hpp"
+#include "vkrenderer/VulkanLogicalDevice.h"
 #include "vkrenderer/VulkanLayer.hpp"
-#include "vkrenderer/VulkanQueueFamily.hpp"
+#include "vkrenderer/VulkanQueueFamily.h"
 #include <iostream>
 
-namespace app
+namespace vkrender
 {
-	VulkanLogicalDevice::VulkanLogicalDevice(utils::Uptr<VulkanPhysicalDevice>& physical_device)
-		:_physical_device{ physical_device }
+	VulkanLogicalDevice::VulkanLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice )
+		:m_pPhysicalDevice{ pPhysicalDevice }
+		,m_queueFamilyIndices{ VulkanQueueFamily::findQueueFamilyIndices( *m_pPhysicalDevice ) }
 	{}
 
-	void VulkanLogicalDevice::create_logical_device()
+	VulkanLogicalDevice::~VulkanLogicalDevice()
 	{
-		populate_device_queue_info();
-		populate_device_features();
-		populate_create_info();
+		destroyLogicalDevice();
+	}
+
+	void VulkanLogicalDevice::createLogicalDevice()
+	{
+		populateDeviceQueueCreateInfo();
+		populateDeviceCreateInfo();
 		
-		_device = _physical_device->_device.createDevice( *_info );
-		create_queue();
+		m_deviceHandle = m_pPhysicalDevice->m_deviceHandle.createDevice( *m_spDeviceCreateInfo );
+		createDeviceQueue();
 	}
 	
-	void VulkanLogicalDevice::destroy_logical_device()
+	void VulkanLogicalDevice::destroyLogicalDevice()
 	{
-		_device.destroy();
+		m_deviceHandle.destroy();
 	}
 
-	void VulkanLogicalDevice::populate_device_features()
+	void VulkanLogicalDevice::populateDeviceQueueCreateInfo()
 	{
-		_device_features = std::make_shared<vk::PhysicalDeviceFeatures>();
-	}
+		vk::PhysicalDevice& vulkan_physical_device = m_pPhysicalDevice->m_deviceHandle;
 
-	void VulkanLogicalDevice::populate_device_queue_info()
-	{
-		_queue_family_indices = VulkanQueueFamily::find_queue_family(_physical_device.get());
-		auto& vulkan_physical_device = _physical_device->_device;
-
-		auto queue_create_info = std::make_shared<vk::DeviceQueueCreateInfo>();
-		queue_create_info->sType = vk::StructureType::eDeviceQueueCreateInfo;
-		queue_create_info->queueFamilyIndex = _queue_family_indices.graphics_family.value();
-		queue_create_info->queueCount = 1;
+		m_spDeviceQueueCreateInfo = std::make_shared<vk::DeviceQueueCreateInfo>();
+		m_spDeviceQueueCreateInfo->sType = vk::StructureType::eDeviceQueueCreateInfo;
+		m_spDeviceQueueCreateInfo->queueFamilyIndex = m_queueFamilyIndices.m_graphicsFamily.value();
+		m_spDeviceQueueCreateInfo->queueCount = 1;
 
 		float queue_priority = 1.0f;
-		queue_create_info->pQueuePriorities = &queue_priority;
-
-		_device_queue_info = queue_create_info;
+		m_spDeviceQueueCreateInfo->pQueuePriorities = &queue_priority;
 	}
 
-	void VulkanLogicalDevice::populate_create_info()
+	void VulkanLogicalDevice::populateDeviceCreateInfo()
 	{
-		_info = std::make_shared<vk::DeviceCreateInfo>();
-		_info->sType = vk::StructureType::eDeviceCreateInfo;
-		_info->enabledExtensionCount = 0;
-		_info->pQueueCreateInfos = _device_queue_info.get();
-		_info->queueCreateInfoCount = 1;
-		_info->pEnabledFeatures = _device_features.get();
-		if (enable_validation_layer)
+		m_spDeviceCreateInfo = std::make_shared<vk::DeviceCreateInfo>();
+		m_spDeviceCreateInfo->sType = vk::StructureType::eDeviceCreateInfo;
+		m_spDeviceCreateInfo->enabledExtensionCount = 0;
+		m_spDeviceCreateInfo->pQueueCreateInfos = m_spDeviceQueueCreateInfo.get();
+		m_spDeviceCreateInfo->queueCreateInfoCount = 1;
+		m_spDeviceCreateInfo->pEnabledFeatures = m_pPhysicalDevice->m_spDeviceFeatures.get();
+		if( VulkanInstance::ENABLE_VALIDATION_LAYER )
 		{
-			_info->ppEnabledLayerNames = layer::validation_layer.layers.data();
-			_info->enabledLayerCount = static_cast<std::uint32_t>(layer::validation_layer.layers.size());
+			m_spDeviceCreateInfo->ppEnabledLayerNames = layer::VALIDATION_LAYER.m_layers.data();
+			m_spDeviceCreateInfo->enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.m_layers.size());
 		}
 		else {
-			_info->enabledLayerCount = 0;
+			m_spDeviceCreateInfo->enabledLayerCount = 0;
 		}
 	}
 
-	void VulkanLogicalDevice::create_queue()
+	void VulkanLogicalDevice::createDeviceQueue()
 	{
-		_graphics_queue = _device.getQueue( _queue_family_indices.graphics_family.value(), 0 );
+		m_graphicsQueue = m_deviceHandle.getQueue( m_queueFamilyIndices.m_graphicsFamily.value(), 0 );
 	}
-} // namespace app
+} // namespace vkrender

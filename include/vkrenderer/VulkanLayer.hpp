@@ -1,24 +1,26 @@
-#ifndef APP_VULKAN_EXTENSIONS_HPP
-#define APP_VULKAN_EXTENSIONS_HPP
+#ifndef VKRENDER_VULKAN_EXTENSIONS_HPP
+#define VKRENDER_VULKAN_EXTENSIONS_HPP
 
 #include <initializer_list>
 #include <vector>
 
-namespace app
+namespace vkrender
 {
 	struct VulkanLayer
 	{
 	public:
 		enum class name { VK_KHR_VALIDATION };
+		
 		using Layer = const char*;
 		using LayerContainer = std::vector<Layer>;
-		VulkanLayer(const std::initializer_list<name>& layer_names)
+		
+		explicit VulkanLayer(const std::initializer_list<name>& layer_names)
 		{
 			append(layer_names);
 		}
 		~VulkanLayer() = default;	
 
-		LayerContainer layers;
+		LayerContainer m_layers;
 	private:
 		void append(const std::initializer_list<name>& layer_names)
 		{
@@ -27,20 +29,20 @@ namespace app
 				switch (layer)
 				{
 				case name::VK_KHR_VALIDATION:
-					layers.push_back("VK_LAYER_KHRONOS_validation");
+					m_layers.push_back("VK_LAYER_KHRONOS_validation");
 					break;
 				default:
 					break;
 				}
 			}
-			layers.shrink_to_fit();
+			m_layers.shrink_to_fit();
 		}
 	};
 
 	namespace layer
 	{
-	const auto validation_layer = VulkanLayer{ VulkanLayer::name::VK_KHR_VALIDATION };
+		const VulkanLayer VALIDATION_LAYER{ VulkanLayer::name::VK_KHR_VALIDATION };
 	}
-} // namespace app
+} // namespace vkrender
 
-#endif // !APP_VULKAN_EXTENSIONS_HPP
+#endif

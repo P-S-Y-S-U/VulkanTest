@@ -1,47 +1,42 @@
-#include "vkrenderer/VulkanDebugMessenger.hpp"
+#include "vkrenderer/VulkanDebugMessenger.h"
 #include <iostream>
 
-namespace app::debug
+namespace vkrender
 {
 	VulkanDebugMessenger::VulkanDebugMessenger()
+	{}
+	
+	VulkanDebugMessenger::~VulkanDebugMessenger()
+	{}
+
+	void VulkanDebugMessenger::init( const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo )
 	{
-		_debug_messenger_info = populate_debug_messenger_info();
+		m_spDebugMessengerCreateInfo = pDebugMessengerCreateInfo;
 	}
 
-	void VulkanDebugMessenger::create_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::createDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
 	{
-		if (create_debug_utils_messenger_EXT(vulkan_instance, pAllocator) != VK_SUCCESS)
+		if (createDebugUtilsMessengerEXT(pVulkanInstance, pAllocatorCB) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to setup debug messenger!");
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_messenger(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroyDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
 	{
-		destroy_debug_utils_messenger_EXT(vulkan_instance, pAllocator);
+		destroyDebugUtilsMessengerEXT(pVulkanInstance, pAllocatorCB);
 	}
 
-	utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populate_debug_messenger_info()
+	VkResult VulkanDebugMessenger::createDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
 	{
-		auto debugmessenger_info = std::make_shared<vk::DebugUtilsMessengerCreateInfoEXT>();
-		debugmessenger_info->sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT;
-		debugmessenger_info->messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-		debugmessenger_info->messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
-		debugmessenger_info->pfnUserCallback = VulkanDebugMessenger::debugCallback;
-
-		return debugmessenger_info;
-	}
-
-	VkResult VulkanDebugMessenger::create_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
-	{
-		auto& instance = vulkan_instance->_instance;
-		auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
+		vk::Instance& vkInstance = pVulkanInstance->m_instance;
+		PFN_vkCreateDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( vkInstance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
 		if (func != nullptr) {
 			return func( 
-				instance,
-				reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>( _debug_messenger_info.get() ), 
-				reinterpret_cast<const VkAllocationCallbacks*>( pAllocator ),
-				reinterpret_cast<VkDebugUtilsMessengerEXT*>( &_debug_messenger )
+				vkInstance,
+				reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>( m_spDebugMessengerCreateInfo.get() ), 
+				reinterpret_cast<const VkAllocationCallbacks*>( pAllocatorCB ),
+				reinterpret_cast<VkDebugUtilsMessengerEXT*>( &m_debugMessenger )
 			);
 		}
 		else {
@@ -49,16 +44,16 @@ namespace app::debug
 		}
 	}
 
-	void VulkanDebugMessenger::destroy_debug_utils_messenger_EXT(utils::Uptr<VulkanInstance>& vulkan_instance, const vk::AllocationCallbacks* pAllocator)
+	void VulkanDebugMessenger::destroyDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
 	{
-		auto& instance = vulkan_instance->_instance;
-		auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT") );
+		vk::Instance& vkInstance = pVulkanInstance->m_instance;
+		PFN_vkDestroyDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( vkInstance.getProcAddr("vkDestroyDebugUtilsMessengerEXT") );
 		if (func != nullptr)
 		{
 			func(
-				instance, 
-				_debug_messenger, 
-				reinterpret_cast<const VkAllocationCallbacks*>(pAllocator)
+				vkInstance, 
+				m_debugMessenger, 
+				reinterpret_cast<const VkAllocationCallbacks*>(pAllocatorCB)
 			);
 		}
 	}

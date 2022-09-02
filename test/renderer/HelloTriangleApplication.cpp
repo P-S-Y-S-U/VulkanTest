@@ -36,13 +36,13 @@ namespace app
     }
     void HelloTriangleApplication::setup_debug_messenger()
     {
-        if (!(_instance->enable_validation_layer)) { return; }
+        if (!(_instance->ENABLE_VALIDATION_LAYER)) { return; }
         _debugger = std::make_unique<app::debug::VulkanDebugMessenger>();
-        _debugger->create_debug_messenger(_instance, nullptr);
+        _debugger->createDebugMessenger(_instance, nullptr);
     }
     void HelloTriangleApplication::pick_physical_device()
     {
-        _device->get_physical_devices();
+        _device->getPhysicalDevices();
     }
     void HelloTriangleApplication::create_logical_device()
     {
@@ -50,14 +50,14 @@ namespace app
     }
     void HelloTriangleApplication::mainLoop()
     {
-        _window.loop();
+        _window.processEvents();
     }
     void HelloTriangleApplication::cleanup()
     {
         _logical_device->destroy_logical_device();
-        if (_instance->enable_validation_layer)
+        if (_instance->ENABLE_VALIDATION_LAYER)
         {
-            _debugger->destroy_debug_messenger(_instance, nullptr);
+            _debugger->destroyDebugMessenger(_instance, nullptr);
         }
         _instance->destroyInstance();
         _window.destroy();

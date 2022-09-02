@@ -1,25 +1,34 @@
-#include "window/window.hpp"
+#include "window/window.h"
+#include "vkrenderer/VulkanInstance.h"
 
-namespace app
+namespace vkrender
 {
 	Window::Window()
-		:_window{ nullptr }
-		,window_width{ 800 }
-		,window_height{ 600 }
+		:m_pWindow{ nullptr }
+		,m_windowWidth{ 800 }
+		,m_windowHeight{ 600 }
+		,m_bQuit{ false }
 	{
-		glfwInit();
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	}
+
+	Window::~Window()
+	{
+		destroy();
 	}
 
 	void Window::init()
 	{
-		_window = glfwCreateWindow(window_width, window_height, "Vulkan", nullptr, nullptr );
+		glfwInit();
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
 	}
 
-	void Window::loop()
+	void Window::processEvents()
 	{
-		while ( !glfwWindowShouldClose(_window) )
+		m_bQuit = glfwWindowShouldClose(m_pWindow);
+
+		if( !m_bQuit )
 		{
 			glfwPollEvents();
 		}
@@ -27,7 +36,33 @@ namespace app
 
 	void Window::destroy()
 	{
-		glfwDestroyWindow(_window);
+		if( m_pWindow )
+		{
+			glfwDestroyWindow(m_pWindow);
+		}
 		glfwTerminate();
 	}
-} // namespace app
+
+	bool Window::quit() const 
+	{
+		return m_bQuit;
+	}
+
+	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() 
+	{
+		return std::pair{ m_windowWidth, m_windowHeight };
+	}
+
+	std::vector<const char*> Window::populateAvailableExtensions()
+	{
+		glfwInit();
+		
+		std::uint32_t extensionCount = 0;
+		const char** extensionNames;
+		extensionNames = glfwGetRequiredInstanceExtensions( &extensionCount );
+
+		std::vector<const char*> extensionContainer( extensionNames, extensionNames + extensionCount );
+
+		return extensionContainer;
+	}
+} // namespace vkrender

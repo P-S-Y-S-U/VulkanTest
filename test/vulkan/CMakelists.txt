@@ -1,2 +1,11 @@
 add_executable(VulkanContextTest vulkan_context_test.cpp)
 target_link_libraries(VulkanContextTest PUBLIC ${CONAN_TARGETS})
+
+add_executable(VulkanDebugMessengerTest vulkan_debug_messenger.cpp)
+target_link_libraries(VulkanDebugMessengerTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
+
+add_executable(VulkanPhysicalDeviceTest vulkan_physical_device.cpp)
+target_link_libraries(VulkanPhysicalDeviceTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
+
+add_executable(VulkanLogicalDeviceTest vulkan_logical_device.cpp)
+target_link_libraries(VulkanLogicalDeviceTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
