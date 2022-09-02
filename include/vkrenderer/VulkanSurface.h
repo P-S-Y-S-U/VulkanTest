@@ -3,6 +3,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "vkrenderer/VulkanInstance.h"
 #include "utilities/memory.hpp"
 #include "exports.hpp"
 
@@ -15,9 +16,10 @@ namespace vkrender
 
         void destroySurface();
     private:
-        explicit VulkanSurface( utils::Uptr<vk::SurfaceKHR> pSurfaceHandle );
+        explicit VulkanSurface( VulkanInstance* pInstance, utils::Uptr<vk::SurfaceKHR> pSurfaceHandle );
 
         utils::Uptr<vk::SurfaceKHR> m_upSurfaceHandle;
+        VulkanInstance* m_pInstance;
 
         friend class Window;
     };

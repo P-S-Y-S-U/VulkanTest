@@ -2,8 +2,9 @@
 
 namespace vkrender
 {
-    VulkanSurface::VulkanSurface( utils::Uptr<vk::SurfaceKHR> pSurfaceHandle )
-        :m_upSurfaceHandle{ std::move(pSurfaceHandle) }
+    VulkanSurface::VulkanSurface( VulkanInstance* pInstance, utils::Uptr<vk::SurfaceKHR> pSurfaceHandle )
+        :m_pInstance{ pInstance }
+        ,m_upSurfaceHandle{ std::move(pSurfaceHandle) }
     {}
 
     VulkanSurface::~VulkanSurface()
@@ -13,6 +14,7 @@ namespace vkrender
     
     void VulkanSurface::destroySurface()
     {
+        m_pInstance->m_instance.destroySurfaceKHR( *m_upSurfaceHandle.get() );
         m_upSurfaceHandle.reset();
     }
 } // namespace vkrender

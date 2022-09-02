@@ -38,7 +38,7 @@ namespace vkrender
 			throw std::runtime_error("Failed to create Window Surface!");
 		}
 
-		VulkanSurface* pVulkanSurface = new VulkanSurface(std::move(upSurfaceHandle));
+		VulkanSurface* pVulkanSurface = new VulkanSurface( pInstance, std::move(upSurfaceHandle));
 		utils::Uptr<VulkanSurface> upSurfaceWrapper{ pVulkanSurface };
 
 		return std::move(upSurfaceWrapper);
