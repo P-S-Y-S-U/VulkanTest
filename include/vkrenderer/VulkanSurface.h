@@ -21,6 +21,7 @@ namespace vkrender
         utils::Uptr<vk::SurfaceKHR> m_upSurfaceHandle;
         VulkanInstance* m_pInstance;
 
+        friend class VulkanQueueFamily;
         friend class Window;
     };
 

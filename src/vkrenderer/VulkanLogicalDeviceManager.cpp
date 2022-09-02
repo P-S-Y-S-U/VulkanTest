@@ -10,9 +10,9 @@ namespace vkrender
         destroyAllLogicalDevices();
     }
 
-    void VulkanLogicalDeviceManager::createLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice )
+    void VulkanLogicalDeviceManager::createLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice, VulkanSurface* pSurface )
     {
-        LogicalDevicePtr upLogicalDevice = std::make_unique<VulkanLogicalDevice>( pPhysicalDevice );
+        LogicalDevicePtr upLogicalDevice = std::make_unique<VulkanLogicalDevice>( pPhysicalDevice, pSurface );
 
         upLogicalDevice->createLogicalDevice();
 
