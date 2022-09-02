@@ -1,11 +1,21 @@
 #ifndef VKRENDER_WINDOW_H
 #define VKRENDER_WINDOW_H
 
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+#include <GLFW/glfw3native.h>
 #include <cstdint>
 #include <utility>
 #include <vector>
 
+#include "vkrenderer/VulkanSurface.h"
+#include "vkrenderer/VulkanInstance.h"
 #include "exports.hpp"
 
 namespace vkrender
@@ -22,6 +32,7 @@ namespace vkrender
 		Window& operator=(Window&&) noexcept = delete;
 
 		void init();
+		utils::Uptr<VulkanSurface> createSurface( VulkanInstance* pInstance );
 		void processEvents();
 		void destroy();
 		bool quit() const;

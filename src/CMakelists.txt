@@ -8,6 +8,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanQueueFamily.cpp
                             vkrenderer/VulkanLogicalDeviceManager.cpp
                             vkrenderer/VulkanLogicalDevice.cpp 
+                            vkrenderer/VulkanSurface.cpp
 )
 
 # library & executable config #
