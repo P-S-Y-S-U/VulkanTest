@@ -24,10 +24,12 @@ namespace vkrender
 		VulkanPhysicalDevice*				m_pPhysicalDevice;
 		VulkanSurface*			m_pSurface;
 
+		std::vector<vk::DeviceQueueCreateInfo>	m_queueCreateInfos;
 		utils::Sptr<vk::DeviceCreateInfo>		m_spDeviceCreateInfo;
 
 		QueueFamilyIndices						m_queueFamilyIndices;
 		std::map< std::uint32_t, vk::Queue >	m_queueIndicesMap;
+		std::map< std::uint32_t, float>			m_queuePrioritiesMap;
 		
 		std::vector<vk::DeviceQueueCreateInfo> populateDeviceQueueCreateInfo();
 		void populateDeviceCreateInfo( const std::vector<vk::DeviceQueueCreateInfo>& queueCreateInfos );

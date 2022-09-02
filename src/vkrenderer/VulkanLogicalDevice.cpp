@@ -20,12 +20,12 @@ namespace vkrender
 
 	void VulkanLogicalDevice::createLogicalDevice()
 	{
-		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos = populateDeviceQueueCreateInfo();
-		populateDeviceCreateInfo( queueCreateInfos );
+		m_queueCreateInfos = populateDeviceQueueCreateInfo();
+		populateDeviceCreateInfo( m_queueCreateInfos );
 		
 		m_deviceHandle = m_pPhysicalDevice->m_deviceHandle.createDevice( *m_spDeviceCreateInfo );
 
-		for( const auto& deviceQueueCreateInfo : queueCreateInfos )
+		for( const auto& deviceQueueCreateInfo : m_queueCreateInfos )
 		{
 			m_queueIndicesMap[ deviceQueueCreateInfo.queueFamilyIndex ] = createDeviceQueue( deviceQueueCreateInfo.queueFamilyIndex, 0 );
 		}
@@ -39,9 +39,10 @@ namespace vkrender
 	std::vector<vk::DeviceQueueCreateInfo> VulkanLogicalDevice::populateDeviceQueueCreateInfo()
 	{	
 		std::set<std::uint32_t> uniqueQueueFamilyIndices{ 
-			m_queueFamilyIndices.m_graphicsFamily.value(), 
-			m_queueFamilyIndices.m_presentFamily.value() 
+			m_queueFamilyIndices.m_graphicsFamily.value() 
 		};
+
+		if (m_queueFamilyIndices.m_presentFamily.has_value()) uniqueQueueFamilyIndices.emplace(m_queueFamilyIndices.m_presentFamily.value());
 
 		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 
@@ -52,8 +53,8 @@ namespace vkrender
 			deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
 			deviceQueueCreateInfo.queueCount = 1;
 
-			float queue_priority = 1.0f;
-			deviceQueueCreateInfo.pQueuePriorities = &queue_priority;
+			m_queuePrioritiesMap[queueFamilyIndex] = 1.0f;
+			deviceQueueCreateInfo.pQueuePriorities = &m_queuePrioritiesMap[queueFamilyIndex];
 
 			queueCreateInfos.push_back( deviceQueueCreateInfo );
 		}
