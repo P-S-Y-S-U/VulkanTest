@@ -22,7 +22,7 @@ namespace vkrender
         VulkanLogicalDeviceManager& operator=(VulkanLogicalDeviceManager&&) noexcept = default;
         ~VulkanLogicalDeviceManager();
         
-        void createLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice );
+        VulkanLogicalDevice* createLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice, VulkanSurface* pSurface = nullptr );
 
         void destroyAllLogicalDevices();
     private:

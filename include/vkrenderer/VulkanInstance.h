@@ -48,6 +48,8 @@ namespace vkrender
 		friend class VulkanDebugMessenger;
 		friend class VulkanPhysicalDevice;
 		friend class VulkanPhysicalDeviceManager;
+		friend class VulkanSurface;
+		friend class Window;
 	};
 } // namespace vkrender
 

@@ -24,6 +24,25 @@ namespace vkrender
 		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
 	}
 
+	utils::Uptr<VulkanSurface> Window::createSurface( VulkanInstance* pInstance )
+	{
+		utils::Uptr<vk::SurfaceKHR> upSurfaceHandle = std::make_unique<vk::SurfaceKHR>();
+		if( glfwCreateWindowSurface( 
+			pInstance->m_instance, 
+			m_pWindow, 
+			nullptr, 
+			reinterpret_cast<vk::SurfaceKHR::NativeType*>( upSurfaceHandle.get() )
+			)
+		)
+		{
+			throw std::runtime_error("Failed to create Window Surface!");
+		}
+		VulkanSurface* pVulkanSurface = new VulkanSurface( pInstance, std::move(upSurfaceHandle));
+		utils::Uptr<VulkanSurface> upSurfaceWrapper{ pVulkanSurface };
+
+		return std::move(upSurfaceWrapper);
+	}
+
 	void Window::processEvents()
 	{
 		m_bQuit = glfwWindowShouldClose(m_pWindow);

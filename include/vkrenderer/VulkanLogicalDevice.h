@@ -6,12 +6,14 @@
 #include "vkrenderer/VulkanQueueFamily.h"
 #include "exports.hpp"
 
+#include <map>
+
 namespace vkrender
 {
 	class VULKAN_EXPORTS VulkanLogicalDevice
 	{
 	public:
-		explicit VulkanLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice );
+		explicit VulkanLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice, VulkanSurface* pSurface = nullptr );
 		~VulkanLogicalDevice();
 
 		void createLogicalDevice();
@@ -20,17 +22,19 @@ namespace vkrender
 		vk::Device								m_deviceHandle;
 
 		VulkanPhysicalDevice*				m_pPhysicalDevice;
+		VulkanSurface*			m_pSurface;
 
-		utils::Sptr<vk::DeviceQueueCreateInfo>	m_spDeviceQueueCreateInfo;
+		std::vector<vk::DeviceQueueCreateInfo>	m_queueCreateInfos;
 		utils::Sptr<vk::DeviceCreateInfo>		m_spDeviceCreateInfo;
 
 		QueueFamilyIndices						m_queueFamilyIndices;
-		vk::Queue									m_graphicsQueue;
+		std::map< std::uint32_t, vk::Queue >	m_queueIndicesMap;
+		std::map< std::uint32_t, float>			m_queuePrioritiesMap;
 		
-		void populateDeviceQueueCreateInfo();
-		void populateDeviceCreateInfo();
+		std::vector<vk::DeviceQueueCreateInfo> populateDeviceQueueCreateInfo();
+		void populateDeviceCreateInfo( const std::vector<vk::DeviceQueueCreateInfo>& queueCreateInfos );
 	
-		void createDeviceQueue();
+		vk::Queue createDeviceQueue( const std::uint32_t& queueFamilyIndex, const std::uint32_t& index = 0u );
 
 		friend class VulkanLogicalDeviceManager;
 	};

@@ -2,6 +2,7 @@
 #define VKRENDER_VULKAN_QUEUE_FAMILY_H
 
 #include "vkrenderer/VulkanPhysicalDevice.h"
+#include "vkrenderer/VulkanSurface.h"
 #include "utilities/memory.hpp"
 #include "exports.hpp"
 
@@ -12,6 +13,7 @@ namespace vkrender
 	struct QueueFamilyIndices
 	{
 		std::optional<std::uint32_t>	m_graphicsFamily;
+		std::optional<std::uint32_t>	m_presentFamily;
 	};
 
 	class VULKAN_EXPORTS VulkanQueueFamily
@@ -20,7 +22,7 @@ namespace vkrender
 		VulkanQueueFamily() = default;
 		~VulkanQueueFamily() = default;
 
-		static QueueFamilyIndices findQueueFamilyIndices( const VulkanPhysicalDevice& pPhysicalDevice );
+		static QueueFamilyIndices findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice, VulkanSurface* pSurface = nullptr );
 	};
 } // namespace vkrender
 
