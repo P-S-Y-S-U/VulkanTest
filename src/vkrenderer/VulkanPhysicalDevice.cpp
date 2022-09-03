@@ -14,5 +14,18 @@ namespace vkrender
 		,m_deviceHandle{ pPhysicalDeviceHandle }
 		,m_enabledExtensions{ enabledExtensions }
 	{}
+	
+	SwapChainSupportDetails	VulkanPhysicalDevice::querySwapChainSupport( const VulkanSurface& surface )
+	{
+		SwapChainSupportDetails swapChainDetails;
 
-} // namespace app
+		const vk::SurfaceKHR& surfaceHandle = *surface.m_upSurfaceHandle;
+
+		swapChainDetails.capabilities =	m_deviceHandle.getSurfaceCapabilitiesKHR( surfaceHandle );
+		swapChainDetails.surfaceFormats = m_deviceHandle.getSurfaceFormatsKHR( surfaceHandle );
+		swapChainDetails.presentModes = m_deviceHandle.getSurfacePresentModesKHR( surfaceHandle );
+
+		return swapChainDetails;
+	}
+
+} // namespace vkrender

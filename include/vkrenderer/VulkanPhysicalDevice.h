@@ -7,6 +7,13 @@
 
 namespace vkrender
 {
+	struct SwapChainSupportDetails
+	{
+		vk::SurfaceCapabilitiesKHR			capabilities;
+		std::vector<vk::SurfaceFormatKHR>	surfaceFormats;
+		std::vector<vk::PresentModeKHR>		presentModes;
+	};
+
 	class VULKAN_EXPORTS VulkanPhysicalDevice
 	{
 	public:
@@ -16,6 +23,7 @@ namespace vkrender
 		VulkanPhysicalDevice& operator=(VulkanPhysicalDevice&&) noexcept = default;
 		~VulkanPhysicalDevice() = default;
 
+		SwapChainSupportDetails querySwapChainSupport( const VulkanSurface& surface );
 	private:
 		explicit VulkanPhysicalDevice(
 			VulkanInstance* pVulkanInstance, 
