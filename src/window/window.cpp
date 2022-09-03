@@ -74,9 +74,19 @@ namespace vkrender
 		return m_bQuit;
 	}
 
-	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() 
+	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() const
 	{
 		return std::pair{ m_windowWidth, m_windowHeight };
+	}
+
+	std::pair<std::uint32_t, std::uint32_t> Window::getFrameBufferSize() const
+	{
+		std::int32_t frameBufferWidth = 0;
+		std::int32_t frameBufferHeight = 0;
+
+		glfwGetFramebufferSize( m_pWindow, &frameBufferWidth, &frameBufferHeight );
+
+		return std::make_pair<std::uint32_t, std::uint32_t>( static_cast<std::uint32_t>( frameBufferWidth ), static_cast<std::uint32_t>( frameBufferHeight ) );
 	}
 
 	std::vector<const char*> Window::populateAvailableExtensions()
