@@ -3,6 +3,13 @@
 
 namespace vkrender
 {
+	Window::Window( const std::uint32_t& width, const std::uint32_t& height )
+		:m_pWindow{ nullptr }
+		,m_windowWidth{ width }
+		,m_windowHeight{ height }
+		,m_bQuit{ false }
+	{}
+
 	Window::Window()
 		:m_pWindow{ nullptr }
 		,m_windowWidth{ 800 }

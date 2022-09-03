@@ -23,6 +23,7 @@ namespace vkrender
 	class VULKAN_EXPORTS Window
 	{
 	public:
+		explicit Window( const std::uint32_t& width, const std::uint32_t& height );
 		explicit Window();
 		Window(const Window&) = delete;
 		Window(Window&&) noexcept = delete;
