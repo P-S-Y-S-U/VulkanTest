@@ -19,7 +19,8 @@ namespace vkrender
 	private:
 		explicit VulkanPhysicalDevice(
 			VulkanInstance* pVulkanInstance, 
-			const vk::PhysicalDevice& pPhysicalDeviceHandle 
+			const vk::PhysicalDevice& pPhysicalDeviceHandle,
+			const std::vector<const char*>& enabledExtensions = {}
 		);
 
 		VulkanInstance*		m_pVulkanInstance;
@@ -27,13 +28,14 @@ namespace vkrender
 
 		utils::Sptr<vk::PhysicalDeviceFeatures>		m_spDeviceFeatures;
 		utils::Sptr<vk::PhysicalDeviceProperties>	m_spDeviceProperties;
+
+		const std::vector<const char*>	m_enabledExtensions;
 		
 
 		friend class VulkanLogicalDevice;
 		friend class VulkanQueueFamily;
 		friend class VulkanPhysicalDeviceManager;
 	};
-
 } // namespace vkrender
 
 #endif

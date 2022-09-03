@@ -2,6 +2,7 @@
 #include "vkrenderer/VulkanQueueFamily.h"
 
 #include <iostream>
+#include <set>
 
 namespace vkrender
 {
@@ -24,9 +25,14 @@ namespace vkrender
         for( auto& deviceHandle : devices )
         {
             probePhysicalDeviceHandle( deviceHandle );
-            VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle ) );
 
-            if( isDeviceSuitable( temporaryDevice ) )
+            std::vector<const char*> requiredExtensions{
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            };
+
+            VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle, requiredExtensions ) );
+
+            if( isDeviceSuitable( temporaryDevice ), checkDeviceExtensionSupport( temporaryDevice, requiredExtensions ) )
             {
                 auto upPhysicalDevice = std::make_unique<VulkanPhysicalDevice>(temporaryDevice);
                 VulkanPhysicalDevice* pPhysicalDevice = upPhysicalDevice.get();
@@ -50,9 +56,9 @@ namespace vkrender
         return m_pInstance->m_instance.enumeratePhysicalDevices();
     }
 
-    VulkanPhysicalDevice VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice& deviceHandle )
+    VulkanPhysicalDevice VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice& deviceHandle, const std::vector<const char*>& deviceExtensions )
     {
-        VulkanPhysicalDevice temporaryDevice{ m_pInstance, deviceHandle };
+        VulkanPhysicalDevice temporaryDevice{ m_pInstance, deviceHandle, deviceExtensions };
         
         auto&& [pDeviceProperties, pDeviceFeatures] = populateDeviceProperties( deviceHandle );
         temporaryDevice.m_spDeviceProperties = pDeviceProperties;
@@ -71,6 +77,22 @@ namespace vkrender
         bool bGraphicsFamily = queueFamilyIndices.m_graphicsFamily.has_value();
         
         return bShader && bGraphicsFamily;
+    }
+
+    bool VulkanPhysicalDeviceManager::checkDeviceExtensionSupport( const VulkanPhysicalDevice& device, const std::vector<const char*>& requiredExtensions )
+    {
+        const vk::PhysicalDevice& deviceHandle = device.m_deviceHandle;
+
+        std::vector<vk::ExtensionProperties, std::allocator<vk::ExtensionProperties>> availableExtensions = deviceHandle.enumerateDeviceExtensionProperties();
+
+        std::set<std::string> requiredExtensionQuery( requiredExtensions.begin(), requiredExtensions.end() );
+
+        for( const auto& deviceExtensionProp : availableExtensions )
+        {
+            requiredExtensionQuery.erase( deviceExtensionProp.extensionName  );
+        }
+
+        return requiredExtensionQuery.empty();
     }
 
     void VulkanPhysicalDeviceManager::probePhysicalDeviceHandle( const vk::PhysicalDevice& deviceHandle )

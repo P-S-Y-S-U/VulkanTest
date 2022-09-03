@@ -28,8 +28,9 @@ namespace vkrender
 
         std::vector<vk::PhysicalDevice, std::allocator<vk::PhysicalDevice>> getAvailableDevices();
 
-        VulkanPhysicalDevice createTemporaryDevice( vk::PhysicalDevice& deviceHandle );
+        VulkanPhysicalDevice createTemporaryDevice( vk::PhysicalDevice& deviceHandle, const std::vector<const char*>& deviceExtensions );
         bool isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice );
+        bool checkDeviceExtensionSupport( const VulkanPhysicalDevice& physicalDevice, const std::vector<const char*>& requiredExtensions  );
 
         void probePhysicalDeviceHandle(const vk::PhysicalDevice& deviceHandle );
         DeviceCapabilitiesPair populateDeviceProperties( vk::PhysicalDevice& deviceHandle );

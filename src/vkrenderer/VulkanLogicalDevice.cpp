@@ -66,7 +66,8 @@ namespace vkrender
 	{
 		m_spDeviceCreateInfo = std::make_shared<vk::DeviceCreateInfo>();
 		m_spDeviceCreateInfo->sType = vk::StructureType::eDeviceCreateInfo;
-		m_spDeviceCreateInfo->enabledExtensionCount = 0;
+		m_spDeviceCreateInfo->enabledExtensionCount = m_pPhysicalDevice->m_enabledExtensions.size();
+		m_spDeviceCreateInfo->ppEnabledExtensionNames = m_pPhysicalDevice->m_enabledExtensions.data();
 		m_spDeviceCreateInfo->pQueueCreateInfos = queueCreateInfos.data();
 		m_spDeviceCreateInfo->queueCreateInfoCount = queueCreateInfos.size();
 		m_spDeviceCreateInfo->pEnabledFeatures = m_pPhysicalDevice->m_spDeviceFeatures.get();
