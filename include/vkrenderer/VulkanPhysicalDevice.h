@@ -23,7 +23,7 @@ namespace vkrender
 		VulkanPhysicalDevice& operator=(VulkanPhysicalDevice&&) noexcept = default;
 		~VulkanPhysicalDevice() = default;
 
-		SwapChainSupportDetails querySwapChainSupport( const VulkanSurface& surface );
+		SwapChainSupportDetails querySwapChainSupport( const VulkanSurface& surface ) const;
 	private:
 		explicit VulkanPhysicalDevice(
 			VulkanInstance* pVulkanInstance, 

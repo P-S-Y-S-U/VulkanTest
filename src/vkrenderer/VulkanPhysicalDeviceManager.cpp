@@ -13,7 +13,7 @@ namespace vkrender
     VulkanPhysicalDeviceManager::~VulkanPhysicalDeviceManager()
     {}
 
-    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::createSuitableDevice()
+    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::createSuitableDevice( const VulkanSurface& surface )
     {
         auto devices = getAvailableDevices();
 
@@ -32,7 +32,7 @@ namespace vkrender
 
             VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle, requiredExtensions ) );
 
-            if( isDeviceSuitable( temporaryDevice ), checkDeviceExtensionSupport( temporaryDevice, requiredExtensions ) )
+            if( isDeviceSuitable( temporaryDevice, surface, requiredExtensions ) )
             {
                 auto upPhysicalDevice = std::make_unique<VulkanPhysicalDevice>(temporaryDevice);
                 VulkanPhysicalDevice* pPhysicalDevice = upPhysicalDevice.get();
@@ -67,7 +67,7 @@ namespace vkrender
         return temporaryDevice;
     }
 
-    bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice )
+    bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const std::vector<const char*>& requiredExtensions )
     {
         QueueFamilyIndices queueFamilyIndices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice );
 
@@ -76,7 +76,10 @@ namespace vkrender
         
         bool bGraphicsFamily = queueFamilyIndices.m_graphicsFamily.has_value();
         
-        return bShader && bGraphicsFamily;
+        bool bExtensionsSupported =  checkDeviceExtensionSupport( physicalDevice, requiredExtensions );
+        bool bSwapChainAdequate = checkSwapChainAdequacy( physicalDevice, surface, bExtensionsSupported );
+
+        return bShader && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate;
     }
 
     bool VulkanPhysicalDeviceManager::checkDeviceExtensionSupport( const VulkanPhysicalDevice& device, const std::vector<const char*>& requiredExtensions )
@@ -93,6 +96,17 @@ namespace vkrender
         }
 
         return requiredExtensionQuery.empty();
+    }
+
+    bool VulkanPhysicalDeviceManager::checkSwapChainAdequacy( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const bool& bExtensionsSupported )
+    {
+        SwapChainSupportDetails swapChainDetails = physicalDevice.querySwapChainSupport( surface );
+        
+        if( bExtensionsSupported )
+        {
+            return !swapChainDetails.surfaceFormats.empty() && !swapChainDetails.presentModes.empty();
+        }
+        return false;
     }
 
     void VulkanPhysicalDeviceManager::probePhysicalDeviceHandle( const vk::PhysicalDevice& deviceHandle )

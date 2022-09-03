@@ -15,7 +15,7 @@ namespace vkrender
 		,m_enabledExtensions{ enabledExtensions }
 	{}
 	
-	SwapChainSupportDetails	VulkanPhysicalDevice::querySwapChainSupport( const VulkanSurface& surface )
+	SwapChainSupportDetails	VulkanPhysicalDevice::querySwapChainSupport( const VulkanSurface& surface ) const
 	{
 		SwapChainSupportDetails swapChainDetails;
 

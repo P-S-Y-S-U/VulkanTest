@@ -28,7 +28,7 @@ int main(int argc, const char* argv[])
     vkrender::VulkanPhysicalDeviceManager deviceManager{ &instance };
     vkrender::VulkanLogicalDeviceManager logicalDeviceManager{};
 
-    vkrender::VulkanPhysicalDevice* pPhysicalDevice = deviceManager.createSuitableDevice(); // Throws error if manager cant find a suitable device
+    vkrender::VulkanPhysicalDevice* pPhysicalDevice = deviceManager.createSuitableDevice( *upSurface ); // Throws error if manager cant find a suitable device
 
     std::cout << "Vulkan GPU selected!" << "\n";
     deviceManager.probePhysicalDevice( *pPhysicalDevice );
