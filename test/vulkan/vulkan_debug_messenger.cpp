@@ -1,6 +1,9 @@
 #include "vkrenderer/VulkanInstance.h"
 #include "vkrenderer/VulkanDebugMessenger.h"
 #include "vkrenderer/VulkanObjectCreateInfoFactory.h"
+#include "utilities/VulkanLogger.h"
+
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 int main(int argc, const char* argv[])
 {

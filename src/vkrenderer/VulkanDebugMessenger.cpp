@@ -1,10 +1,23 @@
 #include "vkrenderer/VulkanDebugMessenger.h"
+#include "utilities/VulkanLogger.h"
+
 #include <iostream>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace vkrender
 {
 	VulkanDebugMessenger::VulkanDebugMessenger()
-	{}
+	{
+		if( utils::VulkanValidationLayerLogger::getSingletonPtr() == nullptr )
+		{
+			spdlog::sink_ptr consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    		std::initializer_list<spdlog::sink_ptr> logSinks{
+        		consoleSink
+    		};
+			utils::VulkanValidationLayerLogger::createInstance( logSinks );
+			utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
+		}
+	}
 	
 	VulkanDebugMessenger::~VulkanDebugMessenger()
 	{}
@@ -64,7 +77,25 @@ namespace vkrender
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+		utils::Sptr<spdlog::logger> pLogger = utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger();
+
+		switch(messageSeverity)
+		{
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			pLogger->debug(pCallbackData->pMessage);
+		break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			pLogger->info(pCallbackData->pMessage);
+		break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			pLogger->warn(pCallbackData->pMessage);
+		break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			pLogger->error(pCallbackData->pMessage);
+		break;
+		default:
+		break;
+		};
 
 		return VK_FALSE;
 	}
