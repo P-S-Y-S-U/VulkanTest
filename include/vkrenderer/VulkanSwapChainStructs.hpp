@@ -1,5 +1,5 @@
-#ifndef VKRENDER_VULKAN_SWAP_CHAIN_SUPPORT_HPP
-#define VKRENDER_VULKAN_SWAP_CHAIN_SUPPORT_HPP
+#ifndef VKRENDER_VULKAN_SWAP_CHAIN_STRUCTS_HPP
+#define VKRENDER_VULKAN_SWAP_CHAIN_STRUCTS_HPP
 
 #include <vulkan/vulkan.hpp>
 
@@ -10,6 +10,11 @@ namespace vkrender
 		vk::SurfaceCapabilitiesKHR			capabilities;
 		std::vector<vk::SurfaceFormatKHR>	surfaceFormats;
 		std::vector<vk::PresentModeKHR>		presentModes;
+	};
+
+	struct SwapChainPreset
+	{
+
 	};
 } // namespace vkrender
 

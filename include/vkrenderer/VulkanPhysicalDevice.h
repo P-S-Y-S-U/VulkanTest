@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include "VulkanInstance.h"
-#include "vkrenderer/VulkanSwapChainSupportDetails.hpp"
+#include "vkrenderer/VulkanSwapChainStructs.hpp"
 #include "exports.hpp"
 
 namespace vkrender
