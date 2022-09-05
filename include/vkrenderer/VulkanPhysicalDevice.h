@@ -3,17 +3,11 @@
 
 #include <vulkan/vulkan.hpp>
 #include "VulkanInstance.h"
+#include "vkrenderer/VulkanSwapChainSupportDetails.hpp"
 #include "exports.hpp"
 
 namespace vkrender
 {
-	struct SwapChainSupportDetails
-	{
-		vk::SurfaceCapabilitiesKHR			capabilities;
-		std::vector<vk::SurfaceFormatKHR>	surfaceFormats;
-		std::vector<vk::PresentModeKHR>		presentModes;
-	};
-
 	class VULKAN_EXPORTS VulkanPhysicalDevice
 	{
 	public:
