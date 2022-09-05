@@ -22,7 +22,7 @@ namespace vkrender
 		VulkanQueueFamily() = default;
 		~VulkanQueueFamily() = default;
 
-		static QueueFamilyIndices findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice, VulkanSurface* pSurface = nullptr );
+		static QueueFamilyIndices findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface );
 	};
 } // namespace vkrender
 

@@ -79,7 +79,7 @@ namespace vkrender
 
     bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const std::vector<const char*>& requiredExtensions )
     {
-        QueueFamilyIndices queueFamilyIndices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice );
+        QueueFamilyIndices queueFamilyIndices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice, surface );
 
         bool bShader =  physicalDevice.m_spDeviceProperties->deviceType == vk::PhysicalDeviceType::eDiscreteGpu && 
                         physicalDevice.m_spDeviceFeatures->geometryShader;

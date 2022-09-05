@@ -10,7 +10,7 @@ namespace vkrender
 	VulkanLogicalDevice::VulkanLogicalDevice( VulkanPhysicalDevice* pPhysicalDevice, VulkanSurface* pSurface )
 		:m_pPhysicalDevice{ pPhysicalDevice }
 		,m_pSurface{ pSurface }
-		,m_queueFamilyIndices{ VulkanQueueFamily::findQueueFamilyIndices( *m_pPhysicalDevice, m_pSurface ) }
+		,m_queueFamilyIndices{ VulkanQueueFamily::findQueueFamilyIndices( *m_pPhysicalDevice, *m_pSurface ) }
 	{}
 
 	VulkanLogicalDevice::~VulkanLogicalDevice()

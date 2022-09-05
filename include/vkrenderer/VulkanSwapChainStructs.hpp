@@ -11,11 +11,6 @@ namespace vkrender
 		std::vector<vk::SurfaceFormatKHR>	surfaceFormats;
 		std::vector<vk::PresentModeKHR>		presentModes;
 	};
-
-	struct SwapChainPreset
-	{
-
-	};
 } // namespace vkrender
 
 
