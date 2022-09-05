@@ -16,7 +16,7 @@
 int main(int argc, const char* argv[])
 {
     spdlog::sink_ptr consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    spdlog::sink_ptr fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ValidationLayer.log" );
+    spdlog::sink_ptr fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>( "ValidationLayer.log", true );
 
     std::initializer_list<spdlog::sink_ptr> logSinks{
         consoleSink, fileSink
@@ -25,7 +25,7 @@ int main(int argc, const char* argv[])
     utils::VulkanValidationLayerLogger::createInstance( logSinks );
     utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
 
-    utils::VulkanRendererApiLogger::createInstance( { consoleSink } );
+    utils::VulkanRendererApiLogger::createInstance( logSinks );
     utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
 
     vkrender::Window window{};;
