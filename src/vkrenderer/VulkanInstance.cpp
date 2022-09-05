@@ -2,6 +2,7 @@
 #include "vkrenderer/VulkanDebugMessenger.h"
 #include "vkrenderer/VulkanLayer.hpp"
 #include "window/window.h"
+#include "utilities/VulkanLogger.h"
 #include <cstdlib>
 #include <vector>
 #include <iostream>
@@ -38,9 +39,11 @@ namespace vkrender
 		// creating Vulkan Instance
 		if (vk::createInstance(m_upInstanceCreateInfo.get(), nullptr, &m_instance) != vk::Result::eSuccess)
 		{
-			throw std::runtime_error("failed to create instance!");
+			std::string errorMsg = "FAILED TO CREATE INSTANCE!";
+			utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error( "FAILED TO CREATE INSTANCE!" );
+			throw std::runtime_error( errorMsg );
 		}
-		std::cout << "Created Vulkan instance successfully" << std::endl;
+		utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->info( "Created Vulkan instance successfully" );
 	}
 
 	void VulkanInstance::destroyInstance()
@@ -101,13 +104,15 @@ namespace vkrender
 			for (const auto& vulkanExtension : vulkanExtensionProperties)
 			{
 				if (std::strcmp(extensionName, vulkanExtension.extensionName) == 0) {
-					std::cout << "\t" <<  extensionName << " Extension found" << std::endl;
+					utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->debug( "{} Extension found", extensionName );
 					found = true;
 				}
 			}
 			if (found == false)
 			{
-				throw std::runtime_error("extension not found");
+				std::string errorMsg = "REQUIRED EXTENSIONS NOT FOUND!";
+				utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error(errorMsg);
+				throw std::runtime_error(errorMsg);
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 #include "vkrenderer/VulkanPhysicalDeviceManager.h"
 #include "vkrenderer/VulkanQueueFamily.h"
+#include "utilities/VulkanLogger.h"
 
 #include <iostream>
 #include <set>
@@ -19,7 +20,9 @@ namespace vkrender
 
         if( devices.empty() )
         {
-            throw std::runtime_error("no suitable vulkan device found!");
+            std::string errorMsg = "NO VULKAN DEVICE FOUND!";
+            utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error(errorMsg);
+            throw std::runtime_error(errorMsg);
         }
 
         for( auto& deviceHandle : devices )
@@ -38,11 +41,18 @@ namespace vkrender
                 VulkanPhysicalDevice* pPhysicalDevice = upPhysicalDevice.get();
                 m_ActiveDevices.push_back( std::move(upPhysicalDevice) );
 
+                utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->info("Selected Suitable Vulkan GPU!");
+                probePhysicalDevice( *pPhysicalDevice );
+
                 return pPhysicalDevice;
             }
         }
 
-        throw std::runtime_error("Failed to select a compatible Vulkan GPU");
+        {
+            std::string errorMsg = "FAILED TO SELECT A SUITABLE VULKAN GPU!";
+            utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error(errorMsg);
+            throw std::runtime_error(errorMsg);
+        }
         return nullptr;
     }
 
@@ -112,7 +122,9 @@ namespace vkrender
     void VulkanPhysicalDeviceManager::probePhysicalDeviceHandle( const vk::PhysicalDevice& deviceHandle )
     {
         const vk::PhysicalDeviceProperties& deviceProperties = deviceHandle.getProperties();
-        std::cout << "Device ID : " << deviceProperties.deviceID << " Device Name : " << deviceProperties.deviceName << " Vendor : " << deviceProperties.vendorID << std::endl;
+        utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->info(
+            "Device ID : {} Device Name : {} Vendor: {}", deviceProperties.deviceID, deviceProperties.deviceName, deviceProperties.vendorID 
+        );
     }
 
     VulkanPhysicalDeviceManager::DeviceCapabilitiesPair VulkanPhysicalDeviceManager::populateDeviceProperties( vk::PhysicalDevice& pDeviceHandle )
