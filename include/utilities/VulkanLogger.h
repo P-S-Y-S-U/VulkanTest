@@ -27,6 +27,24 @@ namespace utils
 
         utils::Sptr<spdlog::logger> m_spLogger;
     };
+
+    class VULKAN_EXPORTS VulkanRendererApiLogger : public Singleton<VulkanRendererApiLogger>
+    {
+    public:
+        ~VulkanRendererApiLogger();
+        
+        utils::Sptr<spdlog::logger> getLogger();
+
+        static const std::string VULKAN_RENDERER_API_LOGGER_NAME;
+
+        static void createInstance( const std::initializer_list<spdlog::sink_ptr>& logSinks );
+        static VulkanRendererApiLogger& getSingleton();
+        static VulkanRendererApiLogger* getSingletonPtr();
+    private:
+        VulkanRendererApiLogger( const std::initializer_list<spdlog::sink_ptr>& logSinks );
+
+        utils::Sptr<spdlog::logger> m_spLogger;
+    };
 } // namespace utils
 
 #endif 

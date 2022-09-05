@@ -7,6 +7,11 @@
 
 int main(int argc, const char* argv[])
 {
+    spdlog::sink_ptr consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
+    utils::VulkanRendererApiLogger::createInstance( { consoleSink } );
+    utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
+    
     vkrender::VulkanDebugMessenger debugMessenger{};
     vkrender::VulkanInstance instance{ "DebugMessengerTest" };
 

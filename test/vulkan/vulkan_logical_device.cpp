@@ -25,6 +25,9 @@ int main(int argc, const char* argv[])
     utils::VulkanValidationLayerLogger::createInstance( logSinks );
     utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
 
+    utils::VulkanRendererApiLogger::createInstance( { consoleSink } );
+    utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
+
     vkrender::Window window{};;
     vkrender::VulkanInstance instance{ "LogicalDeviceTest" };
     vkrender::VulkanDebugMessenger debugMessenger{};
@@ -44,9 +47,6 @@ int main(int argc, const char* argv[])
     vkrender::VulkanLogicalDeviceManager logicalDeviceManager{};
 
     vkrender::VulkanPhysicalDevice* pPhysicalDevice = deviceManager.createSuitableDevice(); // Throws error if manager cant find a suitable device
-
-    std::cout << "Vulkan GPU selected!" << "\n";
-    deviceManager.probePhysicalDevice( *pPhysicalDevice );
 
     vkrender::VulkanLogicalDevice* pGraphicsLogicalDevice = logicalDeviceManager.createLogicalDevice( pPhysicalDevice );
     vkrender::VulkanLogicalDevice* pPresentationLogicalDevice = logicalDeviceManager.createLogicalDevice( pPhysicalDevice, upSurface.get() );
