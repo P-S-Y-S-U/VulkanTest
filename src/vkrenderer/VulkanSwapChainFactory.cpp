@@ -5,6 +5,11 @@
 
 namespace vkrender
 {
+    vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails );
+    vk::PresentModeKHR chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails );
+    vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetails, const Window& window );
+    std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails );
+
     utils::Sptr<vk::SwapchainCreateInfoKHR> VulkanSwapChainFactory::createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window )
     {
         const SwapChainSupportDetails& swapChainSupportDetails = physicalDevice.querySwapChainSupport(surface);
@@ -49,7 +54,7 @@ namespace vkrender
         return pSwapChainCreateInfo;
     }
 
-    vk::SurfaceFormatKHR VulkanSwapChainFactory::chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails )
+    vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails )
     {
         for( const auto& availableFormat : swapChainSupportDetails.surfaceFormats )
         {
@@ -61,7 +66,7 @@ namespace vkrender
         return swapChainSupportDetails.surfaceFormats[0];
     }
 
-    vk::PresentModeKHR VulkanSwapChainFactory::chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails )
+    vk::PresentModeKHR chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails )
     {
         for( const auto& availablePresentMode : swapChainSupportDetails.presentModes )
         {
@@ -73,7 +78,7 @@ namespace vkrender
         return vk::PresentModeKHR::eFifo;
     }
 
-    vk::Extent2D VulkanSwapChainFactory::chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetials, const Window& window )
+    vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetials, const Window& window )
     {
         const vk::SurfaceCapabilitiesKHR& surfaceCapabilities = swapChainSupportDetials.capabilities;
 
@@ -96,7 +101,7 @@ namespace vkrender
         }
     }
     
-    std::uint32_t VulkanSwapChainFactory::chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails )
+    std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails )
     {
         std::uint32_t imageCount = swapChainSupportDetails.capabilities.minImageCount + 1; // always ask for minImageCount + 1
 

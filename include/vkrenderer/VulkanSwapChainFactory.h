@@ -15,13 +15,7 @@ namespace vkrender
         VulkanSwapChainFactory() = default;
         ~VulkanSwapChainFactory() = default;
 
-        utils::Sptr<vk::SwapchainCreateInfoKHR> createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window );
-    
-    private:
-        vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails );
-        vk::PresentModeKHR chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails );
-        vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetails, const Window& window );
-        std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails );
+        static utils::Sptr<vk::SwapchainCreateInfoKHR> createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window );
     }; 
 } // namespace vkrender
 

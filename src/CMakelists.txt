@@ -12,6 +12,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanLogicalDevice.cpp 
                             vkrenderer/VulkanSurface.cpp
                             vkrenderer/VulkanSwapChainFactory.cpp
+                            vkrenderer/VulkanSwapChain.cpp
 )
 
 # compile definitions
