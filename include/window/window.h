@@ -23,6 +23,7 @@ namespace vkrender
 	class VULKAN_EXPORTS Window
 	{
 	public:
+		explicit Window( const std::uint32_t& width, const std::uint32_t& height );
 		explicit Window();
 		Window(const Window&) = delete;
 		Window(Window&&) noexcept = delete;
@@ -37,7 +38,8 @@ namespace vkrender
 		void destroy();
 		bool quit() const;
 
-		std::pair<std::uint32_t, std::uint32_t> getDimensions();
+		std::pair<std::uint32_t, std::uint32_t> getDimensions() const ;
+		std::pair<std::uint32_t, std::uint32_t> getFrameBufferSize() const ;
 		
 		static std::vector<const char*> populateAvailableExtensions();
 	private:

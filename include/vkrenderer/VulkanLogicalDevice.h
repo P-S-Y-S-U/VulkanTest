@@ -37,6 +37,8 @@ namespace vkrender
 		vk::Queue createDeviceQueue( const std::uint32_t& queueFamilyIndex, const std::uint32_t& index = 0u );
 
 		friend class VulkanLogicalDeviceManager;
+		friend class VulkanSwapChain;
+		friend class VulkanImageView;
 	};
 } // namespace vkrender
 

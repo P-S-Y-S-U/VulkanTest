@@ -22,6 +22,9 @@ namespace vkrender
         VulkanInstance* m_pInstance;
 
         friend class VulkanQueueFamily;
+        friend class VulkanPhysicalDevice;
+        friend class VulkanSwapChainFactory;
+        friend class VulkanSwapChain;
         friend class Window;
     };
 

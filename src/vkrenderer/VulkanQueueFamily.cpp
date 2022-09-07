@@ -3,7 +3,7 @@
 
 namespace vkrender
 {
-	QueueFamilyIndices VulkanQueueFamily::findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice, VulkanSurface* pSurface )
+	QueueFamilyIndices VulkanQueueFamily::findQueueFamilyIndices( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface )
 	{
 		QueueFamilyIndices queueFamilyIndices;
 		const vk::PhysicalDevice& deviceHandle = physicalDevice.m_deviceHandle;
@@ -19,9 +19,9 @@ namespace vkrender
 				queueFamilyIndices.m_graphicsFamily = validQueueIndex;
 			}
 
-			if( pSurface )
+			if( surface.m_upSurfaceHandle.get() )
 			{
-				vk::Bool32 bPresentationSupport = physicalDevice.m_deviceHandle.getSurfaceSupportKHR( validQueueIndex, *pSurface->m_upSurfaceHandle.get() );
+				vk::Bool32 bPresentationSupport = physicalDevice.m_deviceHandle.getSurfaceSupportKHR( validQueueIndex, *surface.m_upSurfaceHandle.get() );
 				if( bPresentationSupport )
 				{
 					queueFamilyIndices.m_presentFamily = validQueueIndex;					

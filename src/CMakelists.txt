@@ -11,7 +11,13 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanLogicalDeviceManager.cpp
                             vkrenderer/VulkanLogicalDevice.cpp 
                             vkrenderer/VulkanSurface.cpp
+                            vkrenderer/VulkanSwapChainFactory.cpp
+                            vkrenderer/VulkanSwapChain.cpp
+                            vkrenderer/VulkanImageView.cpp
 )
+
+# compile definitions
+add_compile_definitions(NOMINMAX)
 
 # library & executable config #
 add_library(vulkanrenderer ${PROJECT_SRC_FILES})

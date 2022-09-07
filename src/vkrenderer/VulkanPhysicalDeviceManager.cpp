@@ -3,6 +3,7 @@
 #include "utilities/VulkanLogger.h"
 
 #include <iostream>
+#include <set>
 
 namespace vkrender
 {
@@ -13,7 +14,7 @@ namespace vkrender
     VulkanPhysicalDeviceManager::~VulkanPhysicalDeviceManager()
     {}
 
-    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::createSuitableDevice()
+    VulkanPhysicalDevice* VulkanPhysicalDeviceManager::createSuitableDevice( const VulkanSurface& surface )
     {
         auto devices = getAvailableDevices();
 
@@ -27,9 +28,14 @@ namespace vkrender
         for( auto& deviceHandle : devices )
         {
             probePhysicalDeviceHandle( deviceHandle );
-            VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle ) );
 
-            if( isDeviceSuitable( temporaryDevice ) )
+            std::vector<const char*> requiredExtensions{
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            };
+
+            VulkanPhysicalDevice temporaryDevice( createTemporaryDevice( deviceHandle, requiredExtensions ) );
+
+            if( isDeviceSuitable( temporaryDevice, surface, requiredExtensions ) )
             {
                 auto upPhysicalDevice = std::make_unique<VulkanPhysicalDevice>(temporaryDevice);
                 VulkanPhysicalDevice* pPhysicalDevice = upPhysicalDevice.get();
@@ -60,9 +66,9 @@ namespace vkrender
         return m_pInstance->m_instance.enumeratePhysicalDevices();
     }
 
-    VulkanPhysicalDevice VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice& deviceHandle )
+    VulkanPhysicalDevice VulkanPhysicalDeviceManager::createTemporaryDevice( vk::PhysicalDevice& deviceHandle, const std::vector<const char*>& deviceExtensions )
     {
-        VulkanPhysicalDevice temporaryDevice{ m_pInstance, deviceHandle };
+        VulkanPhysicalDevice temporaryDevice{ m_pInstance, deviceHandle, deviceExtensions };
         
         auto&& [pDeviceProperties, pDeviceFeatures] = populateDeviceProperties( deviceHandle );
         temporaryDevice.m_spDeviceProperties = pDeviceProperties;
@@ -71,16 +77,46 @@ namespace vkrender
         return temporaryDevice;
     }
 
-    bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice )
+    bool VulkanPhysicalDeviceManager::isDeviceSuitable( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const std::vector<const char*>& requiredExtensions )
     {
-        QueueFamilyIndices queueFamilyIndices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice );
+        QueueFamilyIndices queueFamilyIndices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice, surface );
 
         bool bShader =  physicalDevice.m_spDeviceProperties->deviceType == vk::PhysicalDeviceType::eDiscreteGpu && 
                         physicalDevice.m_spDeviceFeatures->geometryShader;
         
         bool bGraphicsFamily = queueFamilyIndices.m_graphicsFamily.has_value();
         
-        return bShader && bGraphicsFamily;
+        bool bExtensionsSupported =  checkDeviceExtensionSupport( physicalDevice, requiredExtensions );
+        bool bSwapChainAdequate = checkSwapChainAdequacy( physicalDevice, surface, bExtensionsSupported );
+
+        return bShader && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate;
+    }
+
+    bool VulkanPhysicalDeviceManager::checkDeviceExtensionSupport( const VulkanPhysicalDevice& device, const std::vector<const char*>& requiredExtensions )
+    {
+        const vk::PhysicalDevice& deviceHandle = device.m_deviceHandle;
+
+        std::vector<vk::ExtensionProperties, std::allocator<vk::ExtensionProperties>> availableExtensions = deviceHandle.enumerateDeviceExtensionProperties();
+
+        std::set<std::string> requiredExtensionQuery( requiredExtensions.begin(), requiredExtensions.end() );
+
+        for( const auto& deviceExtensionProp : availableExtensions )
+        {
+            requiredExtensionQuery.erase( deviceExtensionProp.extensionName  );
+        }
+
+        return requiredExtensionQuery.empty();
+    }
+
+    bool VulkanPhysicalDeviceManager::checkSwapChainAdequacy( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const bool& bExtensionsSupported )
+    {
+        SwapChainSupportDetails swapChainDetails = physicalDevice.querySwapChainSupport( surface );
+        
+        if( bExtensionsSupported )
+        {
+            return !swapChainDetails.surfaceFormats.empty() && !swapChainDetails.presentModes.empty();
+        }
+        return false;
     }
 
     void VulkanPhysicalDeviceManager::probePhysicalDeviceHandle( const vk::PhysicalDevice& deviceHandle )
