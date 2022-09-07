@@ -22,6 +22,7 @@ namespace vkrender
     {
         populateSwapChainCreateInfo();
         m_swapchainHandle = m_pLogicalDevice->m_deviceHandle.createSwapchainKHR( *m_spSwapChainCreateInfo );
+        m_swapChainImages = m_pLogicalDevice->m_deviceHandle.getSwapchainImagesKHR( m_swapchainHandle );
     }
     
     void VulkanSwapChain::destroySwapChain()

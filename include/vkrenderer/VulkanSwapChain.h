@@ -22,9 +22,11 @@ namespace vkrender
         vk::SwapchainKHR    m_swapchainHandle;
         VulkanLogicalDevice* m_pLogicalDevice;
         VulkanSurface* m_pSurface;
-        utils::Sptr<SwapChainPreset> m_spSwapChainPreset;
 
+        utils::Sptr<SwapChainPreset> m_spSwapChainPreset;
         utils::Sptr<vk::SwapchainCreateInfoKHR> m_spSwapChainCreateInfo;
+        
+        std::vector<vk::Image> m_swapChainImages;
 
         void populateSwapChainCreateInfo();
     };
