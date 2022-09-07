@@ -38,6 +38,7 @@ namespace vkrender
 
 		friend class VulkanLogicalDeviceManager;
 		friend class VulkanSwapChain;
+		friend class VulkanImageView;
 	};
 } // namespace vkrender
 

@@ -18,6 +18,8 @@ namespace vkrender
         void createSwapChain();
         void destroySwapChain();
 
+        const std::vector<vk::Image>& getSwapChainImages() const { return m_swapChainImages; }
+        vk::Format getImageFormat() const { return m_spSwapChainPreset->surfaceFormat.format; }
     private:
         vk::SwapchainKHR    m_swapchainHandle;
         VulkanLogicalDevice* m_pLogicalDevice;

@@ -15,3 +15,6 @@ target_link_libraries(VulkanSurfaceTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>
 
 add_executable(VulkanSwapChainTest vulkan_swapchain_test.cpp)
 target_link_libraries(VulkanSwapChainTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
+
+add_executable(VulkanImageViewTest vulkan_imageview_test.cpp)
+target_link_libraries(VulkanImageViewTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)

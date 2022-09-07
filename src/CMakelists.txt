@@ -13,6 +13,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanSurface.cpp
                             vkrenderer/VulkanSwapChainFactory.cpp
                             vkrenderer/VulkanSwapChain.cpp
+                            vkrenderer/VulkanImageView.cpp
 )
 
 # compile definitions
