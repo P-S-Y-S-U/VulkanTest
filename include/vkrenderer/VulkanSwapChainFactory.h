@@ -15,7 +15,7 @@ namespace vkrender
         VulkanSwapChainFactory() = default;
         ~VulkanSwapChainFactory() = default;
 
-        static utils::Sptr<vk::SwapchainCreateInfoKHR> createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window );
+        static utils::Sptr<SwapChainPreset> createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window );
     }; 
 } // namespace vkrender
 

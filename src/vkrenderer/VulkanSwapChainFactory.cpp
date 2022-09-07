@@ -10,48 +10,31 @@ namespace vkrender
     vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetails, const Window& window );
     std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails );
 
-    utils::Sptr<vk::SwapchainCreateInfoKHR> VulkanSwapChainFactory::createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window )
+    utils::Sptr<SwapChainPreset> VulkanSwapChainFactory::createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window )
     {
         const SwapChainSupportDetails& swapChainSupportDetails = physicalDevice.querySwapChainSupport(surface);
 
-        utils::Sptr<vk::SwapchainCreateInfoKHR> pSwapChainCreateInfo = std::make_shared<vk::SwapchainCreateInfoKHR>();
-        pSwapChainCreateInfo->sType = vk::StructureType::eSwapchainCreateInfoKHR;
-        pSwapChainCreateInfo->surface = *surface.m_upSurfaceHandle;
-
-        vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat( swapChainSupportDetails );
-        pSwapChainCreateInfo->imageFormat = surfaceFormat.format;
-        pSwapChainCreateInfo->imageColorSpace = surfaceFormat.colorSpace;
-        pSwapChainCreateInfo->minImageCount = chooseImageCount( swapChainSupportDetails );
-        pSwapChainCreateInfo->imageExtent = chooseSwapExtent( swapChainSupportDetails, window );
-        pSwapChainCreateInfo->imageArrayLayers = 1;
-        pSwapChainCreateInfo->imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+        utils::Sptr<SwapChainPreset> pPreset = std::make_shared<SwapChainPreset>();
+        pPreset->capabilities = swapChainSupportDetails.capabilities;
+        pPreset->surfaceFormat = chooseSwapSurfaceFormat( swapChainSupportDetails );
+        pPreset->imageCount = chooseImageCount( swapChainSupportDetails );
+        pPreset->imageExtent = chooseSwapExtent( swapChainSupportDetails, window );
+        pPreset->presentMode = chooseSwapPresentMode( swapChainSupportDetails );
 
         QueueFamilyIndices indices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice, surface );
-        std::uint32_t queueFamilyIndices[] = {
-            indices.m_graphicsFamily.value(),
-            indices.m_presentFamily.value()
-        };
 
-        if( indices.m_graphicsFamily != indices.m_presentFamily )
+        if( indices.m_graphicsFamily.value() != indices.m_presentFamily.value() )
         {
-            pSwapChainCreateInfo->imageSharingMode = vk::SharingMode::eConcurrent;
-            pSwapChainCreateInfo->queueFamilyIndexCount = 2;
-            pSwapChainCreateInfo->pQueueFamilyIndices = queueFamilyIndices;
-        } 
+            pPreset->sharingMode = vk::SharingMode::eConcurrent;
+            pPreset->queueFamilyIndices.push_back( indices.m_graphicsFamily.value() );
+            pPreset->queueFamilyIndices.push_back( indices.m_presentFamily.value() );
+        }
         else
         {
-            pSwapChainCreateInfo->imageSharingMode = vk::SharingMode::eExclusive;
-            pSwapChainCreateInfo->queueFamilyIndexCount = 0;
-            pSwapChainCreateInfo->pQueueFamilyIndices = nullptr;
+            pPreset->sharingMode = vk::SharingMode::eExclusive;
         }
 
-        pSwapChainCreateInfo->preTransform = swapChainSupportDetails.capabilities.currentTransform;
-        pSwapChainCreateInfo->compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-        pSwapChainCreateInfo->presentMode = chooseSwapPresentMode( swapChainSupportDetails );
-        pSwapChainCreateInfo->clipped = VK_TRUE;
-        pSwapChainCreateInfo->oldSwapchain = nullptr;
-
-        return pSwapChainCreateInfo;
+        return pPreset;
     }
 
     vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails )

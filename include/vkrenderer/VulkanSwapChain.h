@@ -12,7 +12,7 @@ namespace vkrender
     class VULKAN_EXPORTS VulkanSwapChain
     {
     public:
-        explicit VulkanSwapChain( VulkanLogicalDevice* pLogicalDevice, const utils::Sptr<vk::SwapchainCreateInfoKHR>& pSwapChainCreateInfo );
+        explicit VulkanSwapChain( const utils::Sptr<SwapChainPreset>& pPreset, VulkanLogicalDevice* pLogicalDevice, VulkanSurface* pSurface );
         ~VulkanSwapChain();
 
         void createSwapChain();
@@ -21,8 +21,12 @@ namespace vkrender
     private:
         vk::SwapchainKHR    m_swapchainHandle;
         VulkanLogicalDevice* m_pLogicalDevice;
+        VulkanSurface* m_pSurface;
+        utils::Sptr<SwapChainPreset> m_spSwapChainPreset;
 
         utils::Sptr<vk::SwapchainCreateInfoKHR> m_spSwapChainCreateInfo;
+
+        void populateSwapChainCreateInfo();
     };
 } // namespace vkrender
 
