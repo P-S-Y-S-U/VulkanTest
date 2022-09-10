@@ -14,6 +14,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanSwapChainFactory.cpp
                             vkrenderer/VulkanSwapChain.cpp
                             vkrenderer/VulkanImageView.cpp
+                            vkrenderer/VulkanShaderModule.cpp
 )
 
 # compile definitions
