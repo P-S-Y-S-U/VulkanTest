@@ -39,6 +39,8 @@ namespace vkrender
         utils::Sptr<vk::RenderPassCreateInfo> m_spRenderPassCreateInfo;
 
         void populateRenderPassCreateInfo();
+
+        friend class VulkanGraphicsPipeline;
     }; 
 } // namespace vkrender
 

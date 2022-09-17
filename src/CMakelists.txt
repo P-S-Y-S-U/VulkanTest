@@ -17,6 +17,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanShaderModule.cpp
                             vkrenderer/VulkanPipelineLayout.cpp
                             vkrenderer/VulkanRenderPass.cpp
+                            vkrenderer/VulkanGraphicsPipeline.cpp
 )
 
 # compile definitions

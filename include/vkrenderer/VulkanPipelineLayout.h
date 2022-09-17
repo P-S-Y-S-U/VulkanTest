@@ -24,6 +24,8 @@ namespace vkrender
         utils::Sptr<vk::PipelineLayoutCreateInfo> m_spPipelineLayoutCreateInfo;
 
         void populatePipelineLayoutCreateInfo();
+
+        friend class VulkanGraphicsPipeline;
     };
 } // namespace vkrender
 
