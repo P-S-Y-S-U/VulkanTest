@@ -29,6 +29,8 @@ namespace vkrender
 
         void readSourceBuffer( const std::filesystem::path& shaderFilePath );
         void populateShaderModuleCreateInfo();
+
+        friend class VulkanGraphicsPipeline;
     };
 } // namespace vkrender
 
