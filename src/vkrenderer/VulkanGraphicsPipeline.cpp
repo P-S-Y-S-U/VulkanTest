@@ -145,6 +145,7 @@ namespace vkrender
 
         if( shaderStage.pVertexShader.get() ) 
         {
+            vertexStage = vk::PipelineShaderStageCreateInfo{};
             vertexStage->sType = vk::StructureType::ePipelineShaderStageCreateInfo;
             vertexStage->stage = vk::ShaderStageFlagBits::eVertex;
             vertexStage->module = shaderStage.pVertexShader->m_shaderModuleHandle;
@@ -153,9 +154,10 @@ namespace vkrender
         }
         if( shaderStage.pFragmentShader.get() ) 
         {
+            fragmentStage = vk::PipelineShaderStageCreateInfo{};
             fragmentStage->sType = vk::StructureType::ePipelineShaderStageCreateInfo;
             fragmentStage->stage = vk::ShaderStageFlagBits::eFragment;
-            fragmentStage->module = shaderStage.pVertexShader->m_shaderModuleHandle;
+            fragmentStage->module = shaderStage.pFragmentShader->m_shaderModuleHandle;
             fragmentStage->pName = "main";
             m_shaderStageCount++;
         }
