@@ -30,7 +30,7 @@ namespace vkrender
             std::vector<vk::Rect2D> scissors;
         };
 
-        VulkanGraphicsPipeline( VulkanLogicalDevice* pLogicalDevice, VulkanRenderPass* pRenderPass );
+        VulkanGraphicsPipeline( VulkanLogicalDevice* pLogicalDevice, VulkanRenderPass* pRenderPass, VulkanPipelineLayout* pPipelineLayout );
         ~VulkanGraphicsPipeline();
 
         void createGraphicsPipeline(

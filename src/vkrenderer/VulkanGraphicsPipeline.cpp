@@ -3,9 +3,10 @@
 
 namespace vkrender
 {
-    VulkanGraphicsPipeline::VulkanGraphicsPipeline( VulkanLogicalDevice* pLogicalDevice, VulkanRenderPass* pRenderPass )
+    VulkanGraphicsPipeline::VulkanGraphicsPipeline( VulkanLogicalDevice* pLogicalDevice, VulkanRenderPass* pRenderPass, VulkanPipelineLayout* pPipelineLayout )
         :m_pLogicalDevice{ pLogicalDevice }
         ,m_pRenderPass{ pRenderPass }
+        ,m_pPipelineLayout{ pPipelineLayout }
     {}
 
     VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
