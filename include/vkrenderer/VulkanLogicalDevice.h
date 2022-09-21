@@ -44,6 +44,7 @@ namespace vkrender
 		friend class VulkanRenderPass;
 		friend class VulkanGraphicsPipeline;
 		friend class VulkanFrameBuffer;
+		friend class VulkanCommandPool;
 	};
 } // namespace vkrender
 

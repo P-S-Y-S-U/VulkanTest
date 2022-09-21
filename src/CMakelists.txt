@@ -20,6 +20,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanGraphicsPipeline.cpp
                             vkrenderer/VulkanRenderPassFactory.cpp
                             vkrenderer/VulkanFrameBuffer.cpp
+                            vkrenderer/VulkanCommandPool.cpp
 )
 
 # compile definitions
