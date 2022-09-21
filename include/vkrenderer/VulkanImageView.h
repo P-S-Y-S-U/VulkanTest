@@ -24,6 +24,8 @@ namespace vkrender
         utils::Sptr<vk::ImageViewCreateInfo> m_spImageViewCreateInfo;
 
         void populateImageViewCreateInfo(const vk::Image& vkImage, const vk::Format& vkFormat);
+
+        friend class VulkanFrameBuffer;
     };
 } // namespace vkrender
 

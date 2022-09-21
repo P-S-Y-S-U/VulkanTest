@@ -41,6 +41,7 @@ namespace vkrender
         void populateRenderPassCreateInfo();
 
         friend class VulkanGraphicsPipeline;
+        friend class VulkanFrameBuffer;
     }; 
 } // namespace vkrender
 
