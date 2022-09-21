@@ -21,3 +21,6 @@ target_link_libraries(VulkanImageViewTest PUBLIC $<BUILD_INTERFACE:vulkanrendere
 
 add_executable(VulkanGraphicsPipelineTest vulkan_graphicspipeline_test.cpp)
 target_link_libraries(VulkanGraphicsPipelineTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
+
+add_executable(VulkanFrameBufferTest vulkan_framebuffer_test.cpp)
+target_link_libraries(VulkanFrameBufferTest PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)
