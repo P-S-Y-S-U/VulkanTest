@@ -25,6 +25,8 @@ namespace vkrender
 
         void createRenderPass();
         void destroyRenderPass();
+
+        vk::RenderPass* getHandle() { return &m_renderPassHandle; }
     private:
         vk::RenderPass m_renderPassHandle;
         VulkanLogicalDevice* m_pLogicalDevice;

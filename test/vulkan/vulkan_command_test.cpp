@@ -113,9 +113,13 @@ int main(int argc, const char* argv[])
     viewportStage.viewports.push_back( viewport );
     viewportStage.scissors.push_back( scissor );
 
+    std::vector<vk::DynamicState> dynamicStates{
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
+    };
     vkrender::VulkanGraphicsPipeline graphicsPipeline{ pLogicalDevice, pGraphicsRenderPass.get(), &pipelineLayout };
     graphicsPipeline.createGraphicsPipeline(
-        shaderStages, {}, primitiveDescriptor, viewportStage
+        shaderStages, dynamicStates, primitiveDescriptor, viewportStage
     );
 
     std::vector<utils::Uptr<vkrender::VulkanFrameBuffer>> framebuffers;
@@ -132,6 +136,63 @@ int main(int argc, const char* argv[])
     vkrender::VulkanCommandPool graphicsCommandPool{ pLogicalDevice, queueFamilyIndices.m_graphicsFamily.value() };
     graphicsCommandPool.createCommandPool();
     
+    vk::CommandBufferAllocateInfo allocationInfo{};
+    allocationInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+    allocationInfo.commandPool = graphicsCommandPool.m_commandPoolHandle;
+    allocationInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocationInfo.commandBufferCount = 1;
+
+    vk::Device* pDevice = pLogicalDevice->getHandle();
+
+    vk::CommandBuffer commandBuffer = pDevice->allocateCommandBuffers( allocationInfo )[0];    
+
+    auto l_recordRenderingCommand = [&pGraphicsRenderPass, &graphicsPipeline, &swapChainExtent, &framebuffers]( vk::CommandBuffer& commandBuffer, const std::uint32_t& imageIndex ) {
+        vk::CommandBufferBeginInfo commandBeginInfo{};
+        commandBeginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
+        commandBeginInfo.flags = {};
+        commandBeginInfo.pInheritanceInfo = nullptr;
+
+        commandBuffer.begin( commandBeginInfo );
+
+        vk::RenderPass* pRenderPassHandle = pGraphicsRenderPass->getHandle();
+        vk::RenderPassBeginInfo renderpassBeginInfo{};
+        renderpassBeginInfo.sType = vk::StructureType::eRenderPassBeginInfo;
+        renderpassBeginInfo.renderPass = *pRenderPassHandle;
+        renderpassBeginInfo.framebuffer = *framebuffers[imageIndex]->getHandle();
+        vk::ClearValue clearColor;
+        clearColor.color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
+        renderpassBeginInfo.clearValueCount = 1;
+        renderpassBeginInfo.pClearValues = &clearColor;
+
+        commandBuffer.beginRenderPass( renderpassBeginInfo, vk::SubpassContents::eInline );
+    
+        vk::Pipeline* pPipelineHandle = graphicsPipeline.getHandle();
+
+        commandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, *pPipelineHandle );
+
+        vk::Viewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(swapChainExtent.width);
+        viewport.height = static_cast<float>(swapChainExtent.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 0.0f;
+
+        commandBuffer.setViewport(0, 1, &viewport);
+    
+        vk::Rect2D scissor{};
+        scissor.offset.x = 0;
+        scissor.offset.y = 0; 
+        scissor.extent = swapChainExtent;
+
+        commandBuffer.setScissor( 0, 1, &scissor );
+
+        commandBuffer.draw(3, 1, 0, 0);
+        commandBuffer.endRenderPass();
+    };
+
+    l_recordRenderingCommand( commandBuffer, 0 );
+
     debugMessenger.destroyDebugMessenger( &instance, nullptr );
     
     return 0;

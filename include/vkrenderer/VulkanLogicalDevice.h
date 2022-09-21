@@ -18,6 +18,8 @@ namespace vkrender
 
 		void createLogicalDevice();
 		void destroyLogicalDevice();
+
+		vk::Device* getHandle() { return &m_deviceHandle; }
 	private:
 		vk::Device								m_deviceHandle;
 

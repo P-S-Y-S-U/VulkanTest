@@ -23,6 +23,8 @@ namespace vkrender
 
         void createFrameBuffer();
         void destroyFrameBuffer();
+
+        vk::Framebuffer* getHandle() { return &m_frameBufferHandle; }
     private:
         vk::Framebuffer m_frameBufferHandle;
         VulkanLogicalDevice* m_pLogicalDevice;
