@@ -21,6 +21,8 @@ namespace vkrender
         vk::Extent2D getSwapChainExtent() const { return m_spSwapChainPreset->imageExtent; }
         const std::vector<vk::Image>& getSwapChainImages() const { return m_swapChainImages; }
         vk::Format getImageFormat() const { return m_spSwapChainPreset->surfaceFormat.format; }
+
+        vk::SwapchainKHR* getHandle() { return &m_swapchainHandle; }
     private:
         vk::SwapchainKHR    m_swapchainHandle;
         VulkanLogicalDevice* m_pLogicalDevice;

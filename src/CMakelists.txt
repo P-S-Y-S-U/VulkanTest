@@ -23,9 +23,6 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             vkrenderer/VulkanCommandPool.cpp
 )
 
-# compile definitions
-add_compile_definitions(NOMINMAX)
-
 # library & executable config #
 add_library(vulkanrenderer ${PROJECT_SRC_FILES})
 target_include_directories(vulkanrenderer PUBLIC    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

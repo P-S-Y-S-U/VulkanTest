@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 # CMAKE C & CXX FLAGS SETUP
 
+# compile definitions
+add_compile_definitions(NOMINMAX)
+
 # PROJECT VARS SETUP
 set(PROJECT_BIN     "bin")
 set(PROJECT_LIB     "lib")

@@ -20,6 +20,7 @@ namespace vkrender
 		void destroyLogicalDevice();
 
 		vk::Device* getHandle() { return &m_deviceHandle; }
+		vk::Queue* getQueue( const std::uint32_t& index ) { return &m_queueIndicesMap.at(index); }
 	private:
 		vk::Device								m_deviceHandle;
 
