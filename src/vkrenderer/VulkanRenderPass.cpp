@@ -9,7 +9,9 @@ namespace vkrender
         utils::Sptr<vk::AttachmentReference[]> attachmentReferences,
         std::uint32_t numOfAttachmentReferences,
         utils::Uptr<vk::SubpassDescription[]>  subpasses,
-        std::uint32_t numOfSubpasses
+        std::uint32_t numOfSubpasses,
+        utils::Uptr<vk::SubpassDependency[]> subpassDependencies,
+        std::uint32_t numOfSubpassDependencies
     )
         :m_pLogicalDevice{ pLogicalDevice }
         ,m_attachments{ attachments }
@@ -18,6 +20,8 @@ namespace vkrender
         ,m_numOfAttachmentReferences{ numOfAttachmentReferences }
         ,m_subpasses{ std::move(subpasses ) }
         ,m_numOfSubpasses{ numOfSubpasses }
+        ,m_subpassDependencies{ std::move(subpassDependencies) }
+        ,m_numOfDependencies{ numOfSubpassDependencies }
     {}
 
     VulkanRenderPass::~VulkanRenderPass()
@@ -44,5 +48,7 @@ namespace vkrender
         m_spRenderPassCreateInfo->pAttachments = m_attachments.get();
         m_spRenderPassCreateInfo->subpassCount = m_numOfSubpasses;
         m_spRenderPassCreateInfo->pSubpasses = m_subpasses.get();
+        m_spRenderPassCreateInfo->dependencyCount = m_numOfDependencies;
+        m_spRenderPassCreateInfo->pDependencies = m_subpassDependencies.get();
     }
 } // namespace vkrender

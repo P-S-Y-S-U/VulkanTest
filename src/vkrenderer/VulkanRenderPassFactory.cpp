@@ -23,10 +23,19 @@ namespace vkrender
         subPasses[0].colorAttachmentCount = 1;
         subPasses[0].pColorAttachments = colorAttachmentRef.get();
 
+        utils::Uptr<vk::SubpassDependency[]> subpassDependencies( new vk::SubpassDependency[1] );
+        subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        subpassDependencies[0].dstSubpass = 0;
+        subpassDependencies[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        subpassDependencies[0].srcAccessMask = vk::AccessFlagBits::eNone;
+        subpassDependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        subpassDependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
         utils::Uptr<VulkanRenderPass> pGraphicsRenderPass = std::make_unique<VulkanRenderPass>( 
             pLogicalDevice, 
             colorAttachment, 1, colorAttachmentRef, 1, 
-            std::move(subPasses), 1
+            std::move(subPasses), 1,
+            std::move(subpassDependencies), 1
         );
 
         return std::move(pGraphicsRenderPass);
