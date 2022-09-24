@@ -190,6 +190,7 @@ int main(int argc, const char* argv[])
 
         pCommandBuffer->draw(3, 1, 0, 0);
         pCommandBuffer->endRenderPass();
+        pCommandBuffer->end();
     };
 
     auto l_createSemaphore = []( vk::Device* pDevice ) -> vk::Semaphore{
@@ -226,14 +227,14 @@ int main(int argc, const char* argv[])
             &imageAvailableSemaphore, 
             &renderFinishedSemaphore,
             &l_recordRenderingCommand        
-        ]( vk::Device* pDevice, vk::SwapchainKHR* pSwapChain, vk::CommandBuffer* pCommandBuffer, vk::Queue* pGraphicsQueue ) -> void {
+        ]( vk::Device* pDevice, vk::SwapchainKHR* pSwapChain, vk::CommandBuffer* pCommandBuffer, vk::Queue* pGraphicsQueue, vk::Queue* pPresentationQueue ) -> void {
 
         pDevice->waitForFences( 
             1, 
             &frameAvailableToSwapFence, VK_TRUE, 
             std::numeric_limits<std::uint64_t>::max()
         );
-
+        pDevice->resetFences( 1, &frameAvailableToSwapFence );
         auto&&[result, imageIndex] = pDevice->acquireNextImageKHR( 
             *pSwapChain,
             std::numeric_limits<std::uint64_t>::max(),
@@ -243,8 +244,7 @@ int main(int argc, const char* argv[])
         if( result != vk::Result::eSuccess )
         {
             const char* errorMsg = "FAILED TO ACQUIRE NEXT IMAGE FROM SWAPCHAIN";
-            utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error( errorMsg );
-            vk::throwResultException(result, errorMsg);
+            utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->warn( errorMsg );
         }
 
         pCommandBuffer->reset();
@@ -265,9 +265,30 @@ int main(int argc, const char* argv[])
         submitInfo.pSignalSemaphores = signalSemaphore;
 
         pGraphicsQueue->submit( 1, &submitInfo, frameAvailableToSwapFence );
+
+        vk::PresentInfoKHR presentInfo{};
+        presentInfo.sType = vk::StructureType::ePresentInfoKHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphore;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = pSwapChain;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = nullptr;
+        
+        pPresentationQueue->presentKHR( presentInfo );
     };
     
     vk::SwapchainKHR* pSwapChainHandle = swapChain.getHandle();
+    vk::Queue* pGraphicsQueue = pLogicalDevice->getQueue( queueFamilyIndices.m_graphicsFamily.value() );
+    vk::Queue* pPresentationQueue = pLogicalDevice->getQueue( queueFamilyIndices.m_presentFamily.value() );
+
+    while( !window.quit() )
+    {
+        window.processEvents();
+        l_RenderFrame( pDevice, pSwapChainHandle, &commandBuffer, pGraphicsQueue, pPresentationQueue );
+    }
+
+    pDevice->waitIdle();
 
     debugMessenger.destroyDebugMessenger( &instance, nullptr );
 
