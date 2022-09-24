@@ -18,6 +18,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <limits>
 
 #include <iostream>
 
@@ -146,13 +147,13 @@ int main(int argc, const char* argv[])
 
     vk::CommandBuffer commandBuffer = pDevice->allocateCommandBuffers( allocationInfo )[0];    
 
-    auto l_recordRenderingCommand = [&pGraphicsRenderPass, &graphicsPipeline, &swapChainExtent, &framebuffers]( vk::CommandBuffer& commandBuffer, const std::uint32_t& imageIndex ) {
+    auto l_recordRenderingCommand = [&pGraphicsRenderPass, &graphicsPipeline, &swapChainExtent, &framebuffers]( vk::CommandBuffer* pCommandBuffer, const std::uint32_t& imageIndex ) {
         vk::CommandBufferBeginInfo commandBeginInfo{};
         commandBeginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
         commandBeginInfo.flags = {};
         commandBeginInfo.pInheritanceInfo = nullptr;
 
-        commandBuffer.begin( commandBeginInfo );
+        pCommandBuffer->begin( commandBeginInfo );
 
         vk::RenderPass* pRenderPassHandle = pGraphicsRenderPass->getHandle();
         vk::RenderPassBeginInfo renderpassBeginInfo{};
@@ -164,11 +165,11 @@ int main(int argc, const char* argv[])
         renderpassBeginInfo.clearValueCount = 1;
         renderpassBeginInfo.pClearValues = &clearColor;
 
-        commandBuffer.beginRenderPass( renderpassBeginInfo, vk::SubpassContents::eInline );
+        pCommandBuffer->beginRenderPass( renderpassBeginInfo, vk::SubpassContents::eInline );
     
         vk::Pipeline* pPipelineHandle = graphicsPipeline.getHandle();
 
-        commandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, *pPipelineHandle );
+        pCommandBuffer->bindPipeline( vk::PipelineBindPoint::eGraphics, *pPipelineHandle );
 
         vk::Viewport viewport{};
         viewport.x = 0.0f;
@@ -178,22 +179,101 @@ int main(int argc, const char* argv[])
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 0.0f;
 
-        commandBuffer.setViewport(0, 1, &viewport);
+        pCommandBuffer->setViewport(0, 1, &viewport);
     
         vk::Rect2D scissor{};
         scissor.offset.x = 0;
         scissor.offset.y = 0; 
         scissor.extent = swapChainExtent;
 
-        commandBuffer.setScissor( 0, 1, &scissor );
+        pCommandBuffer->setScissor( 0, 1, &scissor );
 
-        commandBuffer.draw(3, 1, 0, 0);
-        commandBuffer.endRenderPass();
+        pCommandBuffer->draw(3, 1, 0, 0);
+        pCommandBuffer->endRenderPass();
     };
 
-    l_recordRenderingCommand( commandBuffer, 0 );
+    auto l_createSemaphore = []( vk::Device* pDevice ) -> vk::Semaphore{
+        vk::SemaphoreCreateInfo semaphoreCreateInfo{};
+        semaphoreCreateInfo.sType = vk::StructureType::eSemaphoreCreateInfo;
+        
+        return pDevice->createSemaphore( semaphoreCreateInfo );
+    };
+
+    auto l_destroySemaphore = []( vk::Device* pDevice, vk::Semaphore* pSemaphore ){
+        pDevice->destroySemaphore( *pSemaphore );
+    };
+
+    auto l_createFence = []( vk::Device* pDevice ) -> vk::Fence{
+        vk::FenceCreateInfo fenceCreateInfo{};
+        fenceCreateInfo.sType = vk::StructureType::eFenceCreateInfo;
+        fenceCreateInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+
+        return pDevice->createFence( fenceCreateInfo );
+    };
+
+    auto l_destroyFence = []( vk::Device* pDevice, vk::Fence* pFence ){
+        pDevice->destroy(*pFence);
+    };
+
+    vk::Semaphore imageAvailableSemaphore = l_createSemaphore( pDevice );
+    vk::Semaphore renderFinishedSemaphore = l_createSemaphore( pDevice );
+    vk::Fence frameAvailableToSwapFence = l_createFence( pDevice );
+
+    // RENDERING LOOP
+    auto l_RenderFrame = 
+        [
+            &frameAvailableToSwapFence, 
+            &imageAvailableSemaphore, 
+            &renderFinishedSemaphore,
+            &l_recordRenderingCommand        
+        ]( vk::Device* pDevice, vk::SwapchainKHR* pSwapChain, vk::CommandBuffer* pCommandBuffer, vk::Queue* pGraphicsQueue ) -> void {
+
+        pDevice->waitForFences( 
+            1, 
+            &frameAvailableToSwapFence, VK_TRUE, 
+            std::numeric_limits<std::uint64_t>::max()
+        );
+
+        auto&&[result, imageIndex] = pDevice->acquireNextImageKHR( 
+            *pSwapChain,
+            std::numeric_limits<std::uint64_t>::max(),
+            imageAvailableSemaphore, nullptr
+        );
+        
+        if( result != vk::Result::eSuccess )
+        {
+            const char* errorMsg = "FAILED TO ACQUIRE NEXT IMAGE FROM SWAPCHAIN";
+            utils::VulkanRendererApiLogger::getSingletonPtr()->getLogger()->error( errorMsg );
+            vk::throwResultException(result, errorMsg);
+        }
+
+        pCommandBuffer->reset();
+        l_recordRenderingCommand( pCommandBuffer, imageIndex );
+        
+        vk::SubmitInfo submitInfo{};
+        submitInfo.sType = vk::StructureType::eSubmitInfo;
+
+        vk::Semaphore waitSemaphores[] = {imageAvailableSemaphore};
+        vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = pCommandBuffer;
+        vk::Semaphore signalSemaphore[] = {renderFinishedSemaphore};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphore;
+
+        pGraphicsQueue->submit( 1, &submitInfo, frameAvailableToSwapFence );
+    };
+    
+    vk::SwapchainKHR* pSwapChainHandle = swapChain.getHandle();
 
     debugMessenger.destroyDebugMessenger( &instance, nullptr );
+
+    l_destroyFence( pDevice, &frameAvailableToSwapFence );
+    l_destroySemaphore( pDevice, &renderFinishedSemaphore );
+    l_destroySemaphore( pDevice, &imageAvailableSemaphore );
     
     return 0;
 }
