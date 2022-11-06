@@ -1,5 +1,4 @@
 #include "window/window.h"
-#include "vkrenderer/VulkanInstance.h"
 
 namespace vkrender
 {
@@ -31,6 +30,7 @@ namespace vkrender
 		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
 	}
 
+/*
 	utils::Uptr<VulkanSurface> Window::createSurface( VulkanInstance* pInstance )
 	{
 		utils::Uptr<vk::SurfaceKHR> upSurfaceHandle = std::make_unique<vk::SurfaceKHR>();
@@ -49,6 +49,7 @@ namespace vkrender
 
 		return std::move(upSurfaceWrapper);
 	}
+*/
 
 	void Window::processEvents()
 	{

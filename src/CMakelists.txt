@@ -1,26 +1,8 @@
 # project files src files list #
 set(PROJECT_SRC_FILES       window/window.cpp
+                            vkrenderer/VulkanDebugMessenger.cpp
                             utilities/VulkanLogger_VulkanValidationLayerLogger.cpp
                             utilities/VulkanLogger_VulkanRendererApiLogger.cpp
-                            vkrenderer/VulkanInstance.cpp
-                            vkrenderer/VulkanObjectCreateInfoFactory.cpp
-                            vkrenderer/VulkanDebugMessenger.cpp
-                            vkrenderer/VulkanPhysicalDeviceManager.cpp 
-                            vkrenderer/VulkanPhysicalDevice.cpp 
-                            vkrenderer/VulkanQueueFamily.cpp
-                            vkrenderer/VulkanLogicalDeviceManager.cpp
-                            vkrenderer/VulkanLogicalDevice.cpp 
-                            vkrenderer/VulkanSurface.cpp
-                            vkrenderer/VulkanSwapChainFactory.cpp
-                            vkrenderer/VulkanSwapChain.cpp
-                            vkrenderer/VulkanImageView.cpp
-                            vkrenderer/VulkanShaderModule.cpp
-                            vkrenderer/VulkanPipelineLayout.cpp
-                            vkrenderer/VulkanRenderPass.cpp
-                            vkrenderer/VulkanGraphicsPipeline.cpp
-                            vkrenderer/VulkanRenderPassFactory.cpp
-                            vkrenderer/VulkanFrameBuffer.cpp
-                            vkrenderer/VulkanCommandPool.cpp
 )
 
 # library & executable config #

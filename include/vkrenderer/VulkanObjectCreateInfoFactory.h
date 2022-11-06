@@ -12,7 +12,7 @@ namespace vkrender
 class VULKAN_EXPORTS VulkanObjectCreateInfoFactory
 {
 public:
-    static utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT> populateDebugMessengerCreateInfoExt();
+    static vk::DebugUtilsMessengerCreateInfoEXT populateDebugMessengerCreateInfoExt();
 };
 
 } // namespace vkrender

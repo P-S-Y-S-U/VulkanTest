@@ -7,6 +7,12 @@
 namespace vkrender
 {
 	VulkanDebugMessenger::VulkanDebugMessenger()
+	{}
+	
+	VulkanDebugMessenger::~VulkanDebugMessenger()
+	{}
+
+	void VulkanDebugMessenger::initLogger()
 	{
 		if( utils::VulkanValidationLayerLogger::getSingletonPtr() == nullptr )
 		{
@@ -18,38 +24,21 @@ namespace vkrender
 			utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger()->set_level( spdlog::level::debug );
 		}
 	}
-	
-	VulkanDebugMessenger::~VulkanDebugMessenger()
-	{}
 
-	void VulkanDebugMessenger::init( const utils::Sptr<vk::DebugUtilsMessengerCreateInfoEXT>& pDebugMessengerCreateInfo )
+	VkResult VulkanDebugMessenger::createDebugUtilsMessengerEXT( 
+			vk::Instance& vkInstance, 
+			vk::DebugUtilsMessengerCreateInfoEXT& vkDebugMessengerCreateInfo, 
+			const vk::AllocationCallbacks* pVkAllocatorCB, 
+			vk::DebugUtilsMessengerEXT& vkDebugMessenger 
+	)
 	{
-		m_spDebugMessengerCreateInfo = pDebugMessengerCreateInfo;
-	}
-
-	void VulkanDebugMessenger::createDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
-	{
-		if (createDebugUtilsMessengerEXT(pVulkanInstance, pAllocatorCB) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to setup debug messenger!");
-		}
-	}
-
-	void VulkanDebugMessenger::destroyDebugMessenger( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
-	{
-		destroyDebugUtilsMessengerEXT(pVulkanInstance, pAllocatorCB);
-	}
-
-	VkResult VulkanDebugMessenger::createDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
-	{
-		vk::Instance& vkInstance = pVulkanInstance->m_instance;
 		PFN_vkCreateDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>( vkInstance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
 		if (func != nullptr) {
 			return func( 
 				vkInstance,
-				reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>( m_spDebugMessengerCreateInfo.get() ), 
-				reinterpret_cast<const VkAllocationCallbacks*>( pAllocatorCB ),
-				reinterpret_cast<VkDebugUtilsMessengerEXT*>( &m_debugMessenger )
+				reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>( &vkDebugMessengerCreateInfo ), 
+				reinterpret_cast<const VkAllocationCallbacks*>( pVkAllocatorCB ),
+				reinterpret_cast<VkDebugUtilsMessengerEXT*>( &vkDebugMessenger )
 			);
 		}
 		else {
@@ -57,15 +46,18 @@ namespace vkrender
 		}
 	}
 
-	void VulkanDebugMessenger::destroyDebugUtilsMessengerEXT( VulkanInstance* pVulkanInstance, const vk::AllocationCallbacks* pAllocatorCB )
+	void VulkanDebugMessenger::destroyDebugUtilsMessengerEXT( 
+			vk::Instance& vkInstance,
+			vk::DebugUtilsMessengerEXT& vkDebugMessenger,
+			const vk::AllocationCallbacks* pAllocatorCB 
+	)
 	{
-		vk::Instance& vkInstance = pVulkanInstance->m_instance;
 		PFN_vkDestroyDebugUtilsMessengerEXT func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>( vkInstance.getProcAddr("vkDestroyDebugUtilsMessengerEXT") );
 		if (func != nullptr)
 		{
 			func(
 				vkInstance, 
-				m_debugMessenger, 
+				vkDebugMessenger, 
 				reinterpret_cast<const VkAllocationCallbacks*>(pAllocatorCB)
 			);
 		}
@@ -77,6 +69,11 @@ namespace vkrender
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
+		if (utils::VulkanValidationLayerLogger::getSingletonPtr() == nullptr)
+		{
+			VulkanDebugMessenger::initLogger();
+		}
+
 		utils::Sptr<spdlog::logger> pLogger = utils::VulkanValidationLayerLogger::getSingletonPtr()->getLogger();
 
 		switch(messageSeverity)
