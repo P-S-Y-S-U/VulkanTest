@@ -44,6 +44,7 @@ void VulkanApplication::initVulkan()
 	createInstance();
 	setupDebugMessenger();
 	pickPhysicalDevice();
+	createLogicalDevice();
 }
 
 void VulkanApplication::shutdown()
@@ -51,6 +52,8 @@ void VulkanApplication::shutdown()
 	using namespace vkrender;
 
 	m_vkInstance.destroySurfaceKHR( m_vkSurface );
+
+	m_vkLogicalDevice.destroy();
 
 	if( ENABLE_VALIDATION_LAYER )
 	{
@@ -61,7 +64,6 @@ void VulkanApplication::shutdown()
 	
 	m_window.destroy();
 }
-
 
 void VulkanApplication::createInstance()
 {
@@ -84,13 +86,13 @@ void VulkanApplication::createInstance()
 	vk::InstanceCreateInfo instanceCreateInfo{};
 	instanceCreateInfo.sType = vk::StructureType::eInstanceCreateInfo;
 	instanceCreateInfo.pApplicationInfo = &applicationInfo;
-	m_extensionContainer = Window::populateAvailableExtensions();
+	m_instanceExtensionContainer = Window::populateAvailableExtensions();
 	if( ENABLE_VALIDATION_LAYER )
 	{
-		m_extensionContainer.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		m_instanceExtensionContainer.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
-	instanceCreateInfo.enabledExtensionCount = static_cast<std::uint32_t>(m_extensionContainer.size());
-	instanceCreateInfo.ppEnabledExtensionNames = m_extensionContainer.data();
+	instanceCreateInfo.enabledExtensionCount = static_cast<std::uint32_t>(m_instanceExtensionContainer.size());
+	instanceCreateInfo.ppEnabledExtensionNames = m_instanceExtensionContainer.data();
 	vk::DebugUtilsMessengerCreateInfoEXT vkDebugUtilsMessengerCreateInfo{};
 	if (ENABLE_VALIDATION_LAYER)
 	{
@@ -206,6 +208,8 @@ void VulkanApplication::pickPhysicalDevice()
 		if( l_isDeviceSuitable( vkTemporaryDevice, &m_vkSurface, requiredExtensions ) )
 		{
 			m_vkPhysicalDevice = vkTemporaryDevice;
+			m_deviceExtensionContainer = requiredExtensions;
+			m_deviceExtensionContainer.shrink_to_fit();
 
 			LOG_INFO("Selected Suitable Vulkan GPU!");
             l_probePhysicalDeviceHandle( m_vkPhysicalDevice );
@@ -216,6 +220,48 @@ void VulkanApplication::pickPhysicalDevice()
 	std::string errorMsg = "FAILED TO SELECT A SUITABLE VULKAN GPU!";
     LOG_ERROR(errorMsg);
     throw std::runtime_error(errorMsg);
+}
+
+void VulkanApplication::createLogicalDevice()
+{
+	using namespace vkrender;
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
+
+	vk::DeviceQueueCreateInfo vkDeviceGraphicsQueueCreateInfo{};	
+	std::uint32_t graphicsQueueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
+	std::size_t graphicsQueueCount = 1;
+	std::vector<float> graphicsQueuePriorities( graphicsQueueCount ); // TODO check state
+	graphicsQueuePriorities[0] = 1.0f;
+	graphicsQueuePriorities.shrink_to_fit();
+	populateDeviceQueueCreateInfo( vkDeviceGraphicsQueueCreateInfo, graphicsQueueFamilyIndex, graphicsQueuePriorities );
+
+	vk::DeviceQueueCreateInfo vkDevicePresentationQueueCreateInfo{};
+	std::size_t presentationQueueCount = 1;
+	std::vector<float> presentationQueuePriorities( presentationQueueCount );
+	presentationQueuePriorities[0] = 1.0f;
+	presentationQueuePriorities.shrink_to_fit();
+	if( queueFamilyIndices.m_presentFamily.has_value() )
+	{	
+		std::uint32_t presentationQueueFamilyIndex = queueFamilyIndices.m_presentFamily.value();
+		populateDeviceQueueCreateInfo( vkDevicePresentationQueueCreateInfo, presentationQueueFamilyIndex, presentationQueuePriorities );
+	}
+
+	vk::DeviceCreateInfo vkDeviceCreateInfo{};
+	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+	queueCreateInfos.push_back( vkDeviceGraphicsQueueCreateInfo );
+	if( queueFamilyIndices.m_presentFamily.has_value() )
+		queueCreateInfos.push_back( vkDevicePresentationQueueCreateInfo );
+	queueCreateInfos.shrink_to_fit();
+	vk::PhysicalDeviceFeatures physicalDeviceFeatures = m_vkPhysicalDevice.getFeatures(); // TODO check state
+	populateDeviceCreateInfo( vkDeviceCreateInfo, queueCreateInfos, &physicalDeviceFeatures );
+
+	m_vkLogicalDevice = m_vkPhysicalDevice.createDevice( vkDeviceCreateInfo );
+	
+	m_vkGraphicsQueue = m_vkLogicalDevice.getQueue( graphicsQueueFamilyIndex, 0 );
+	if( queueFamilyIndices.m_presentFamily.has_value() )
+	{
+		m_vkPresentationQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_presentFamily.value(), 0 );
+	}
 }
 
 vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface )
@@ -257,6 +303,38 @@ void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMes
 	vkDebugUtilsMessengerCreateInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 	vkDebugUtilsMessengerCreateInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 	vkDebugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugMessenger::debugCallback;
+}
+
+void VulkanApplication::populateDeviceQueueCreateInfo( vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, const std::uint32_t& queueFamilyIndex, const std::vector<float>& queuePriorities )
+{
+	vkDeviceQueueCreateInfo.sType = vk::StructureType::eDeviceQueueCreateInfo;
+	vkDeviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+	vkDeviceQueueCreateInfo.queueCount = queuePriorities.size();
+	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriorities.data();
+}
+
+void VulkanApplication::populateDeviceCreateInfo( 
+	vk::DeviceCreateInfo& vkDeviceCreateInfo, 
+	const std::vector<vk::DeviceQueueCreateInfo>& queueCreateInfos, 
+	const vk::PhysicalDeviceFeatures* pEnabledFeatures 
+)
+{
+	using namespace vkrender;
+
+	vkDeviceCreateInfo.sType = vk::StructureType::eDeviceCreateInfo;
+	vkDeviceCreateInfo.enabledExtensionCount = m_deviceExtensionContainer.size();
+	vkDeviceCreateInfo.ppEnabledExtensionNames = m_deviceExtensionContainer.data();
+	vkDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+	vkDeviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
+	vkDeviceCreateInfo.pEnabledFeatures = pEnabledFeatures;
+	if( ENABLE_VALIDATION_LAYER )
+	{
+		vkDeviceCreateInfo.enabledLayerCount = static_cast<std::uint32_t>(layer::VALIDATION_LAYER.m_layers.size());
+		vkDeviceCreateInfo.ppEnabledLayerNames = layer::VALIDATION_LAYER.m_layers.data();
+	}
+	else {
+		vkDeviceCreateInfo.enabledLayerCount = 0;
+	}
 }
 
 vkrender::SwapChainSupportDetails VulkanApplication::querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface ) const

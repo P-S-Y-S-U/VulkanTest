@@ -32,12 +32,23 @@ protected:
 
     void createInstance();
     void pickPhysicalDevice();
+    void createLogicalDevice();
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& vkPhysicalDevice, vk::SurfaceKHR* pVkSurface = nullptr );
 
     vkrender::SwapChainSupportDetails querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface ) const;
 
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
+    void populateDeviceQueueCreateInfo( 
+        vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 
+        const std::uint32_t& queueFamilyIndex, const std::vector<float>& queuePriorities 
+    );
+    void populateDeviceCreateInfo(
+        vk::DeviceCreateInfo& vkDeviceCreateInfo,
+        const std::vector<vk::DeviceQueueCreateInfo>& queueCreateInfos,
+        const vk::PhysicalDeviceFeatures* pEnabledFeatures 
+    );
+
     void setupDebugMessenger();
 
     bool checkValidationLayerSupport();
@@ -49,7 +60,12 @@ protected:
     vk::SurfaceKHR m_vkSurface;
     vk::PhysicalDevice m_vkPhysicalDevice;
 
-    std::vector<const char*> m_extensionContainer;
+    vk::Device m_vkLogicalDevice;
+    vk::Queue m_vkGraphicsQueue;
+    vk::Queue m_vkPresentationQueue;
+
+    std::vector<const char*> m_instanceExtensionContainer;
+    std::vector<const char*> m_deviceExtensionContainer;
     vkrender::Window m_window;
 };
 
