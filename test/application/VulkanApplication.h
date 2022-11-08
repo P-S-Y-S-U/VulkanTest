@@ -5,6 +5,9 @@
 #include <vector>
 
 #include "window/window.h"
+#include "vkrenderer/VulkanSwapChainStructs.hpp"
+#include "vkrenderer/VulkanQueueFamily.hpp"
+
 #include <vulkan/vulkan.hpp>
 
 class VulkanApplication
@@ -28,7 +31,12 @@ protected:
     void shutdown();
 
     void createInstance();
-    
+    void pickPhysicalDevice();
+
+    vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& vkPhysicalDevice, vk::SurfaceKHR* pVkSurface = nullptr );
+
+    vkrender::SwapChainSupportDetails querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface ) const;
+
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
     void setupDebugMessenger();
 
@@ -38,6 +46,8 @@ protected:
 
     vk::Instance m_vkInstance;
     vk::DebugUtilsMessengerEXT m_vkDebugUtilsMessenger;
+    vk::SurfaceKHR m_vkSurface;
+    vk::PhysicalDevice m_vkPhysicalDevice;
 
     std::vector<const char*> m_extensionContainer;
     vkrender::Window m_window;
