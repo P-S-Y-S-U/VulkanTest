@@ -36,6 +36,8 @@ namespace vkrender
 		void destroy();
 		bool quit() const;
 
+		HWND getHandle() const;
+
 		std::pair<std::uint32_t, std::uint32_t> getDimensions() const ;
 		std::pair<std::uint32_t, std::uint32_t> getFrameBufferSize() const ;
 		

@@ -43,6 +43,7 @@ void VulkanApplication::initVulkan()
 {
 	createInstance();
 	setupDebugMessenger();
+	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 }
@@ -51,9 +52,9 @@ void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
-	m_vkInstance.destroySurfaceKHR( m_vkSurface );
-
 	m_vkLogicalDevice.destroy();
+	
+	m_vkInstance.destroySurfaceKHR( m_vkSurface );
 
 	if( ENABLE_VALIDATION_LAYER )
 	{
@@ -114,6 +115,16 @@ void VulkanApplication::createInstance()
 	}
 	LOG_INFO( "Created Vulkan instance successfully" );
 
+}
+
+void VulkanApplication::createSurface()
+{
+	vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo;
+	surfaceCreateInfo.sType = vk::StructureType::eWin32SurfaceCreateInfoKHR;
+	surfaceCreateInfo.hwnd = m_window.getHandle();
+	surfaceCreateInfo.hinstance = GetModuleHandle( nullptr );
+
+	m_vkSurface = m_vkInstance.createWin32SurfaceKHR( surfaceCreateInfo );
 }
 
 void VulkanApplication::pickPhysicalDevice()

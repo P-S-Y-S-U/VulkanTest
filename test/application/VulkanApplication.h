@@ -31,6 +31,7 @@ protected:
     void shutdown();
 
     void createInstance();
+    void createSurface();
     void pickPhysicalDevice();
     void createLogicalDevice();
 

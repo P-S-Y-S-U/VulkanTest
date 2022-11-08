@@ -75,6 +75,11 @@ namespace vkrender
 		return m_bQuit;
 	}
 
+	HWND Window::getHandle() const 
+	{
+		return glfwGetWin32Window( m_pWindow );
+	}
+
 	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() const
 	{
 		return std::pair{ m_windowWidth, m_windowHeight };
