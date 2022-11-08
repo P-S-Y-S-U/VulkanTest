@@ -50,6 +50,8 @@ void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
+	m_vkInstance.destroySurfaceKHR( m_vkSurface );
+
 	if( ENABLE_VALIDATION_LAYER )
 	{
 		VulkanDebugMessenger::destroyDebugUtilsMessengerEXT( m_vkInstance, m_vkDebugUtilsMessenger, nullptr );
