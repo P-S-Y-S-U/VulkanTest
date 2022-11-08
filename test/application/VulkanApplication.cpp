@@ -53,7 +53,7 @@ void VulkanApplication::shutdown()
 	using namespace vkrender;
 
 	m_vkLogicalDevice.destroy();
-	
+
 	m_vkInstance.destroySurfaceKHR( m_vkSurface );
 
 	if( ENABLE_VALIDATION_LAYER )
@@ -125,6 +125,7 @@ void VulkanApplication::createSurface()
 	surfaceCreateInfo.hinstance = GetModuleHandle( nullptr );
 
 	m_vkSurface = m_vkInstance.createWin32SurfaceKHR( surfaceCreateInfo );
+	LOG_INFO( "Vulkan Surface Created" );
 }
 
 void VulkanApplication::pickPhysicalDevice()
@@ -266,12 +267,16 @@ void VulkanApplication::createLogicalDevice()
 	vk::PhysicalDeviceFeatures physicalDeviceFeatures = m_vkPhysicalDevice.getFeatures(); // TODO check state
 	populateDeviceCreateInfo( vkDeviceCreateInfo, queueCreateInfos, &physicalDeviceFeatures );
 
-	m_vkLogicalDevice = m_vkPhysicalDevice.createDevice( vkDeviceCreateInfo );
-	
+	m_vkLogicalDevice = m_vkPhysicalDevice.createDevice( vkDeviceCreateInfo );	
+	LOG_INFO("Logical Device created");
+
 	m_vkGraphicsQueue = m_vkLogicalDevice.getQueue( graphicsQueueFamilyIndex, 0 );
+	LOG_INFO("Graphics Queue created");
+
 	if( queueFamilyIndices.m_presentFamily.has_value() )
 	{
 		m_vkPresentationQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_presentFamily.value(), 0 );
+		LOG_INFO("Presentation Queue created");
 	}
 }
 
