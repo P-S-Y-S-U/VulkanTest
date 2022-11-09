@@ -113,12 +113,19 @@ void VulkanApplication::initVulkan()
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapchain();
+	createImageViews();
 }
 
 void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
+	for( auto& vkImageView : m_swapchainImageViews )
+	{
+		m_vkLogicalDevice.destroyImageView( vkImageView );
+	}
+	m_swapchainImageViews.clear();
+	
 	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
 	m_vkLogicalDevice.destroy();
 
@@ -401,6 +408,39 @@ void VulkanApplication::createSwapchain()
 	m_vkSwapchainExtent = imageExtent;
 
 	LOG_INFO("Swapchain Created");
+}
+
+void VulkanApplication::createImageViews()
+{
+	m_swapchainImageViews.resize( m_swapchainImages.size() );
+
+	for( auto i = 0u; i < m_swapchainImages.size(); i++ )
+	{
+		vk::ImageViewCreateInfo vkImageViewCreateInfo{};
+		vkImageViewCreateInfo.sType = vk::StructureType::eImageViewCreateInfo;
+		vkImageViewCreateInfo.image = m_swapchainImages[i];
+		vkImageViewCreateInfo.viewType = vk::ImageViewType::e2D;
+        vkImageViewCreateInfo.format = m_vkSwapchainImageFormat;
+        vk::ComponentMapping componentMap;
+        componentMap.r = vk::ComponentSwizzle::eIdentity;
+        componentMap.g = vk::ComponentSwizzle::eIdentity;
+        componentMap.b = vk::ComponentSwizzle::eIdentity;
+        componentMap.a = vk::ComponentSwizzle::eIdentity;
+        vkImageViewCreateInfo.components = componentMap;
+        vk::ImageSubresourceRange subResourceRange;
+        subResourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+        subResourceRange.baseMipLevel = 0;
+        subResourceRange.levelCount = 1;
+        subResourceRange.baseArrayLayer = 0;
+        subResourceRange.layerCount = 1;
+        vkImageViewCreateInfo.subresourceRange = subResourceRange;
+
+		vk::ImageView vkImageView = m_vkLogicalDevice.createImageView( vkImageViewCreateInfo );
+		m_swapchainImageViews[i] = vkImageView;
+	}
+	m_swapchainImageViews.shrink_to_fit();
+
+	LOG_INFO("Swapchain ImageViews created");
 }
 
 vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface )

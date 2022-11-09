@@ -35,6 +35,7 @@ protected:
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createSwapchain();
+    void createImageViews();
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
 
@@ -70,6 +71,7 @@ protected:
     vk::Extent2D m_vkSwapchainExtent;
     vk::SwapchainKHR m_vkSwapchain;
     std::vector<vk::Image> m_swapchainImages;
+    std::vector<vk::ImageView> m_swapchainImageViews;
 
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
