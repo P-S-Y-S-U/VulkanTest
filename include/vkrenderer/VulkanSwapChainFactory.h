@@ -15,8 +15,7 @@ namespace vkrender
         VulkanSwapChainFactory() = default;
         ~VulkanSwapChainFactory() = default;
 
-        static SwapChainSupportDetails querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface );
-        static SwapChainPreset createSuitableSwapChainPreset( 
+        static vk::SwapchainCreateInfoKHR createSuitableSwapChainPreset( 
             const vk::PhysicalDevice& physicalDevice, 
             const vk::SurfaceKHR& surface, 
             const QueueFamilyIndices& queueFamilyIndices,
