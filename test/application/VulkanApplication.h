@@ -35,6 +35,8 @@ protected:
     void pickPhysicalDevice();
     void createLogicalDevice();
 
+    vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
+
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
     void populateDeviceQueueCreateInfo( 
         vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 
@@ -46,6 +48,8 @@ protected:
         const vk::PhysicalDeviceFeatures* pEnabledFeatures 
     );
 
+    vkrender::SwapChainSupportDetails querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface );
+    
     void setupDebugMessenger();
 
     bool checkValidationLayerSupport();

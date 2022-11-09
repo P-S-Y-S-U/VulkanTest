@@ -9,6 +9,71 @@
 
 #include <set>
 
+vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
+vk::PresentModeKHR chooseSwapPresentMode( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
+vk::Extent2D chooseSwapExtent( const vkrender::SwapChainSupportDetails& swapChainSupportDetails, const vkrender::Window& window );
+std::uint32_t chooseImageCount( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
+
+
+vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const vkrender::SwapChainSupportDetails& swapChainSupportDetails )
+{
+    for( const auto& availableFormat : swapChainSupportDetails.surfaceFormats )
+    {
+        if( availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
+        {
+            return availableFormat;
+        }
+    }
+    return swapChainSupportDetails.surfaceFormats[0];
+}
+
+vk::PresentModeKHR chooseSwapPresentMode( const vkrender::SwapChainSupportDetails& swapChainSupportDetails )
+{
+    for( const auto& availablePresentMode : swapChainSupportDetails.presentModes )
+    {
+        if( availablePresentMode == vk::PresentModeKHR::eMailbox )
+        {
+            return availablePresentMode;
+        }
+    }
+    return vk::PresentModeKHR::eFifo;
+}
+
+vk::Extent2D chooseSwapExtent( const vkrender::SwapChainSupportDetails& swapChainSupportDetials, const vkrender::Window& window )
+{
+    const vk::SurfaceCapabilitiesKHR& surfaceCapabilities = swapChainSupportDetials.capabilities;
+
+    if( surfaceCapabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max() )
+    {
+        return surfaceCapabilities.currentExtent;
+    }
+    else
+    {
+        const auto& [width, height] = window.getFrameBufferSize();
+
+        vk::Extent2D actualExtent{
+            width, height
+        };
+
+        actualExtent.width = std::clamp(actualExtent.width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width );
+        actualExtent.height = std::clamp(actualExtent.height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height );
+
+        return actualExtent;
+    }
+}
+ 
+std::uint32_t chooseImageCount( const vkrender::SwapChainSupportDetails& swapChainSupportDetails )
+{
+    std::uint32_t imageCount = swapChainSupportDetails.capabilities.minImageCount + 1; // always ask for minImageCount + 1
+
+    if( swapChainSupportDetails.capabilities.maxImageCount > 0 && imageCount > swapChainSupportDetails.capabilities.maxImageCount )
+    {
+        imageCount = swapChainSupportDetails.capabilities.maxImageCount;
+    }
+
+    return imageCount;
+}
+
 VulkanApplication::VulkanApplication( const std::string& applicationName )
     :m_applicationName{ applicationName }
 	,m_window{ 800, 600 }
@@ -163,7 +228,7 @@ void VulkanApplication::pickPhysicalDevice()
 		vk::SurfaceKHR* surface,
 		const std::vector<const char*>& requiredExtensions 
 	) -> bool{
-		QueueFamilyIndices queueFamilyIndices = VulkanQueueFamilyHelper::findQueueFamilyIndices( physicalDevice, surface );
+		QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( physicalDevice, surface );
 
 		const vk::PhysicalDeviceFeatures& vkPhysicalDeviceFeatures = physicalDevice.getFeatures();
 		const vk::PhysicalDeviceProperties& vkPhysicalDeviceProperties = physicalDevice.getProperties();
@@ -190,7 +255,7 @@ void VulkanApplication::pickPhysicalDevice()
 			const vk::PhysicalDevice& physicalDevice, 
 			const vk::SurfaceKHR& surface, const bool& bExtensionSupported ) -> bool{
 	
-			SwapChainSupportDetails swapChainDetails = VulkanSwapChainFactory::querySwapChainSupport( physicalDevice, surface );
+			SwapChainSupportDetails swapChainDetails = querySwapChainSupport( physicalDevice, surface );
 
 			if( bExtensionSupported )
         	{
@@ -238,7 +303,7 @@ void VulkanApplication::pickPhysicalDevice()
 void VulkanApplication::createLogicalDevice()
 {
 	using namespace vkrender;
-	QueueFamilyIndices queueFamilyIndices = VulkanQueueFamilyHelper::findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
 	vk::DeviceQueueCreateInfo vkDeviceGraphicsQueueCreateInfo{};	
 	std::uint32_t graphicsQueueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
@@ -281,6 +346,35 @@ void VulkanApplication::createLogicalDevice()
 	}
 }
 
+vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface )
+{
+	vkrender::QueueFamilyIndices queueFamilyIndices;
+
+	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
+
+	int validQueueIndex = 0;
+
+	for (const auto& prop : queueFamilyProperties)
+	{
+		if (prop.queueFlags & vk::QueueFlagBits::eGraphics )
+		{
+			queueFamilyIndices.m_graphicsFamily = validQueueIndex;
+		}
+
+		if( pVkSurface )
+		{
+			vk::Bool32 bPresentationSupport = physicalDevice.getSurfaceSupportKHR( validQueueIndex, *pVkSurface );
+			if( bPresentationSupport )
+			{
+				queueFamilyIndices.m_presentFamily = validQueueIndex;					
+			}
+		}
+		validQueueIndex++;
+	}
+
+	return queueFamilyIndices;
+}
+
 void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& vkDebugUtilsMessengerCreateInfo )
 {
 	using namespace vkrender;
@@ -321,6 +415,17 @@ void VulkanApplication::populateDeviceCreateInfo(
 	else {
 		vkDeviceCreateInfo.enabledLayerCount = 0;
 	}
+}
+
+vkrender::SwapChainSupportDetails VulkanApplication::querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface )
+{
+    vkrender::SwapChainSupportDetails swapChainDetails;
+
+    swapChainDetails.capabilities =	vkPhysicalDevice.getSurfaceCapabilitiesKHR( vkSurface );
+    swapChainDetails.surfaceFormats = vkPhysicalDevice.getSurfaceFormatsKHR( vkSurface );
+    swapChainDetails.presentModes = vkPhysicalDevice.getSurfacePresentModesKHR( vkSurface );
+
+    return swapChainDetails;
 }
 
 void VulkanApplication::setupDebugMessenger()
