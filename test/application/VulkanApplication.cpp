@@ -1,6 +1,7 @@
 #include "VulkanApplication.h"
 #include "vkrenderer/VulkanLayer.hpp"
 #include "vkrenderer/VulkanDebugMessenger.h"
+#include "vkrenderer/VulkanSwapChainFactory.h"
 #include "utilities/VulkanLogger.h"
 
 #include <vulkan/vulkan.hpp>
@@ -162,7 +163,7 @@ void VulkanApplication::pickPhysicalDevice()
 		vk::SurfaceKHR* surface,
 		const std::vector<const char*>& requiredExtensions 
 	) -> bool{
-		QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( physicalDevice, surface );
+		QueueFamilyIndices queueFamilyIndices = VulkanQueueFamilyHelper::findQueueFamilyIndices( physicalDevice, surface );
 
 		const vk::PhysicalDeviceFeatures& vkPhysicalDeviceFeatures = physicalDevice.getFeatures();
 		const vk::PhysicalDeviceProperties& vkPhysicalDeviceProperties = physicalDevice.getProperties();
@@ -189,7 +190,7 @@ void VulkanApplication::pickPhysicalDevice()
 			const vk::PhysicalDevice& physicalDevice, 
 			const vk::SurfaceKHR& surface, const bool& bExtensionSupported ) -> bool{
 	
-			SwapChainSupportDetails swapChainDetails = querySwapChainSupport( physicalDevice, surface );
+			SwapChainSupportDetails swapChainDetails = VulkanSwapChainFactory::querySwapChainSupport( physicalDevice, surface );
 
 			if( bExtensionSupported )
         	{
@@ -237,7 +238,7 @@ void VulkanApplication::pickPhysicalDevice()
 void VulkanApplication::createLogicalDevice()
 {
 	using namespace vkrender;
-	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
+	QueueFamilyIndices queueFamilyIndices = VulkanQueueFamilyHelper::findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
 	vk::DeviceQueueCreateInfo vkDeviceGraphicsQueueCreateInfo{};	
 	std::uint32_t graphicsQueueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
@@ -280,37 +281,6 @@ void VulkanApplication::createLogicalDevice()
 	}
 }
 
-vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface )
-{
-	using namespace vkrender;
-
-	QueueFamilyIndices queueFamilyIndices;
-
-	std::vector<vk::QueueFamilyProperties> queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-		
-	int validQueueIndex = 0;
-
-	for (const auto& prop : queueFamilyProperties)
-	{
-		if (prop.queueFlags & vk::QueueFlagBits::eGraphics )
-		{
-			queueFamilyIndices.m_graphicsFamily = validQueueIndex;
-		}
-
-		if( pVkSurface )
-		{
-			vk::Bool32 bPresentationSupport = physicalDevice.getSurfaceSupportKHR( validQueueIndex, *pVkSurface );
-			if( bPresentationSupport )
-			{
-				queueFamilyIndices.m_presentFamily = validQueueIndex;					
-			}
-		}
-		validQueueIndex++;
-	}
-
-	return queueFamilyIndices;
-}
-
 void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& vkDebugUtilsMessengerCreateInfo )
 {
 	using namespace vkrender;
@@ -351,19 +321,6 @@ void VulkanApplication::populateDeviceCreateInfo(
 	else {
 		vkDeviceCreateInfo.enabledLayerCount = 0;
 	}
-}
-
-vkrender::SwapChainSupportDetails VulkanApplication::querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface ) const
-{
-	using namespace vkrender;
-
-	SwapChainSupportDetails swapChainDetails;
-
-	swapChainDetails.capabilities =	vkPhysicalDevice.getSurfaceCapabilitiesKHR( vkSurface );
-	swapChainDetails.surfaceFormats = vkPhysicalDevice.getSurfaceFormatsKHR( vkSurface );
-	swapChainDetails.presentModes = vkPhysicalDevice.getSurfacePresentModesKHR( vkSurface );
-
-	return swapChainDetails;
 }
 
 void VulkanApplication::setupDebugMessenger()

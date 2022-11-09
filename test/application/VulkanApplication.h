@@ -35,10 +35,6 @@ protected:
     void pickPhysicalDevice();
     void createLogicalDevice();
 
-    vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& vkPhysicalDevice, vk::SurfaceKHR* pVkSurface = nullptr );
-
-    vkrender::SwapChainSupportDetails querySwapChainSupport( const vk::PhysicalDevice& vkPhysicalDevice, const vk::SurfaceKHR& vkSurface ) const;
-
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
     void populateDeviceQueueCreateInfo( 
         vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 
