@@ -123,6 +123,7 @@ void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
+	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
 	m_vkLogicalDevice.destroyRenderPass( m_vkRenderPass );
 
@@ -599,6 +600,11 @@ void VulkanApplication::createGraphicsPipeline()
 	vkColorBlendInfo.blendConstants[2] = 0.0f;
 	vkColorBlendInfo.blendConstants[3] = 0.0f;
 
+	vk::PipelineDynamicStateCreateInfo vkDynamicStateInfo{};
+	vkDynamicStateInfo.sType = vk::StructureType::ePipelineDynamicStateCreateInfo;
+	vkDynamicStateInfo.dynamicStateCount = 0;
+	vkDynamicStateInfo.pDynamicStates = nullptr;
+
 	vk::PipelineLayoutCreateInfo vkPipelineLayoutInfo{};
 	vkPipelineLayoutInfo.sType = vk::StructureType::ePipelineLayoutCreateInfo;
 	vkPipelineLayoutInfo.setLayoutCount = 0;
@@ -609,6 +615,37 @@ void VulkanApplication::createGraphicsPipeline()
 	m_vkPipelineLayout = m_vkLogicalDevice.createPipelineLayout( vkPipelineLayoutInfo );
 
 	LOG_INFO("Pipeline Layout created");
+
+	vk::GraphicsPipelineCreateInfo vkGraphicsPipelineCreateInfo{};
+	vkGraphicsPipelineCreateInfo.sType = vk::StructureType::eGraphicsPipelineCreateInfo;
+	vkGraphicsPipelineCreateInfo.stageCount = 2;
+	vkGraphicsPipelineCreateInfo.pStages = vkShaderStages;
+	vkGraphicsPipelineCreateInfo.pVertexInputState = &vkVertexInputInfo;
+	vkGraphicsPipelineCreateInfo.pInputAssemblyState = &vkInputAssemblyInfo;
+	vkGraphicsPipelineCreateInfo.pViewportState = &vkViewportInfo;
+	vkGraphicsPipelineCreateInfo.pRasterizationState = &vkRasterizerInfo;
+	vkGraphicsPipelineCreateInfo.pMultisampleState = &vkMultisamplingInfo;
+	vkGraphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+	vkGraphicsPipelineCreateInfo.pColorBlendState = &vkColorBlendInfo;
+	vkGraphicsPipelineCreateInfo.pDynamicState = &vkDynamicStateInfo;
+	vkGraphicsPipelineCreateInfo.layout = m_vkPipelineLayout;
+	vkGraphicsPipelineCreateInfo.renderPass = m_vkRenderPass;
+	vkGraphicsPipelineCreateInfo.subpass = 0;
+	vkGraphicsPipelineCreateInfo.basePipelineHandle = nullptr;
+	vkGraphicsPipelineCreateInfo.basePipelineIndex = -1;
+
+	vk::ResultValue<vk::Pipeline> operationResult = m_vkLogicalDevice.createGraphicsPipeline( nullptr, vkGraphicsPipelineCreateInfo );
+	if( operationResult.result == vk::Result::eSuccess )
+	{
+		m_vkGraphicsPipeline = operationResult.value;
+		LOG_INFO("Graphics Pipeline created");
+	}
+	else
+	{
+		std::string errorMsg = "Failed to create Graphics Pipeline";
+		LOG_ERROR(errorMsg);
+		throw std::runtime_error(errorMsg);
+	}
 
 	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
 	m_vkLogicalDevice.destroyShaderModule( vertexShaderModule );

@@ -81,6 +81,7 @@ protected:
 
     vk::RenderPass m_vkRenderPass;
     vk::PipelineLayout m_vkPipelineLayout;
+    vk::Pipeline m_vkGraphicsPipeline;
 
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
