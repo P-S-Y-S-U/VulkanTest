@@ -118,11 +118,14 @@ void VulkanApplication::initVulkan()
 	createRenderPass();
 	createGraphicsPipeline();
 	createFrameBuffers();
+	createCommandPool();
 }
 
 void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
+
+	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
 	for( auto& vkFramebuffer : m_swapchainFrameBuffers )
 	{
@@ -681,6 +684,21 @@ void VulkanApplication::createFrameBuffers()
 		m_swapchainFrameBuffers[i] = vkFrameBuffer;
 	}
 	LOG_INFO( fmt::format("{} Framebuffer created", m_swapchainFrameBuffers.size() ) );
+}
+
+void VulkanApplication::createCommandPool()
+{
+	using namespace vkrender;
+
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
+
+	vk::CommandPoolCreateInfo vkCommandPoolInfo{};
+	vkCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
+	vkCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vkCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
+
+	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkCommandPoolInfo );
+	LOG_INFO("Graphics Command Pool created");
 }
 
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)

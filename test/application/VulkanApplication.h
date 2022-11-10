@@ -40,6 +40,7 @@ protected:
     void createRenderPass();
     void createGraphicsPipeline();
     void createFrameBuffers();
+    void createCommandPool();
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
@@ -85,6 +86,8 @@ protected:
     vk::Pipeline m_vkGraphicsPipeline;
 
     std::vector<vk::Framebuffer> m_swapchainFrameBuffers;
+
+    vk::CommandPool m_vkGraphicsCommandPool;
     
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
