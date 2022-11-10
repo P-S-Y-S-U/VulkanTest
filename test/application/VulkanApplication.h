@@ -37,6 +37,7 @@ protected:
     void createLogicalDevice();
     void createSwapchain();
     void createImageViews();
+    void createRenderPass();
     void createGraphicsPipeline();
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
@@ -78,6 +79,7 @@ protected:
     std::vector<vk::Image> m_swapchainImages;
     std::vector<vk::ImageView> m_swapchainImageViews;
 
+    vk::RenderPass m_vkRenderPass;
     vk::PipelineLayout m_vkPipelineLayout;
 
     std::vector<const char*> m_instanceExtensionContainer;

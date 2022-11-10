@@ -115,6 +115,7 @@ void VulkanApplication::initVulkan()
 	createLogicalDevice();
 	createSwapchain();
 	createImageViews();
+	createRenderPass();
 	createGraphicsPipeline();
 }
 
@@ -123,23 +124,21 @@ void VulkanApplication::shutdown()
 	using namespace vkrender;
 
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
-	
+	m_vkLogicalDevice.destroyRenderPass( m_vkRenderPass );
+
 	for( auto& vkImageView : m_swapchainImageViews )
 	{
 		m_vkLogicalDevice.destroyImageView( vkImageView );
 	}
 	m_swapchainImageViews.clear();
-	
 	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
 	m_vkLogicalDevice.destroy();
-
 	m_vkInstance.destroySurfaceKHR( m_vkSurface );
 
 	if( ENABLE_VALIDATION_LAYER )
 	{
 		VulkanDebugMessenger::destroyDebugUtilsMessengerEXT( m_vkInstance, m_vkDebugUtilsMessenger, nullptr );
 	}
-
 	m_vkInstance.destroy();
 	
 	m_window.destroy();
@@ -445,6 +444,39 @@ void VulkanApplication::createImageViews()
 	m_swapchainImageViews.shrink_to_fit();
 
 	LOG_INFO("Swapchain ImageViews created");
+}
+
+void VulkanApplication::createRenderPass()
+{
+	vk::AttachmentDescription vkColorAttachment{};
+	vkColorAttachment.format = m_vkSwapchainImageFormat;
+	vkColorAttachment.samples = vk::SampleCountFlagBits::e1;
+	vkColorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	vkColorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	vkColorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	vkColorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	vkColorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	vkColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+	vk::AttachmentReference vkColorAttachmentRef{};
+	vkColorAttachmentRef.attachment = 0;
+	vkColorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::SubpassDescription vkSubPassDesc{};
+	vkSubPassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+	vkSubPassDesc.colorAttachmentCount = 1;
+	vkSubPassDesc.pColorAttachments = &vkColorAttachmentRef;
+
+	vk::RenderPassCreateInfo vkRenderPassInfo{};
+	vkRenderPassInfo.sType = vk::StructureType::eRenderPassCreateInfo;
+	vkRenderPassInfo.attachmentCount = 1;
+	vkRenderPassInfo.pAttachments = &vkColorAttachment;
+	vkRenderPassInfo.subpassCount = 1;
+	vkRenderPassInfo.pSubpasses = &vkSubPassDesc;
+
+	m_vkRenderPass = m_vkLogicalDevice.createRenderPass( vkRenderPassInfo );
+
+	LOG_INFO("RenderPass created");
 }
 
 void VulkanApplication::createGraphicsPipeline()
