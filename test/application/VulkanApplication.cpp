@@ -119,6 +119,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
+	createCommandBuffer();
 }
 
 void VulkanApplication::shutdown()
@@ -699,6 +700,19 @@ void VulkanApplication::createCommandPool()
 
 	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkCommandPoolInfo );
 	LOG_INFO("Graphics Command Pool created");
+}
+
+void VulkanApplication::createCommandBuffer()
+{
+	vk::CommandBufferAllocateInfo vkCmdBufAllocateInfo{};
+	vkCmdBufAllocateInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+	vkCmdBufAllocateInfo.commandPool = m_vkGraphicsCommandPool;
+	vkCmdBufAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
+	vkCmdBufAllocateInfo.commandBufferCount = 1;
+
+	m_vkGraphicsCommandBuffer = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo )[0];
+
+	LOG_INFO("Graphics Command Buffer created");
 }
 
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
