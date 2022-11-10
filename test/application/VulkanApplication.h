@@ -43,6 +43,8 @@ protected:
     void createCommandPool();
     void createCommandBuffer();
 
+    void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
+
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 

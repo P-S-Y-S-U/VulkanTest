@@ -715,6 +715,36 @@ void VulkanApplication::createCommandBuffer()
 	LOG_INFO("Graphics Command Buffer created");
 }
 
+void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )
+{
+	vk::CommandBufferBeginInfo vkCmdBufBeginInfo{};
+	vkCmdBufBeginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
+	vkCmdBufBeginInfo.flags = {};
+	vkCmdBufBeginInfo.pInheritanceInfo = nullptr;
+
+	vkCommandBuffer.begin( vkCmdBufBeginInfo );
+
+	vk::RenderPassBeginInfo vkRenderPassBeginInfo{};
+	vkRenderPassBeginInfo.sType = vk::StructureType::eRenderPassBeginInfo;
+	vkRenderPassBeginInfo.renderPass = m_vkRenderPass;
+	vkRenderPassBeginInfo.framebuffer = m_swapchainFrameBuffers[ imageIndex ];
+	vkRenderPassBeginInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
+	vkRenderPassBeginInfo.renderArea.extent = m_vkSwapchainExtent;
+	vk::ClearValue clearValue;
+	vk::ClearColorValue clearColorValue;
+	clearColorValue.setFloat32( {0.0f, 0.0f, 0.0f, 1.0f} );
+	clearValue.setColor( clearColorValue );
+	vkRenderPassBeginInfo.clearValueCount = 1;
+	vkRenderPassBeginInfo.pClearValues = &clearValue;
+
+	vkCommandBuffer.beginRenderPass( vkRenderPassBeginInfo, vk::SubpassContents::eInline );
+	vkCommandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vkGraphicsPipeline );
+	// TODO fill commands for dynamic Viewport
+	vkCommandBuffer.draw( 3, 1, 0, 0 );
+	vkCommandBuffer.endRenderPass();
+	vkCommandBuffer.end();
+}
+
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
 {
 	vk::ShaderModuleCreateInfo vkShaderModuleCreateInfo{};
