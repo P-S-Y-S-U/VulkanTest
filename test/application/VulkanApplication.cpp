@@ -447,6 +447,20 @@ void VulkanApplication::createImageViews()
 
 void VulkanApplication::createGraphicsPipeline()
 {
+	auto l_populatePipelineShaderStageCreateInfo = []( 
+		vk::PipelineShaderStageCreateInfo& shaderStageCreateInfo,
+		const vk::ShaderStageFlagBits& shaderStage,
+		const vk::ShaderModule& shaderModule,
+		const std::string& entryPoint
+	)
+	{
+		shaderStageCreateInfo.sType = vk::StructureType::ePipelineShaderStageCreateInfo;
+		shaderStageCreateInfo.stage = shaderStage;
+		shaderStageCreateInfo.module = shaderModule;
+		shaderStageCreateInfo.pName =  entryPoint.c_str();
+		shaderStageCreateInfo.pSpecializationInfo = nullptr;
+	};
+
 	std::filesystem::path vertexShaderPath = "triangleVert.spv";
     std::filesystem::path fragmentShaderPath = "triangleFrag.spv";
 
@@ -458,7 +472,25 @@ void VulkanApplication::createGraphicsPipeline()
 
 	vk::ShaderModule vertexShaderModule = createShaderModule( vertexShaderBuffer );
 	vk::ShaderModule fragmentShaderModule = createShaderModule( fragmentShaderBuffer );
+	
+	vk::PipelineShaderStageCreateInfo vkPipelineVertexShaderStageCreateInfo;
+	vk::PipelineShaderStageCreateInfo vkPipelineFragmentShaderStageCreateInfo;
 
+	std::string vertexShaderEntryPoint = "main";
+	std::string fragmentShaderEntryPoint = "main";
+
+	l_populatePipelineShaderStageCreateInfo( 
+		vkPipelineVertexShaderStageCreateInfo, vk::ShaderStageFlagBits::eVertex, vertexShaderModule, vertexShaderEntryPoint
+	);
+	l_populatePipelineShaderStageCreateInfo(
+		vkPipelineFragmentShaderStageCreateInfo, vk::ShaderStageFlagBits::eFragment, fragmentShaderModule, fragmentShaderEntryPoint
+	);
+
+	vk::PipelineShaderStageCreateInfo vkShaderStages[] = {
+		vkPipelineVertexShaderStageCreateInfo, 
+		vkPipelineFragmentShaderStageCreateInfo
+	};
+	
 	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
 	m_vkLogicalDevice.destroyShaderModule( vertexShaderModule );
 }
