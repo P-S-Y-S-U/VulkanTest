@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "window/window.h"
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
@@ -36,6 +37,10 @@ protected:
     void createLogicalDevice();
     void createSwapchain();
     void createImageViews();
+    void createGraphicsPipeline();
+
+    vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
+    void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
 

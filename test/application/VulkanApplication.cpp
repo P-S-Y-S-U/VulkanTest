@@ -8,6 +8,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <set>
+#include <fstream>
 
 vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
 vk::PresentModeKHR chooseSwapPresentMode( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
@@ -114,6 +115,7 @@ void VulkanApplication::initVulkan()
 	createLogicalDevice();
 	createSwapchain();
 	createImageViews();
+	createGraphicsPipeline();
 }
 
 void VulkanApplication::shutdown()
@@ -441,6 +443,56 @@ void VulkanApplication::createImageViews()
 	m_swapchainImageViews.shrink_to_fit();
 
 	LOG_INFO("Swapchain ImageViews created");
+}
+
+void VulkanApplication::createGraphicsPipeline()
+{
+	std::filesystem::path vertexShaderPath = "triangleVert.spv";
+    std::filesystem::path fragmentShaderPath = "triangleFrag.spv";
+
+	std::vector<char> vertexShaderBuffer; 
+	std::vector<char> fragmentShaderBuffer;
+
+	populateShaderBufferFromSourceFile( vertexShaderPath, vertexShaderBuffer );
+	populateShaderBufferFromSourceFile( fragmentShaderPath, fragmentShaderBuffer );
+
+	vk::ShaderModule vertexShaderModule = createShaderModule( vertexShaderBuffer );
+	vk::ShaderModule fragmentShaderModule = createShaderModule( fragmentShaderBuffer );
+
+	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
+	m_vkLogicalDevice.destroyShaderModule( vertexShaderModule );
+}
+
+vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
+{
+	vk::ShaderModuleCreateInfo vkShaderModuleCreateInfo{};
+	vkShaderModuleCreateInfo.sType = vk::StructureType::eShaderModuleCreateInfo;
+	vkShaderModuleCreateInfo.codeSize = shaderSourceBuffer.size();
+	vkShaderModuleCreateInfo.pCode = reinterpret_cast<const std::uint32_t*>( shaderSourceBuffer.data() );
+
+	vk::ShaderModule vkShaderModule = m_vkLogicalDevice.createShaderModule( vkShaderModuleCreateInfo );
+
+	return vkShaderModule;
+}
+
+void VulkanApplication::populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer )
+{
+	if( filePath.extension() != std::filesystem::path{ ".spv" } )
+    {
+        std::string errorMsg = "ILLEGAL SHADER FILE FORMAT!";
+        LOG_ERROR(errorMsg);
+        throw std::runtime_error(errorMsg);
+    }
+
+    std::ifstream fstream( filePath.string(), std::ios::ate | std::ios::binary );
+
+    std::size_t fileSize = static_cast<std::size_t>( fstream.tellg() );
+    shaderSourceBuffer.resize( fileSize );
+
+    fstream.seekg(0);
+    fstream.read( shaderSourceBuffer.data(), fileSize );
+
+    fstream.close();
 }
 
 vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface )
