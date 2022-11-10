@@ -117,11 +117,17 @@ void VulkanApplication::initVulkan()
 	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
+	createFrameBuffers();
 }
 
 void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
+
+	for( auto& vkFramebuffer : m_swapchainFrameBuffers )
+	{
+		m_vkLogicalDevice.destroyFramebuffer( vkFramebuffer );
+	}
 
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
@@ -649,6 +655,32 @@ void VulkanApplication::createGraphicsPipeline()
 
 	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
 	m_vkLogicalDevice.destroyShaderModule( vertexShaderModule );
+}
+
+void VulkanApplication::createFrameBuffers()
+{
+	m_swapchainFrameBuffers.resize( m_swapchainImageViews.size() );
+
+	for( size_t i = 0; i < m_swapchainFrameBuffers.size(); i++ )
+	{
+		vk::ImageView attachments[] = {
+			m_swapchainImageViews[i]
+		};
+
+		vk::FramebufferCreateInfo vkFrameBufferInfo{};
+		vkFrameBufferInfo.sType = vk::StructureType::eFramebufferCreateInfo;
+		vkFrameBufferInfo.renderPass = m_vkRenderPass;
+		vkFrameBufferInfo.attachmentCount = 1;
+		vkFrameBufferInfo.pAttachments = attachments;
+		vkFrameBufferInfo.width = m_vkSwapchainExtent.width;
+		vkFrameBufferInfo.height = m_vkSwapchainExtent.height;
+		vkFrameBufferInfo.layers = 1;
+
+		vk::Framebuffer vkFrameBuffer = m_vkLogicalDevice.createFramebuffer( vkFrameBufferInfo );
+
+		m_swapchainFrameBuffers[i] = vkFrameBuffer;
+	}
+	LOG_INFO( fmt::format("{} Framebuffer created", m_swapchainFrameBuffers.size() ) );
 }
 
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
