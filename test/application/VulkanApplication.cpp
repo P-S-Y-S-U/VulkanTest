@@ -122,6 +122,8 @@ void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
+	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
+	
 	for( auto& vkImageView : m_swapchainImageViews )
 	{
 		m_vkLogicalDevice.destroyImageView( vkImageView );
@@ -491,6 +493,91 @@ void VulkanApplication::createGraphicsPipeline()
 		vkPipelineFragmentShaderStageCreateInfo
 	};
 	
+	vk::PipelineVertexInputStateCreateInfo vkVertexInputInfo{};
+	vkVertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
+	vkVertexInputInfo.vertexBindingDescriptionCount = 0;
+	vkVertexInputInfo.pVertexBindingDescriptions = nullptr;
+	vkVertexInputInfo.vertexAttributeDescriptionCount = 0;
+	vkVertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+	vk::PipelineInputAssemblyStateCreateInfo vkInputAssemblyInfo{};
+	vkInputAssemblyInfo.sType = vk::StructureType::ePipelineInputAssemblyStateCreateInfo;
+	vkInputAssemblyInfo.topology = vk::PrimitiveTopology::eTriangleList;
+	vkInputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+
+	vk::Viewport vkViewport{};
+	vkViewport.x = 0.0f;
+	vkViewport.y = 0.0f;
+	vkViewport.width = static_cast<float>( m_vkSwapchainExtent.width );
+	vkViewport.height = static_cast<float>( m_vkSwapchainExtent.height );
+	vkViewport.minDepth = 0.0f;
+	vkViewport.maxDepth = 1.0f;
+	vk::Rect2D vkScissor{};
+	vkScissor.offset = vk::Offset2D{0, 0};
+	vkScissor.extent = m_vkSwapchainExtent;
+	vk::PipelineViewportStateCreateInfo vkViewportInfo{};
+	vkViewportInfo.sType = vk::StructureType::ePipelineViewportStateCreateInfo;
+	vkViewportInfo.viewportCount = 1;
+	vkViewportInfo.pViewports = &vkViewport;
+	vkViewportInfo.scissorCount = 1;
+	vkViewportInfo.pScissors = &vkScissor;
+
+	vk::PipelineRasterizationStateCreateInfo vkRasterizerInfo{};
+	vkRasterizerInfo.sType = vk::StructureType::ePipelineRasterizationStateCreateInfo;
+	vkRasterizerInfo.depthClampEnable = VK_FALSE;
+	vkRasterizerInfo.rasterizerDiscardEnable = VK_FALSE;
+	vkRasterizerInfo.polygonMode = vk::PolygonMode::eFill;
+	vkRasterizerInfo.lineWidth = 1.0f;
+	vkRasterizerInfo.cullMode = vk::CullModeFlagBits::eBack;
+	vkRasterizerInfo.frontFace = vk::FrontFace::eClockwise;
+	vkRasterizerInfo.depthBiasEnable = VK_FALSE;
+	vkRasterizerInfo.depthBiasConstantFactor = 0.0f;
+	vkRasterizerInfo.depthBiasClamp = 0.0f;
+	vkRasterizerInfo.depthBiasSlopeFactor = 0.0f;
+
+	vk::PipelineMultisampleStateCreateInfo vkMultisamplingInfo{};
+	vkMultisamplingInfo.sType = vk::StructureType::ePipelineMultisampleStateCreateInfo;
+	vkMultisamplingInfo.sampleShadingEnable = VK_FALSE;
+	vkMultisamplingInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
+	vkMultisamplingInfo.minSampleShading = 1.0f;
+	vkMultisamplingInfo.pSampleMask = nullptr;
+	vkMultisamplingInfo.alphaToCoverageEnable = VK_FALSE;
+	vkMultisamplingInfo.alphaToOneEnable = VK_FALSE;
+
+	vk::PipelineColorBlendAttachmentState vkColorBlendAttachment{};
+	vkColorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | 
+											vk::ColorComponentFlagBits::eG |
+											vk::ColorComponentFlagBits::eB |
+											vk::ColorComponentFlagBits::eA;
+	vkColorBlendAttachment.blendEnable = VK_FALSE;
+	vkColorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+	vkColorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+	vkColorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+	vkColorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+	vkColorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+	vkColorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
+	vk::PipelineColorBlendStateCreateInfo vkColorBlendInfo{};
+	vkColorBlendInfo.sType = vk::StructureType::ePipelineColorBlendStateCreateInfo;
+	vkColorBlendInfo.logicOpEnable = VK_FALSE;
+	vkColorBlendInfo.logicOp = vk::LogicOp::eCopy;
+	vkColorBlendInfo.attachmentCount = 1;
+	vkColorBlendInfo.pAttachments = &vkColorBlendAttachment;
+	vkColorBlendInfo.blendConstants[0] = 0.0f;
+	vkColorBlendInfo.blendConstants[1] = 0.0f;
+	vkColorBlendInfo.blendConstants[2] = 0.0f;
+	vkColorBlendInfo.blendConstants[3] = 0.0f;
+
+	vk::PipelineLayoutCreateInfo vkPipelineLayoutInfo{};
+	vkPipelineLayoutInfo.sType = vk::StructureType::ePipelineLayoutCreateInfo;
+	vkPipelineLayoutInfo.setLayoutCount = 0;
+	vkPipelineLayoutInfo.pSetLayouts = nullptr;
+	vkPipelineLayoutInfo.pushConstantRangeCount = 0;
+	vkPipelineLayoutInfo.pPushConstantRanges = nullptr;
+	
+	m_vkPipelineLayout = m_vkLogicalDevice.createPipelineLayout( vkPipelineLayoutInfo );
+
+	LOG_INFO("Pipeline Layout created");
+
 	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
 	m_vkLogicalDevice.destroyShaderModule( vertexShaderModule );
 }

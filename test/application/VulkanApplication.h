@@ -78,6 +78,8 @@ protected:
     std::vector<vk::Image> m_swapchainImages;
     std::vector<vk::ImageView> m_swapchainImageViews;
 
+    vk::PipelineLayout m_vkPipelineLayout;
+
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
     vkrender::Window m_window;
