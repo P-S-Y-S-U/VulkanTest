@@ -8,6 +8,16 @@
 #include <initializer_list>
 #include <spdlog/spdlog.h>
 
+namespace logger 
+{
+    enum level
+    {
+        LOG_DEBUG,
+        LOG_INFO,
+        LOG_ERROR
+    };
+};
+
 namespace utils
 {
     class VULKAN_EXPORTS VulkanValidationLayerLogger : public Singleton<VulkanValidationLayerLogger>
@@ -45,6 +55,35 @@ namespace utils
 
         utils::Sptr<spdlog::logger> m_spLogger;
     };
+
+    class VulkanLoggerFactory
+    {
+    public:
+        static void logMessage( const std::string& message, const logger::level& level )
+        {
+            auto pLogger = VulkanRendererApiLogger::getSingletonPtr()->getLogger();
+
+            switch (level)
+            {
+            case logger::LOG_DEBUG:
+                pLogger->debug( message );
+                break;
+            case logger::LOG_INFO:
+                pLogger->info( message );
+                break;
+            case logger::LOG_ERROR:
+                pLogger->error( message );
+            default:
+                break;
+            }
+        };
+    };
+
 } // namespace utils
+
+#define LOG_MESSAGE( message, level ) utils::VulkanLoggerFactory::logMessage( message, level )
+#define LOG_DEBUG( message ) LOG_MESSAGE( message, logger::LOG_DEBUG )
+#define LOG_ERROR( message ) LOG_MESSAGE( message, logger::LOG_ERROR )
+#define LOG_INFO( message ) LOG_MESSAGE( message, logger::LOG_INFO )
 
 #endif 

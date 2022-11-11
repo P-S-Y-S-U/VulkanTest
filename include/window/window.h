@@ -14,8 +14,6 @@
 #include <utility>
 #include <vector>
 
-#include "vkrenderer/VulkanSurface.h"
-#include "vkrenderer/VulkanInstance.h"
 #include "exports.hpp"
 
 namespace vkrender
@@ -33,10 +31,12 @@ namespace vkrender
 		Window& operator=(Window&&) noexcept = delete;
 
 		void init();
-		utils::Uptr<VulkanSurface> createSurface( VulkanInstance* pInstance );
+		// utils::Uptr<VulkanSurface> createSurface( VulkanInstance* pInstance );
 		void processEvents();
 		void destroy();
 		bool quit() const;
+
+		HWND getHandle() const;
 
 		std::pair<std::uint32_t, std::uint32_t> getDimensions() const ;
 		std::pair<std::uint32_t, std::uint32_t> getFrameBufferSize() const ;

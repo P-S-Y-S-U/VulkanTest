@@ -19,12 +19,16 @@ namespace vkrender
             utils::Sptr<vk::AttachmentReference[]> attachmentReferences,
             std::uint32_t numOfAttachmentReferences,
             utils::Uptr<vk::SubpassDescription[]>  subpasses,
-            std::uint32_t numOfSubpasses
+            std::uint32_t numOfSubpasses,
+            utils::Uptr<vk::SubpassDependency[]> subpassDependencies,
+            std::uint32_t numOfSubpassDependencies
         );
         ~VulkanRenderPass();
 
         void createRenderPass();
         void destroyRenderPass();
+
+        vk::RenderPass* getHandle() { return &m_renderPassHandle; }
     private:
         vk::RenderPass m_renderPassHandle;
         VulkanLogicalDevice* m_pLogicalDevice;
@@ -35,6 +39,8 @@ namespace vkrender
         std::uint32_t m_numOfAttachmentReferences;
         utils::Uptr<vk::SubpassDescription[]> m_subpasses;
         std::uint32_t m_numOfSubpasses;
+        utils::Uptr<vk::SubpassDependency[]> m_subpassDependencies;
+        std::uint32_t m_numOfDependencies;
 
         utils::Sptr<vk::RenderPassCreateInfo> m_spRenderPassCreateInfo;
 

@@ -1,0 +1,3 @@
+
+add_executable(TriangleApplication ${VULKAN_APPLICATION_BASE_SRCS} TriangleApplication.cpp)
+target_link_libraries(TriangleApplication PUBLIC $<BUILD_INTERFACE:vulkanrenderer>)

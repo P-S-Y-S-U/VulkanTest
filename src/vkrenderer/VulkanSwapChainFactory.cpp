@@ -1,99 +1,53 @@
 #include "vkrenderer/VulkanSwapChainFactory.h"
-#include "vkrenderer/VulkanQueueFamily.h"
+#include "vkrenderer/VulkanQueueFamily.hpp"
 #include <limits>
 #include <algorithm>
 
 namespace vkrender
 {
-    vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails );
-    vk::PresentModeKHR chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails );
-    vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetails, const Window& window );
-    std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails );
-
-    utils::Sptr<SwapChainPreset> VulkanSwapChainFactory::createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window )
-    {
-        const SwapChainSupportDetails& swapChainSupportDetails = physicalDevice.querySwapChainSupport(surface);
-
-        utils::Sptr<SwapChainPreset> pPreset = std::make_shared<SwapChainPreset>();
-        pPreset->capabilities = swapChainSupportDetails.capabilities;
-        pPreset->surfaceFormat = chooseSwapSurfaceFormat( swapChainSupportDetails );
-        pPreset->imageCount = chooseImageCount( swapChainSupportDetails );
-        pPreset->imageExtent = chooseSwapExtent( swapChainSupportDetails, window );
-        pPreset->presentMode = chooseSwapPresentMode( swapChainSupportDetails );
-
-        QueueFamilyIndices indices = VulkanQueueFamily::findQueueFamilyIndices( physicalDevice, surface );
-
-        if( indices.m_graphicsFamily.value() != indices.m_presentFamily.value() )
-        {
-            pPreset->sharingMode = vk::SharingMode::eConcurrent;
-            pPreset->queueFamilyIndices.push_back( indices.m_graphicsFamily.value() );
-            pPreset->queueFamilyIndices.push_back( indices.m_presentFamily.value() );
-        }
-        else
-        {
-            pPreset->sharingMode = vk::SharingMode::eExclusive;
-        }
-
-        return pPreset;
-    }
-
-    vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const SwapChainSupportDetails& swapChainSupportDetails )
-    {
-        for( const auto& availableFormat : swapChainSupportDetails.surfaceFormats )
-        {
-            if( availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear )
-            {
-                return availableFormat;
-            }
-        }
-        return swapChainSupportDetails.surfaceFormats[0];
-    }
-
-    vk::PresentModeKHR chooseSwapPresentMode( const SwapChainSupportDetails& swapChainSupportDetails )
-    {
-        for( const auto& availablePresentMode : swapChainSupportDetails.presentModes )
-        {
-            if( availablePresentMode == vk::PresentModeKHR::eMailbox )
-            {
-                return availablePresentMode;
-            }
-        }
-        return vk::PresentModeKHR::eFifo;
-    }
-
-    vk::Extent2D chooseSwapExtent( const SwapChainSupportDetails& swapChainSupportDetials, const Window& window )
-    {
-        const vk::SurfaceCapabilitiesKHR& surfaceCapabilities = swapChainSupportDetials.capabilities;
-
-        if( surfaceCapabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max() )
-        {
-            return surfaceCapabilities.currentExtent;
-        }
-        else
-        {
-            const auto& [width, height] = window.getFrameBufferSize();
-
-            vk::Extent2D actualExtent{
-                width, height
-            };
-
-            actualExtent.width = std::clamp(actualExtent.width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width );
-            actualExtent.height = std::clamp(actualExtent.height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height );
-
-            return actualExtent;
-        }
-    }
     
-    std::uint32_t chooseImageCount( const SwapChainSupportDetails& swapChainSupportDetails )
-    {
-        std::uint32_t imageCount = swapChainSupportDetails.capabilities.minImageCount + 1; // always ask for minImageCount + 1
 
-        if( swapChainSupportDetails.capabilities.maxImageCount > 0 && imageCount > swapChainSupportDetails.capabilities.maxImageCount )
+    vk::SwapchainCreateInfoKHR VulkanSwapChainFactory::createSuitableSwapChainPreset( 
+        const vk::PhysicalDevice& physicalDevice, 
+        const vk::SurfaceKHR& surface, 
+        const QueueFamilyIndices& queueFamilyIndices,
+        const Window& window 
+    )
+    {
+        const SwapChainSupportDetails& swapChainSupportDetails = VulkanSwapChainFactory::querySwapChainSupport(physicalDevice, surface);
+
+        const vk::SurfaceCapabilitiesKHR& capabilities = swapChainSupportDetails.capabilities;
+        vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat( swapChainSupportDetails );
+        std::uint32_t imageCount = chooseImageCount( swapChainSupportDetails );
+        vk::Extent2D imageExtent = chooseSwapExtent( swapChainSupportDetails, window );
+        vk::PresentModeKHR presentMode = chooseSwapPresentMode( swapChainSupportDetails );
+
+        vk::SharingMode sharingMode;
+        if( queueFamilyIndices.m_graphicsFamily.value() != queueFamilyIndices.m_presentFamily.value() )
         {
-            imageCount = swapChainSupportDetails.capabilities.maxImageCount;
+            sharingMode = vk::SharingMode::eConcurrent;
+            swapChainPreset.queueFamilyIndices.push_back( queueFamilyIndices.m_graphicsFamily.value() );
+            swapChainPreset.queueFamilyIndices.push_back( queueFamilyIndices.m_presentFamily.value() );
+        }
+        else
+        {
+            swapChainPreset.sharingMode = vk::SharingMode::eExclusive;
         }
 
-        return imageCount;
+        vk::SwapchainCreateInfoKHR swapChainPreset{};
+        swapChainPreset.sType = vk::StructureType::eSwapchainCreateInfoKHR;
+        swapChainPreset. = swapChainSupportDetails.capabilities;
+        swapChainPreset.surfaceFormat = 
+        swapChainPreset.imageCount = 
+        swapChainPreset.imageExtent = 
+        swapChainPreset.presentMode = 
+
+
+        
+
+        return swapChainPreset;
     }
+
+    
 
 } // namespace vkrender

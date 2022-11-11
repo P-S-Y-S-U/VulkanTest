@@ -41,6 +41,9 @@ namespace vkrender
         );
 
         void destroyGraphicsPipeline();
+
+        vk::Pipeline* getHandle() { return &m_pipelineHandle; }
+        
     private:
         vk::Pipeline m_pipelineHandle;
         VulkanLogicalDevice* m_pLogicalDevice;

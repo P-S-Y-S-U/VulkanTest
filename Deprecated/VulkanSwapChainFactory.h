@@ -4,7 +4,7 @@
 #include "utilities/memory.hpp"
 #include "exports.hpp"
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
-#include "vkrenderer/VulkanQueueFamily.hpp"
+#include "vkrenderer/VulkanPhysicalDevice.h"
 #include "window/window.h"
 
 namespace vkrender
@@ -15,12 +15,7 @@ namespace vkrender
         VulkanSwapChainFactory() = default;
         ~VulkanSwapChainFactory() = default;
 
-        static vk::SwapchainCreateInfoKHR createSuitableSwapChainPreset( 
-            const vk::PhysicalDevice& physicalDevice, 
-            const vk::SurfaceKHR& surface, 
-            const QueueFamilyIndices& queueFamilyIndices,
-            const Window& window 
-        );
+        static utils::Sptr<SwapChainPreset> createSuitableSwapChainPreset( const VulkanPhysicalDevice& physicalDevice, const VulkanSurface& surface, const Window& window );
     }; 
 } // namespace vkrender
 
