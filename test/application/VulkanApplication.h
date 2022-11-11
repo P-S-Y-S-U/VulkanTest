@@ -29,6 +29,8 @@ protected:
 
     void initWindow();
     void initVulkan();
+    void mainLoop();
+    void drawFrame();
     void shutdown();
 
     void createInstance();

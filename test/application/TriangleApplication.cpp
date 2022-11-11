@@ -13,11 +13,7 @@ TriangleApplication::~TriangleApplication()
 void TriangleApplication::run() 
 {
     initialise();
-
-    while( m_window.quit() )
-    {
-        m_window.processEvents();
-    }
+    mainLoop();
 }
 
 int main() {

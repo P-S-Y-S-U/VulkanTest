@@ -101,6 +101,7 @@ void VulkanApplication::initialise()
 	initVulkan();
 }
 
+
 void VulkanApplication::initWindow()
 {
 	m_window.init();
@@ -121,6 +122,57 @@ void VulkanApplication::initVulkan()
 	createCommandPool();
 	createCommandBuffer();
 	createSyncObjects();
+}
+
+void VulkanApplication::mainLoop()
+{
+	while( !m_window.quit() )
+	{
+		m_window.processEvents();
+		drawFrame();
+	}
+}
+
+void VulkanApplication::drawFrame()
+{
+	auto opFenceWait = m_vkLogicalDevice.waitForFences( 1, &m_vkInFlightFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max() ); 
+	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFence );
+
+	std::uint32_t imageIndex;
+	vk::ResultValue<std::uint32_t> opImageAcquistion = m_vkLogicalDevice.acquireNextImageKHR( 
+		m_vkSwapchain, 
+		std::numeric_limits<std::uint64_t>::max(),
+		m_vkImageAvailableSemaphore,
+		nullptr
+	);
+
+	if( opImageAcquistion.result != vk::Result::eSuccess )
+	{
+		std::string errorMsg = "FAILED TO ACQUIRE SWAPCHAIN IMAGE TO START RENDERING";
+		LOG_ERROR(errorMsg);
+		throw std::runtime_error( errorMsg );
+	}
+	imageIndex = opImageAcquistion.value;
+
+	m_vkGraphicsCommandBuffer.reset();
+	recordCommandBuffer( m_vkGraphicsCommandBuffer, imageIndex );
+
+	vk::SubmitInfo vkCmdSubmitInfo{};
+	vkCmdSubmitInfo.sType = vk::StructureType::eSubmitInfo;
+	vk::Semaphore waitSemaphores[] = { m_vkImageAvailableSemaphore };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	vkCmdSubmitInfo.waitSemaphoreCount = 1;
+	vkCmdSubmitInfo.pWaitSemaphores = waitSemaphores;
+	vkCmdSubmitInfo.pWaitDstStageMask = waitStages;
+	vkCmdSubmitInfo.commandBufferCount = 1;
+	vkCmdSubmitInfo.pCommandBuffers = &m_vkGraphicsCommandBuffer;
+	vk::Semaphore signalSemaphores[] = { m_vkRenderFinishedSemaphore };
+	vkCmdSubmitInfo.signalSemaphoreCount = 1;
+	vkCmdSubmitInfo.pSignalSemaphores = signalSemaphores;
+
+	vk::ArrayProxy<const vk::SubmitInfo> submitInfos{ vkCmdSubmitInfo };
+
+	m_vkGraphicsQueue.submit( submitInfos, m_vkInFlightFence );
 }
 
 void VulkanApplication::shutdown()
@@ -727,6 +779,7 @@ void VulkanApplication::createSyncObjects()
 
 	vk::FenceCreateInfo vkFenceInfo{};
 	vkFenceInfo.sType = vk::StructureType::eFenceCreateInfo;
+	vkFenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
 	m_vkImageAvailableSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
 	m_vkRenderFinishedSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
