@@ -535,12 +535,22 @@ void VulkanApplication::createRenderPass()
 	vkSubPassDesc.colorAttachmentCount = 1;
 	vkSubPassDesc.pColorAttachments = &vkColorAttachmentRef;
 
+	vk::SubpassDependency vkSubpassDependency{};
+	vkSubpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	vkSubpassDependency.dstSubpass = 0;
+	vkSubpassDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	vkSubpassDependency.srcAccessMask = vk::AccessFlagBits::eNone;
+	vkSubpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	vkSubpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
 	vk::RenderPassCreateInfo vkRenderPassInfo{};
 	vkRenderPassInfo.sType = vk::StructureType::eRenderPassCreateInfo;
 	vkRenderPassInfo.attachmentCount = 1;
 	vkRenderPassInfo.pAttachments = &vkColorAttachment;
 	vkRenderPassInfo.subpassCount = 1;
 	vkRenderPassInfo.pSubpasses = &vkSubPassDesc;
+	vkRenderPassInfo.dependencyCount = 1;
+	vkRenderPassInfo.pDependencies = &vkSubpassDependency;
 
 	m_vkRenderPass = m_vkLogicalDevice.createRenderPass( vkRenderPassInfo );
 
