@@ -101,7 +101,6 @@ void VulkanApplication::initialise()
 	initVulkan();
 }
 
-
 void VulkanApplication::initWindow()
 {
 	m_window.init();
@@ -131,6 +130,7 @@ void VulkanApplication::mainLoop()
 		m_window.processEvents();
 		drawFrame();
 	}
+	m_vkLogicalDevice.waitIdle();
 }
 
 void VulkanApplication::drawFrame()
@@ -146,12 +146,13 @@ void VulkanApplication::drawFrame()
 		nullptr
 	);
 
-	if( opImageAcquistion.result != vk::Result::eSuccess )
+	/*if( opImageAcquistion.result != vk::Result::eSuccess )
 	{
 		std::string errorMsg = "FAILED TO ACQUIRE SWAPCHAIN IMAGE TO START RENDERING";
 		LOG_ERROR(errorMsg);
 		throw std::runtime_error( errorMsg );
-	}
+	}*/
+
 	imageIndex = opImageAcquistion.value;
 
 	m_vkGraphicsCommandBuffer.reset();
@@ -171,8 +172,19 @@ void VulkanApplication::drawFrame()
 	vkCmdSubmitInfo.pSignalSemaphores = signalSemaphores;
 
 	vk::ArrayProxy<const vk::SubmitInfo> submitInfos{ vkCmdSubmitInfo };
-
 	m_vkGraphicsQueue.submit( submitInfos, m_vkInFlightFence );
+
+	vk::PresentInfoKHR vkPresentInfo{};
+	vkPresentInfo.sType = vk::StructureType::ePresentInfoKHR;
+	vkPresentInfo.waitSemaphoreCount = 1;
+	vkPresentInfo.pWaitSemaphores = signalSemaphores;
+	vk::SwapchainKHR swapchains[] = { m_vkSwapchain };
+	vkPresentInfo.swapchainCount = 1;
+	vkPresentInfo.pSwapchains = swapchains;
+	vkPresentInfo.pImageIndices = &imageIndex;
+	vkPresentInfo.pResults = nullptr;
+
+	auto opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
 }
 
 void VulkanApplication::shutdown()
