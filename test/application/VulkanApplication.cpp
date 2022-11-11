@@ -120,11 +120,16 @@ void VulkanApplication::initVulkan()
 	createFrameBuffers();
 	createCommandPool();
 	createCommandBuffer();
+	createSyncObjects();
 }
 
 void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
+
+	m_vkLogicalDevice.destroyFence( m_vkInFlightFence );
+	m_vkLogicalDevice.destroySemaphore( m_vkRenderFinishedSemaphore );
+	m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphore );
 
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
@@ -713,6 +718,22 @@ void VulkanApplication::createCommandBuffer()
 	m_vkGraphicsCommandBuffer = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo )[0];
 
 	LOG_INFO("Graphics Command Buffer created");
+}
+
+void VulkanApplication::createSyncObjects()
+{
+	vk::SemaphoreCreateInfo vkSemaphoreInfo{};
+	vkSemaphoreInfo.sType = vk::StructureType::eSemaphoreCreateInfo;
+
+	vk::FenceCreateInfo vkFenceInfo{};
+	vkFenceInfo.sType = vk::StructureType::eFenceCreateInfo;
+
+	m_vkImageAvailableSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
+	m_vkRenderFinishedSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
+	
+	m_vkInFlightFence = m_vkLogicalDevice.createFence( vkFenceInfo );
+
+	LOG_INFO("Sync Objects For Rendering and Presentation created");
 }
 
 void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )

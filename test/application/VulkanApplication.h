@@ -42,6 +42,7 @@ protected:
     void createFrameBuffers();
     void createCommandPool();
     void createCommandBuffer();
+    void createSyncObjects();
 
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
 
@@ -93,6 +94,10 @@ protected:
     vk::CommandPool m_vkGraphicsCommandPool;
     vk::CommandBuffer m_vkGraphicsCommandBuffer;
     
+    vk::Semaphore m_vkImageAvailableSemaphore;
+    vk::Semaphore m_vkRenderFinishedSemaphore;
+    vk::Fence m_vkInFlightFence;
+
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
     vkrender::Window m_window;
