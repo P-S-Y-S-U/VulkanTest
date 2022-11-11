@@ -1,7 +1,7 @@
 #ifndef TRIANGLE_APPLICATION_H
 #define TRIANGLE_APPLICATION_H
 
-#include "VulkanApplication.h"
+#include "application/VulkanApplication.h"
 
 
 class TriangleApplication : public VulkanApplication

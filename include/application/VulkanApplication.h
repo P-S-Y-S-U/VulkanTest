@@ -8,10 +8,11 @@
 #include "window/window.h"
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
 #include "vkrenderer/VulkanQueueFamily.hpp"
+#include "exports.hpp"
 
 #include <vulkan/vulkan.hpp>
 
-class VulkanApplication
+class VULKAN_EXPORTS VulkanApplication
 {
 public:
     VulkanApplication( const std::string& applicationName );
