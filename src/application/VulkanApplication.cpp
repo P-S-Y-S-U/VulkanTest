@@ -627,22 +627,12 @@ void VulkanApplication::createGraphicsPipeline()
 	vkInputAssemblyInfo.topology = vk::PrimitiveTopology::eTriangleList;
 	vkInputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	vk::Viewport vkViewport{};
-	vkViewport.x = 0.0f;
-	vkViewport.y = 0.0f;
-	vkViewport.width = static_cast<float>( m_vkSwapchainExtent.width );
-	vkViewport.height = static_cast<float>( m_vkSwapchainExtent.height );
-	vkViewport.minDepth = 0.0f;
-	vkViewport.maxDepth = 1.0f;
-	vk::Rect2D vkScissor{};
-	vkScissor.offset = vk::Offset2D{0, 0};
-	vkScissor.extent = m_vkSwapchainExtent;
 	vk::PipelineViewportStateCreateInfo vkViewportInfo{};
 	vkViewportInfo.sType = vk::StructureType::ePipelineViewportStateCreateInfo;
 	vkViewportInfo.viewportCount = 1;
-	vkViewportInfo.pViewports = &vkViewport;
+	vkViewportInfo.pViewports = nullptr;
 	vkViewportInfo.scissorCount = 1;
-	vkViewportInfo.pScissors = &vkScissor;
+	vkViewportInfo.pScissors = nullptr;
 
 	vk::PipelineRasterizationStateCreateInfo vkRasterizerInfo{};
 	vkRasterizerInfo.sType = vk::StructureType::ePipelineRasterizationStateCreateInfo;
@@ -689,10 +679,14 @@ void VulkanApplication::createGraphicsPipeline()
 	vkColorBlendInfo.blendConstants[2] = 0.0f;
 	vkColorBlendInfo.blendConstants[3] = 0.0f;
 
+	std::vector<vk::DynamicState> dynamicStates{
+		vk::DynamicState::eViewport,
+		vk::DynamicState::eScissor
+	};
 	vk::PipelineDynamicStateCreateInfo vkDynamicStateInfo{};
 	vkDynamicStateInfo.sType = vk::StructureType::ePipelineDynamicStateCreateInfo;
-	vkDynamicStateInfo.dynamicStateCount = 0;
-	vkDynamicStateInfo.pDynamicStates = nullptr;
+	vkDynamicStateInfo.dynamicStateCount = static_cast<std::uint32_t>(dynamicStates.size());
+	vkDynamicStateInfo.pDynamicStates = dynamicStates.data();
 
 	vk::PipelineLayoutCreateInfo vkPipelineLayoutInfo{};
 	vkPipelineLayoutInfo.sType = vk::StructureType::ePipelineLayoutCreateInfo;
@@ -835,7 +829,21 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 
 	vkCommandBuffer.beginRenderPass( vkRenderPassBeginInfo, vk::SubpassContents::eInline );
 	vkCommandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vkGraphicsPipeline );
-	// TODO fill commands for dynamic Viewport
+	
+	vk::Viewport vkViewport{};
+	vkViewport.x = 0.0f;
+	vkViewport.y = 0.0f;
+	vkViewport.width = static_cast<float>(m_vkSwapchainExtent.width);
+	vkViewport.height = static_cast<float>(m_vkSwapchainExtent.height);
+	vkViewport.minDepth = 0.0f;
+	vkViewport.maxDepth = 1.0f;
+	vkCommandBuffer.setViewport(0, 1, &vkViewport);
+
+	vk::Rect2D vkScissor{};
+	vkScissor.offset = vk::Offset2D{ 0, 0 };
+	vkScissor.extent = m_vkSwapchainExtent;
+	vkCommandBuffer.setScissor(0, 1, &vkScissor);
+
 	vkCommandBuffer.draw( 3, 1, 0, 0 );
 	vkCommandBuffer.endRenderPass();
 	vkCommandBuffer.end();
