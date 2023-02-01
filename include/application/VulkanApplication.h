@@ -2,6 +2,7 @@
 #define VULKAN_APPLICATION_H
 
 #include <string>
+#include <array>
 #include <vector>
 #include <filesystem>
 
@@ -44,7 +45,7 @@ protected:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
-    void createCommandBuffer();
+    void createCommandBuffers();
     void createSyncObjects();
 
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
@@ -71,6 +72,8 @@ protected:
 
     bool checkValidationLayerSupport();
     
+    static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
+
     std::string m_applicationName;
 
     vk::Instance m_vkInstance;
@@ -95,11 +98,12 @@ protected:
     std::vector<vk::Framebuffer> m_swapchainFrameBuffers;
 
     vk::CommandPool m_vkGraphicsCommandPool;
-    vk::CommandBuffer m_vkGraphicsCommandBuffer;
+    std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     
-    vk::Semaphore m_vkImageAvailableSemaphore;
-    vk::Semaphore m_vkRenderFinishedSemaphore;
-    vk::Fence m_vkInFlightFence;
+    std::vector<vk::Semaphore> m_vkImageAvailableSemaphores;
+    std::vector<vk::Semaphore> m_vkRenderFinishedSemaphores;
+    std::vector<vk::Fence> m_vkInFlightFences;
+    std::uint8_t m_currentFrame;
 
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;

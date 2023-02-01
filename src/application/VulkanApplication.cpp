@@ -78,6 +78,7 @@ std::uint32_t chooseImageCount( const vkrender::SwapChainSupportDetails& swapCha
 VulkanApplication::VulkanApplication( const std::string& applicationName )
     :m_applicationName{ applicationName }
 	,m_window{ 800, 600 }
+	,m_currentFrame{0}
 {
 	if (utils::VulkanRendererApiLogger::getSingletonPtr() == nullptr)
 	{
@@ -119,7 +120,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
-	createCommandBuffer();
+	createCommandBuffers();
 	createSyncObjects();
 }
 
@@ -135,14 +136,14 @@ void VulkanApplication::mainLoop()
 
 void VulkanApplication::drawFrame()
 {
-	auto opFenceWait = m_vkLogicalDevice.waitForFences( 1, &m_vkInFlightFence, VK_TRUE, std::numeric_limits<std::uint64_t>::max() ); 
-	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFence );
+	auto opFenceWait = m_vkLogicalDevice.waitForFences( 1, &m_vkInFlightFences[m_currentFrame], VK_TRUE, std::numeric_limits<std::uint64_t>::max() ); 
+	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFences[m_currentFrame] );
 
 	std::uint32_t imageIndex;
 	vk::ResultValue<std::uint32_t> opImageAcquistion = m_vkLogicalDevice.acquireNextImageKHR( 
 		m_vkSwapchain, 
 		std::numeric_limits<std::uint64_t>::max(),
-		m_vkImageAvailableSemaphore,
+		m_vkImageAvailableSemaphores[m_currentFrame],
 		nullptr
 	);
 
@@ -155,24 +156,24 @@ void VulkanApplication::drawFrame()
 
 	imageIndex = opImageAcquistion.value;
 
-	m_vkGraphicsCommandBuffer.reset();
-	recordCommandBuffer( m_vkGraphicsCommandBuffer, imageIndex );
+	m_vkGraphicsCommandBuffers[m_currentFrame].reset();
+	recordCommandBuffer( m_vkGraphicsCommandBuffers[m_currentFrame], imageIndex );
 
 	vk::SubmitInfo vkCmdSubmitInfo{};
 	vkCmdSubmitInfo.sType = vk::StructureType::eSubmitInfo;
-	vk::Semaphore waitSemaphores[] = { m_vkImageAvailableSemaphore };
+	vk::Semaphore waitSemaphores[] = { m_vkImageAvailableSemaphores[m_currentFrame] };
 	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 	vkCmdSubmitInfo.waitSemaphoreCount = 1;
 	vkCmdSubmitInfo.pWaitSemaphores = waitSemaphores;
 	vkCmdSubmitInfo.pWaitDstStageMask = waitStages;
 	vkCmdSubmitInfo.commandBufferCount = 1;
-	vkCmdSubmitInfo.pCommandBuffers = &m_vkGraphicsCommandBuffer;
-	vk::Semaphore signalSemaphores[] = { m_vkRenderFinishedSemaphore };
+	vkCmdSubmitInfo.pCommandBuffers = &m_vkGraphicsCommandBuffers[m_currentFrame];
+	vk::Semaphore signalSemaphores[] = { m_vkRenderFinishedSemaphores[m_currentFrame] };
 	vkCmdSubmitInfo.signalSemaphoreCount = 1;
 	vkCmdSubmitInfo.pSignalSemaphores = signalSemaphores;
 
 	vk::ArrayProxy<const vk::SubmitInfo> submitInfos{ vkCmdSubmitInfo };
-	m_vkGraphicsQueue.submit( submitInfos, m_vkInFlightFence );
+	m_vkGraphicsQueue.submit( submitInfos, m_vkInFlightFences[m_currentFrame] );
 
 	vk::PresentInfoKHR vkPresentInfo{};
 	vkPresentInfo.sType = vk::StructureType::ePresentInfoKHR;
@@ -185,15 +186,20 @@ void VulkanApplication::drawFrame()
 	vkPresentInfo.pResults = nullptr;
 
 	auto opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
+
+	m_currentFrame = m_currentFrame % MAX_FRAMES_IN_FLIGHT;
 }
 
 void VulkanApplication::shutdown()
 {
 	using namespace vkrender;
 
-	m_vkLogicalDevice.destroyFence( m_vkInFlightFence );
-	m_vkLogicalDevice.destroySemaphore( m_vkRenderFinishedSemaphore );
-	m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphore );
+	for( auto i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		m_vkLogicalDevice.destroyFence( m_vkInFlightFences[i] );
+		m_vkLogicalDevice.destroySemaphore( m_vkRenderFinishedSemaphores[i] );
+		m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphores[i] );
+	}
 
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
@@ -775,21 +781,27 @@ void VulkanApplication::createCommandPool()
 	LOG_INFO("Graphics Command Pool created");
 }
 
-void VulkanApplication::createCommandBuffer()
+void VulkanApplication::createCommandBuffers()
 {
+	m_vkGraphicsCommandBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+
 	vk::CommandBufferAllocateInfo vkCmdBufAllocateInfo{};
 	vkCmdBufAllocateInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	vkCmdBufAllocateInfo.commandPool = m_vkGraphicsCommandPool;
 	vkCmdBufAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
-	vkCmdBufAllocateInfo.commandBufferCount = 1;
-
-	m_vkGraphicsCommandBuffer = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo )[0];
+	vkCmdBufAllocateInfo.commandBufferCount = m_vkGraphicsCommandBuffers.size();
+	
+	m_vkGraphicsCommandBuffers = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo );
 
 	LOG_INFO("Graphics Command Buffer created");
 }
 
 void VulkanApplication::createSyncObjects()
 {
+	m_vkImageAvailableSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
+	m_vkRenderFinishedSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
+	m_vkInFlightFences.resize( MAX_FRAMES_IN_FLIGHT );
+
 	vk::SemaphoreCreateInfo vkSemaphoreInfo{};
 	vkSemaphoreInfo.sType = vk::StructureType::eSemaphoreCreateInfo;
 
@@ -797,10 +809,13 @@ void VulkanApplication::createSyncObjects()
 	vkFenceInfo.sType = vk::StructureType::eFenceCreateInfo;
 	vkFenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-	m_vkImageAvailableSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
-	m_vkRenderFinishedSemaphore = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
-	
-	m_vkInFlightFence = m_vkLogicalDevice.createFence( vkFenceInfo );
+	for( auto i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		m_vkImageAvailableSemaphores[i] = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
+		m_vkRenderFinishedSemaphores[i] = m_vkLogicalDevice.createSemaphore( vkSemaphoreInfo );
+
+		m_vkInFlightFences[i] = m_vkLogicalDevice.createFence( vkFenceInfo );
+	}
 
 	LOG_INFO("Sync Objects For Rendering and Presentation created");
 }
