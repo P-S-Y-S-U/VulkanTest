@@ -146,7 +146,7 @@ void VulkanApplication::drawFrame()
 		nullptr
 	);
 
-	if( opImageAcquistion.result != vk::Result::eErrorOutOfDateKHR )
+	if( opImageAcquistion.result == vk::Result::eErrorOutOfDateKHR )
 	{
 		recreateSwapChain();
 		return;
@@ -194,7 +194,7 @@ void VulkanApplication::drawFrame()
 
 	vk::Result opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
 	
-	if( opPresentResult == vk::Result::eSuboptimalKHR )
+	if( opPresentResult == vk::Result::eErrorOutOfDateKHR || opPresentResult == vk::Result::eSuboptimalKHR )
 	{
 		recreateSwapChain();
 	}
