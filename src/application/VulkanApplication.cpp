@@ -203,21 +203,12 @@ void VulkanApplication::shutdown()
 
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
-	for( auto& vkFramebuffer : m_swapchainFrameBuffers )
-	{
-		m_vkLogicalDevice.destroyFramebuffer( vkFramebuffer );
-	}
+	destroySwapChain();
 
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
 	m_vkLogicalDevice.destroyRenderPass( m_vkRenderPass );
 
-	for( auto& vkImageView : m_swapchainImageViews )
-	{
-		m_vkLogicalDevice.destroyImageView( vkImageView );
-	}
-	m_swapchainImageViews.clear();
-	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
 	m_vkLogicalDevice.destroy();
 	m_vkInstance.destroySurfaceKHR( m_vkSurface );
 
@@ -824,9 +815,28 @@ void VulkanApplication::recreateSwapChain()
 {
 	m_vkLogicalDevice.waitIdle();
 
+	destroySwapChain();
+	
 	createSwapchain();
 	createImageViews();
 	createFrameBuffers();	
+}
+
+void VulkanApplication::destroySwapChain()
+{
+	for( auto& vkFramebuffer : m_swapchainFrameBuffers )
+	{
+		m_vkLogicalDevice.destroyFramebuffer( vkFramebuffer );
+	}
+
+	for( auto& vkImageView : m_swapchainImageViews )
+	{
+		m_vkLogicalDevice.destroyImageView( vkImageView );
+	}
+
+	m_swapchainImageViews.clear();
+
+	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
 }
 
 void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )
