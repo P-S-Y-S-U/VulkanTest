@@ -137,7 +137,6 @@ void VulkanApplication::mainLoop()
 void VulkanApplication::drawFrame()
 {
 	auto opFenceWait = m_vkLogicalDevice.waitForFences( 1, &m_vkInFlightFences[m_currentFrame], VK_TRUE, std::numeric_limits<std::uint64_t>::max() ); 
-	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFences[m_currentFrame] );
 
 	std::uint32_t imageIndex;
 	vk::ResultValue<std::uint32_t> opImageAcquistion = m_vkLogicalDevice.acquireNextImageKHR( 
@@ -147,12 +146,20 @@ void VulkanApplication::drawFrame()
 		nullptr
 	);
 
-	/*if( opImageAcquistion.result != vk::Result::eSuccess )
+	if( opImageAcquistion.result != vk::Result::eErrorOutOfDateKHR )
+	{
+		recreateSwapChain();
+		return;
+	}
+	else if( opImageAcquistion.result != vk::Result::eSuccess && opImageAcquistion.result != vk::Result::eSuboptimalKHR )
 	{
 		std::string errorMsg = "FAILED TO ACQUIRE SWAPCHAIN IMAGE TO START RENDERING";
 		LOG_ERROR(errorMsg);
 		throw std::runtime_error( errorMsg );
-	}*/
+	}
+
+	// only reset the fence if we are submitting for work
+	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFences[m_currentFrame] );
 
 	imageIndex = opImageAcquistion.value;
 
@@ -185,7 +192,18 @@ void VulkanApplication::drawFrame()
 	vkPresentInfo.pImageIndices = &imageIndex;
 	vkPresentInfo.pResults = nullptr;
 
-	auto opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
+	vk::Result opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
+	
+	if( opPresentResult == vk::Result::eSuboptimalKHR )
+	{
+		recreateSwapChain();
+	}
+	else if( opPresentResult != vk::Result::eSuccess )
+	{
+		std::string errorMsg = "FAILED TO PRESENT SWAPCHAIN IMAGE";
+		LOG_ERROR(errorMsg);
+		throw std::runtime_error( errorMsg );
+	}
 
 	m_currentFrame = m_currentFrame % MAX_FRAMES_IN_FLIGHT;
 }
