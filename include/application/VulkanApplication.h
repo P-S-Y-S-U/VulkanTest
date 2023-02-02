@@ -47,7 +47,8 @@ protected:
     void createCommandPool();
     void createCommandBuffers();
     void createSyncObjects();
-
+    void recreateSwapChain();
+    
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);

@@ -820,6 +820,15 @@ void VulkanApplication::createSyncObjects()
 	LOG_INFO("Sync Objects For Rendering and Presentation created");
 }
 
+void VulkanApplication::recreateSwapChain()
+{
+	m_vkLogicalDevice.waitIdle();
+
+	createSwapchain();
+	createImageViews();
+	createFrameBuffers();	
+}
+
 void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )
 {
 	vk::CommandBufferBeginInfo vkCmdBufBeginInfo{};
