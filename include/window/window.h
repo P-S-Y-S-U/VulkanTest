@@ -41,7 +41,12 @@ namespace vkrender
 		std::pair<std::uint32_t, std::uint32_t> getDimensions() const ;
 		std::pair<std::uint32_t, std::uint32_t> getFrameBufferSize() const ;
 		
+		// resets to false after returning
+		bool isFrameBufferResized();
+
 		static std::vector<const char*> populateAvailableExtensions();
+
+		static void framebufferResizeCallback(GLFWwindow* pWindow, int width, int height);
 	private:
 		GLFWwindow*		m_pWindow;
 
@@ -49,6 +54,7 @@ namespace vkrender
 		std::uint32_t	m_windowHeight;
 
 		bool m_bQuit;
+		bool m_bFrameBufferResized;
 	};
 
 } // namespace vkrender

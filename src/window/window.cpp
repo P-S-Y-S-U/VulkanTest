@@ -7,6 +7,7 @@ namespace vkrender
 		,m_windowWidth{ width }
 		,m_windowHeight{ height }
 		,m_bQuit{ false }
+		,m_bFrameBufferResized{ false }
 	{}
 
 	Window::Window()
@@ -14,6 +15,7 @@ namespace vkrender
 		,m_windowWidth{ 800 }
 		,m_windowHeight{ 600 }
 		,m_bQuit{ false }
+		,m_bFrameBufferResized{ false }
 	{
 	}
 
@@ -26,8 +28,12 @@ namespace vkrender
 	{
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
 		m_pWindow = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", nullptr, nullptr );
+		glfwSetWindowUserPointer( m_pWindow, this );
+
+		glfwSetFramebufferSizeCallback( m_pWindow, Window::framebufferResizeCallback );
 	}
 
 /*
@@ -91,8 +97,24 @@ namespace vkrender
 		std::int32_t frameBufferHeight = 0;
 
 		glfwGetFramebufferSize( m_pWindow, &frameBufferWidth, &frameBufferHeight );
+		while (frameBufferWidth == 0 || frameBufferHeight == 0)
+		{
+			glfwGetFramebufferSize(m_pWindow, &frameBufferWidth, &frameBufferHeight);
+			glfwWaitEvents();
+		}
 
 		return std::make_pair<std::uint32_t, std::uint32_t>( static_cast<std::uint32_t>( frameBufferWidth ), static_cast<std::uint32_t>( frameBufferHeight ) );
+	}
+
+	bool Window::isFrameBufferResized()
+	{
+		if( m_bFrameBufferResized )
+		{
+			m_bFrameBufferResized = false;
+			return true;
+		}
+		
+		return false;
 	}
 
 	std::vector<const char*> Window::populateAvailableExtensions()
@@ -107,4 +129,11 @@ namespace vkrender
 
 		return extensionContainer;
 	}
+
+	void Window::framebufferResizeCallback( GLFWwindow* pNativeWindow, int width, int height )
+	{
+		Window* pWindow = reinterpret_cast<Window*>( glfwGetWindowUserPointer(pNativeWindow) );
+		pWindow->m_bFrameBufferResized = true;
+	}
+
 } // namespace vkrender

@@ -139,7 +139,8 @@ void VulkanApplication::drawFrame()
 	auto opFenceWait = m_vkLogicalDevice.waitForFences( 1, &m_vkInFlightFences[m_currentFrame], VK_TRUE, std::numeric_limits<std::uint64_t>::max() ); 
 
 	std::uint32_t imageIndex;
-	vk::ResultValue<std::uint32_t> opImageAcquistion = m_vkLogicalDevice.acquireNextImageKHR( 
+	vk::ResultValue<std::uint32_t> opImageAcquistion = this->swapchainNextImageWrapper(
+		m_vkLogicalDevice,
 		m_vkSwapchain, 
 		std::numeric_limits<std::uint64_t>::max(),
 		m_vkImageAvailableSemaphores[m_currentFrame],
@@ -192,9 +193,12 @@ void VulkanApplication::drawFrame()
 	vkPresentInfo.pImageIndices = &imageIndex;
 	vkPresentInfo.pResults = nullptr;
 
-	vk::Result opPresentResult = m_vkPresentationQueue.presentKHR( vkPresentInfo );
+	vk::Result opPresentResult = queuePresentWrapper( 
+		m_vkPresentationQueue,
+		vkPresentInfo
+	);
 	
-	if( opPresentResult == vk::Result::eErrorOutOfDateKHR || opPresentResult == vk::Result::eSuboptimalKHR )
+	if( opPresentResult == vk::Result::eErrorOutOfDateKHR || opPresentResult == vk::Result::eSuboptimalKHR || m_window.isFrameBufferResized() )
 	{
 		recreateSwapChain();
 	}
@@ -205,7 +209,7 @@ void VulkanApplication::drawFrame()
 		throw std::runtime_error( errorMsg );
 	}
 
-	m_currentFrame = m_currentFrame % MAX_FRAMES_IN_FLIGHT;
+	m_currentFrame = ( m_currentFrame + 1 ) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void VulkanApplication::shutdown()
@@ -831,6 +835,7 @@ void VulkanApplication::createSyncObjects()
 
 void VulkanApplication::recreateSwapChain()
 {
+	m_window.getFrameBufferSize();
 	m_vkLogicalDevice.waitIdle();
 
 	destroySwapChain();
@@ -851,7 +856,7 @@ void VulkanApplication::destroySwapChain()
 	{
 		m_vkLogicalDevice.destroyImageView( vkImageView );
 	}
-
+	m_swapchainFrameBuffers.clear();
 	m_swapchainImageViews.clear();
 
 	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
@@ -1049,4 +1054,38 @@ bool VulkanApplication::checkValidationLayerSupport()
 	}
 
 	return true;
+}
+
+vk::ResultValue<std::uint32_t> VulkanApplication::swapchainNextImageWrapper(
+	const vk::Device& logicalDevice,
+    const vk::SwapchainKHR& swapchain,
+    std::uint64_t timeout,
+    vk::Semaphore imageAcquireSemaphore,
+    vk::Fence imageAcquireFence
+)
+{
+	std::uint32_t imageIndex;
+
+	vk::DispatchLoaderStatic& dispatcher = vk::getDispatchLoaderStatic();
+	vk::Result result = static_cast<vk::Result>( dispatcher.vkAcquireNextImageKHR(
+		static_cast<VkDevice>( logicalDevice ),
+		static_cast<VkSwapchainKHR>( swapchain ),
+		timeout, 
+		static_cast<VkSemaphore>( imageAcquireSemaphore ),
+		static_cast<VkFence>( imageAcquireFence ),
+		&imageIndex
+	) );
+
+	return vk::ResultValue<std::uint32_t>( result, imageIndex );
+}
+
+vk::Result VulkanApplication::queuePresentWrapper(
+    const vk::Queue& presentationQueue,
+    const vk::PresentInfoKHR& presentInfo
+)
+{
+	vk::DispatchLoaderStatic& dispatcher = vk::getDispatchLoaderStatic();
+	return static_cast<vk::Result>( dispatcher.vkQueuePresentKHR(
+		presentationQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
+	) );
 }

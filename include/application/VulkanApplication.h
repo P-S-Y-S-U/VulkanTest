@@ -73,6 +73,19 @@ protected:
     void setupDebugMessenger();
 
     bool checkValidationLayerSupport();
+
+    vk::ResultValue<std::uint32_t> swapchainNextImageWrapper(
+        const vk::Device& logicalDevice,
+        const vk::SwapchainKHR& swapchain,
+        std::uint64_t timeout,
+        vk::Semaphore imageAcquireSemaphore,
+        vk::Fence imageAcquireFence
+    );
+
+    vk::Result queuePresentWrapper(
+        const vk::Queue& presentationQueue,
+        const vk::PresentInfoKHR& presentInfo
+    );
     
     static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
