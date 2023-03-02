@@ -2,6 +2,7 @@
 #include "vkrenderer/VulkanLayer.hpp"
 #include "vkrenderer/VulkanDebugMessenger.h"
 #include "vkrenderer/VulkanSwapChainFactory.h"
+#include "graphics/Vertex.hpp"
 #include "utilities/VulkanLogger.h"
 
 #include <vulkan/vulkan.hpp>
@@ -636,10 +637,12 @@ void VulkanApplication::createGraphicsPipeline()
 	
 	vk::PipelineVertexInputStateCreateInfo vkVertexInputInfo{};
 	vkVertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
-	vkVertexInputInfo.vertexBindingDescriptionCount = 0;
-	vkVertexInputInfo.pVertexBindingDescriptions = nullptr;
-	vkVertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vkVertexInputInfo.pVertexAttributeDescriptions = nullptr;
+	vk::VertexInputBindingDescription bindingDesc = vertex::getBindingDescription();
+	std::array<vk::VertexInputAttributeDescription, 2> attributeDesc = vertex::getAttributeDescriptions();
+	vkVertexInputInfo.vertexBindingDescriptionCount = 1;
+	vkVertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+	vkVertexInputInfo.vertexAttributeDescriptionCount = attributeDesc.size();
+	vkVertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
 
 	vk::PipelineInputAssemblyStateCreateInfo vkInputAssemblyInfo{};
 	vkInputAssemblyInfo.sType = vk::StructureType::ePipelineInputAssemblyStateCreateInfo;
