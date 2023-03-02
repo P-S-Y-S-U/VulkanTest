@@ -228,6 +228,8 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
+	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
+
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
 	m_vkLogicalDevice.destroyRenderPass( m_vkRenderPass );
@@ -795,6 +797,19 @@ void VulkanApplication::createCommandPool()
 
 	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkCommandPoolInfo );
 	LOG_INFO("Graphics Command Pool created");
+}
+
+void VulkanApplication::createVertexBuffer()
+{
+	vk::BufferCreateInfo bufferCreateInfo{};
+	bufferCreateInfo.sType = vk::StructureType::eBufferCreateInfo;
+	bufferCreateInfo.size = sizeof(m_inputVertexData[0]) * m_inputVertexData.size();
+	bufferCreateInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
+	bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+
+	m_vkVertexBuffer = m_vkLogicalDevice.createBuffer(
+		bufferCreateInfo
+	);
 }
 
 void VulkanApplication::createCommandBuffers()
