@@ -9,6 +9,7 @@
 #include "window/window.h"
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
 #include "vkrenderer/VulkanQueueFamily.hpp"
+#include "graphics/Vertex.hpp"
 #include "exports.hpp"
 
 #include <vulkan/vulkan.hpp>
@@ -16,6 +17,8 @@
 class VULKAN_EXPORTS VulkanApplication
 {
 public:
+    using VertexData = std::vector<vertex>;
+
     VulkanApplication( const std::string& applicationName );
     virtual ~VulkanApplication();
 
@@ -123,6 +126,8 @@ protected:
     std::vector<const char*> m_instanceExtensionContainer;
     std::vector<const char*> m_deviceExtensionContainer;
     vkrender::Window m_window;
+
+    VertexData m_inputVertexData;
 };
 
 #endif 
