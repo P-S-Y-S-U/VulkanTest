@@ -822,9 +822,21 @@ void VulkanApplication::createVertexBuffer()
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 	);
 	
-	vk::DeviceMemory vertexBufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
+	m_vkVertexBufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
 
-	m_vkLogicalDevice.bindBufferMemory( m_vkVertexBuffer, vertexBufferMemory, 0 );
+	m_vkLogicalDevice.bindBufferMemory( m_vkVertexBuffer, m_vkVertexBufferMemory, 0 );
+
+
+	void* mappedMemory = m_vkLogicalDevice.mapMemory(
+		m_vkVertexBufferMemory,
+		0, bufferCreateInfo.size
+	);
+	std::memcpy( 
+		mappedMemory, 
+		m_inputVertexData.data(),
+		static_cast<std::size_t>( bufferCreateInfo.size )
+	);
+	m_vkLogicalDevice.unmapMemory( m_vkVertexBufferMemory );
 }
 
 void VulkanApplication::createCommandBuffers()
