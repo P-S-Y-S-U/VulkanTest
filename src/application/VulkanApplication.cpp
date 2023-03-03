@@ -229,6 +229,7 @@ void VulkanApplication::shutdown()
 	destroySwapChain();
 
 	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
+	m_vkLogicalDevice.freeMemory( m_vkVertexBufferMemory );
 
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
@@ -810,6 +811,20 @@ void VulkanApplication::createVertexBuffer()
 	m_vkVertexBuffer = m_vkLogicalDevice.createBuffer(
 		bufferCreateInfo
 	);
+
+	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getBufferMemoryRequirements( m_vkVertexBuffer );	
+
+	vk::MemoryAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(
+		memRequirements.memoryTypeBits,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+	);
+	
+	vk::DeviceMemory vertexBufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
+
+	m_vkLogicalDevice.bindBufferMemory( m_vkVertexBuffer, vertexBufferMemory, 0 );
 }
 
 void VulkanApplication::createCommandBuffers()
@@ -1106,4 +1121,22 @@ vk::Result VulkanApplication::queuePresentWrapper(
 	return static_cast<vk::Result>( dispatcher.vkQueuePresentKHR(
 		presentationQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
 	) );
+}
+
+std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter, vk::MemoryPropertyFlags& propertyFlags )
+{
+	vk::PhysicalDeviceMemoryProperties memoryProps = m_vkPhysicalDevice.getMemoryProperties();
+
+	for( auto i = 0u; i < memoryProps.memoryTypeCount; i++ )
+	{
+		if( 
+			( typeFilter & ( 1u << i ) ) &&
+			( memoryProps.memoryTypes[i].propertyFlags & propertyFlags ) == propertyFlags 
+		)
+		{
+			return i;
+		}
+	}
+
+	// TODO throw exception
 }

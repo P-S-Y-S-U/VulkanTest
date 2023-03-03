@@ -91,6 +91,8 @@ protected:
         const vk::PresentInfoKHR& presentInfo
     );
     
+    std::uint32_t findMemoryType( const std::uint32_t& typeFilter, vk::MemoryPropertyFlags& propertyFlags );
+
     static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
     std::string m_applicationName;
@@ -119,6 +121,7 @@ protected:
     vk::CommandPool m_vkGraphicsCommandPool;
     std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     vk::Buffer m_vkVertexBuffer;
+    vk::DeviceMemory m_vkVertexBufferMemory;
     
     std::vector<vk::Semaphore> m_vkImageAvailableSemaphores;
     std::vector<vk::Semaphore> m_vkRenderFinishedSemaphores;
