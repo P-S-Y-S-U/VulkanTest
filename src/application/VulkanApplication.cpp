@@ -121,6 +121,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
+	createVertexBuffer();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -946,7 +947,17 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkScissor.extent = m_vkSwapchainExtent;
 	vkCommandBuffer.setScissor(0, 1, &vkScissor);
 
-	vkCommandBuffer.draw( 3, 1, 0, 0 );
+	vk::Buffer vertexBuffers[] = { m_vkVertexBuffer };
+	vk::DeviceSize offsets[] = { 0 };
+
+	vkCommandBuffer.bindVertexBuffers( 0, vertexBuffers, offsets );
+	vkCommandBuffer.draw( 
+		static_cast<std::uint32_t>(m_inputVertexData.size()),
+		1,
+		0, 
+		0 
+	);
+
 	vkCommandBuffer.endRenderPass();
 	vkCommandBuffer.end();
 }
