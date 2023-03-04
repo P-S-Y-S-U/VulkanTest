@@ -18,6 +18,7 @@ class VULKAN_EXPORTS VulkanApplication
 {
 public:
     using VertexData = std::vector<vertex>;
+    using IndexData = std::vector<std::uint16_t>;
 
     VulkanApplication( const std::string& applicationName );
     virtual ~VulkanApplication();
@@ -141,6 +142,7 @@ protected:
     vkrender::Window m_window;
 
     VertexData m_inputVertexData;
+    IndexData m_inputIndexData;
 };
 
 #endif 
