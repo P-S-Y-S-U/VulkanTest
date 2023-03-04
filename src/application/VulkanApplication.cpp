@@ -806,16 +806,19 @@ void VulkanApplication::createVertexBuffer()
 
 	std::size_t bufferSizeInBytes = sizeof(vertex) * m_inputVertexData.size();
 
+	vk::Buffer stagingBuffer;
+	vk::DeviceMemory stagingBufferMemory;
+
 	createBuffer( 
 		static_cast<vk::DeviceSize>( bufferSizeInBytes ),
-		vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::BufferUsageFlagBits::eTransferSrc,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		m_vkVertexBuffer,
-		m_vkVertexBufferMemory
+		stagingBuffer,
+		stagingBufferMemory
 	);
 
 	void* mappedMemory = m_vkLogicalDevice.mapMemory(
-		m_vkVertexBufferMemory,
+		stagingBufferMemory,
 		0, bufferSizeInBytes
 	);
 	std::memcpy( 
@@ -823,7 +826,15 @@ void VulkanApplication::createVertexBuffer()
 		m_inputVertexData.data(),
 		bufferSizeInBytes
 	);
-	m_vkLogicalDevice.unmapMemory( m_vkVertexBufferMemory );
+	m_vkLogicalDevice.unmapMemory( stagingBufferMemory );
+
+	createBuffer(
+		bufferSizeInBytes,
+		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		m_vkVertexBuffer,
+		m_vkVertexBufferMemory
+	);
 }
 
 void VulkanApplication::createCommandBuffers()
