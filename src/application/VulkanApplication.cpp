@@ -803,39 +803,25 @@ void VulkanApplication::createCommandPool()
 
 void VulkanApplication::createVertexBuffer()
 {
-	vk::BufferCreateInfo bufferCreateInfo{};
-	bufferCreateInfo.sType = vk::StructureType::eBufferCreateInfo;
-	bufferCreateInfo.size = sizeof(m_inputVertexData[0]) * m_inputVertexData.size();
-	bufferCreateInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
-	bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
 
-	m_vkVertexBuffer = m_vkLogicalDevice.createBuffer(
-		bufferCreateInfo
+	std::size_t bufferSizeInBytes = sizeof(vertex) * m_inputVertexData.size();
+
+	createBuffer( 
+		static_cast<vk::DeviceSize>( bufferSizeInBytes ),
+		vk::BufferUsageFlagBits::eVertexBuffer,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		m_vkVertexBuffer,
+		m_vkVertexBufferMemory
 	);
-
-	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getBufferMemoryRequirements( m_vkVertexBuffer );	
-
-	vk::MemoryAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = findMemoryType(
-		memRequirements.memoryTypeBits,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-	);
-	
-	m_vkVertexBufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
-
-	m_vkLogicalDevice.bindBufferMemory( m_vkVertexBuffer, m_vkVertexBufferMemory, 0 );
-
 
 	void* mappedMemory = m_vkLogicalDevice.mapMemory(
 		m_vkVertexBufferMemory,
-		0, bufferCreateInfo.size
+		0, bufferSizeInBytes
 	);
 	std::memcpy( 
 		mappedMemory, 
 		m_inputVertexData.data(),
-		static_cast<std::size_t>( bufferCreateInfo.size )
+		bufferSizeInBytes
 	);
 	m_vkLogicalDevice.unmapMemory( m_vkVertexBufferMemory );
 }
@@ -972,6 +958,36 @@ vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& 
 	vk::ShaderModule vkShaderModule = m_vkLogicalDevice.createShaderModule( vkShaderModuleCreateInfo );
 
 	return vkShaderModule;
+}
+
+void VulkanApplication::createBuffer(
+    const vk::DeviceSize& bufferSizeInBytes,
+    const vk::BufferUsageFlags& bufferUsage,
+    const vk::MemoryPropertyFlags& memProps,
+    vk::Buffer& buffer,
+    vk::DeviceMemory& bufferMemory
+)
+{
+	vk::BufferCreateInfo bufferInfo{};
+	bufferInfo.sType = vk::StructureType::eBufferCreateInfo;
+	bufferInfo.size = bufferSizeInBytes;
+	bufferInfo.usage = bufferUsage;
+	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+
+	buffer = m_vkLogicalDevice.createBuffer(
+		bufferInfo
+	);
+
+	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getBufferMemoryRequirements( buffer );
+
+	vk::MemoryAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memProps );
+
+	bufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
+
+	m_vkLogicalDevice.bindBufferMemory( buffer, bufferMemory, 0 );
 }
 
 void VulkanApplication::populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer )
@@ -1146,7 +1162,7 @@ vk::Result VulkanApplication::queuePresentWrapper(
 	) );
 }
 
-std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter, vk::MemoryPropertyFlags& propertyFlags )
+std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter, const vk::MemoryPropertyFlags& propertyFlags )
 {
 	vk::PhysicalDeviceMemoryProperties memoryProps = m_vkPhysicalDevice.getMemoryProperties();
 

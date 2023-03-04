@@ -57,6 +57,13 @@ protected:
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
+    void createBuffer(
+        const vk::DeviceSize& bufferSizeInBytes,
+        const vk::BufferUsageFlags& bufferUsage,
+        const vk::MemoryPropertyFlags& memProps,
+        vk::Buffer& buffer,
+        vk::DeviceMemory& bufferMemory
+    );
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
@@ -91,7 +98,7 @@ protected:
         const vk::PresentInfoKHR& presentInfo
     );
     
-    std::uint32_t findMemoryType( const std::uint32_t& typeFilter, vk::MemoryPropertyFlags& propertyFlags );
+    std::uint32_t findMemoryType( const std::uint32_t& typeFilter, const vk::MemoryPropertyFlags& propertyFlags );
 
     static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
