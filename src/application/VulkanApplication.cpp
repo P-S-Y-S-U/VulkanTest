@@ -835,6 +835,11 @@ void VulkanApplication::createVertexBuffer()
 		m_vkVertexBuffer,
 		m_vkVertexBufferMemory
 	);
+
+	copyBuffer( stagingBuffer, m_vkVertexBuffer, bufferSizeInBytes );
+
+	m_vkLogicalDevice.destroyBuffer( stagingBuffer );
+	m_vkLogicalDevice.freeMemory( stagingBufferMemory );
 }
 
 void VulkanApplication::createCommandBuffers()
@@ -1189,4 +1194,44 @@ std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter
 	}
 
 	// TODO throw exception
+}
+
+void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& sizeInBytes )
+{
+	vk::CommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandPool = m_vkGraphicsCommandPool;
+	allocInfo.commandBufferCount = 1;
+
+	vk::CommandBuffer transferCmdBuf = m_vkLogicalDevice.allocateCommandBuffers( allocInfo )[0];
+
+	vk::CommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+	transferCmdBuf.begin( beginInfo );
+
+	vk::BufferCopy copyRegion{};
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	copyRegion.size = sizeInBytes;
+
+	vk::ArrayProxy<const vk::BufferCopy> copyRegionArray{
+		copyRegion
+	};
+
+	transferCmdBuf.copyBuffer( srcBuffer, dstBuffer, copyRegionArray );
+
+	transferCmdBuf.end();
+
+	vk::SubmitInfo submitInfo{};
+	submitInfo.sType = vk::StructureType::eSubmitInfo;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &transferCmdBuf;
+
+	m_vkGraphicsQueue.submit( 1, &submitInfo, nullptr );
+	m_vkGraphicsQueue.waitIdle();
+
+	m_vkLogicalDevice.freeCommandBuffers( m_vkGraphicsCommandPool, 1, &transferCmdBuf );
 }
