@@ -232,7 +232,7 @@ void VulkanApplication::shutdown()
 
 	m_vkLogicalDevice.destroyBuffer( m_vkIndexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkIndexBufferMemory );
-	
+
 	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkVertexBufferMemory );
 
@@ -994,11 +994,13 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vk::DeviceSize offsets[] = { 0 };
 
 	vkCommandBuffer.bindVertexBuffers( 0, vertexBuffers, offsets );
-	vkCommandBuffer.draw( 
-		static_cast<std::uint32_t>(m_inputVertexData.size()),
+	vkCommandBuffer.bindIndexBuffer( m_vkIndexBuffer, 0, vk::IndexType::eUint16 );
+	vkCommandBuffer.drawIndexed(
+		static_cast<std::uint32_t>( m_inputIndexData.size() ),
 		1,
-		0, 
-		0 
+		0,
+		0,
+		0
 	);
 
 	vkCommandBuffer.endRenderPass();
