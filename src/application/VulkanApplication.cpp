@@ -122,6 +122,7 @@ void VulkanApplication::initVulkan()
 	createFrameBuffers();
 	createCommandPool();
 	createVertexBuffer();
+	createIndexBuffer();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -229,6 +230,9 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
+	m_vkLogicalDevice.destroyBuffer( m_vkIndexBuffer );
+	m_vkLogicalDevice.freeMemory( m_vkIndexBufferMemory );
+	
 	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkVertexBufferMemory );
 
@@ -837,6 +841,43 @@ void VulkanApplication::createVertexBuffer()
 	);
 
 	copyBuffer( stagingBuffer, m_vkVertexBuffer, bufferSizeInBytes );
+
+	m_vkLogicalDevice.destroyBuffer( stagingBuffer );
+	m_vkLogicalDevice.freeMemory( stagingBufferMemory );
+}
+
+void VulkanApplication::createIndexBuffer()
+{
+	std::size_t bufferSizeInBytes = sizeof(std::uint16_t) * m_inputIndexData.size();
+
+	vk::Buffer stagingBuffer;
+	vk::DeviceMemory stagingBufferMemory;
+
+	createBuffer(
+		bufferSizeInBytes,
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		stagingBuffer,
+		stagingBufferMemory
+	);
+
+	void* mappedMemory = m_vkLogicalDevice.mapMemory(
+		stagingBufferMemory,
+		0, 
+		static_cast<vk::DeviceSize>( bufferSizeInBytes )
+	);
+	std::memcpy( mappedMemory, m_inputIndexData.data(), bufferSizeInBytes );
+	m_vkLogicalDevice.unmapMemory( stagingBufferMemory );
+
+	createBuffer(
+		bufferSizeInBytes,
+		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		m_vkIndexBuffer,
+		m_vkIndexBufferMemory
+	);
+
+	copyBuffer( stagingBuffer, m_vkIndexBuffer, bufferSizeInBytes );
 
 	m_vkLogicalDevice.destroyBuffer( stagingBuffer );
 	m_vkLogicalDevice.freeMemory( stagingBufferMemory );

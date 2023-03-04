@@ -51,6 +51,7 @@ protected:
     void createCommandPool();
     void createCommandBuffers();
     void createVertexBuffer();
+    void createIndexBuffer();
     void createSyncObjects();
     void recreateSwapChain();
     void destroySwapChain();
@@ -131,6 +132,8 @@ protected:
     std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     vk::Buffer m_vkVertexBuffer;
     vk::DeviceMemory m_vkVertexBufferMemory;
+    vk::Buffer m_vkIndexBuffer;
+    vk::DeviceMemory m_vkIndexBufferMemory;
     
     std::vector<vk::Semaphore> m_vkImageAvailableSemaphores;
     std::vector<vk::Semaphore> m_vkRenderFinishedSemaphores;
