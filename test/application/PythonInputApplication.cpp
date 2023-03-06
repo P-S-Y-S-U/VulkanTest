@@ -69,6 +69,75 @@ bool PythonInputApplicaiton::ParseMeshInputData( const int& argc, const char* ar
 
             if( pFuncReturn )
             {
+                std::size_t meshTupleSize = static_cast<std::size_t>( PyTuple_Size( pFuncReturn ) );
+
+                PyObject* pVertexObj = PyTuple_GetItem( pFuncReturn, 0 );
+                PyObject* pIndexObj = PyTuple_GetItem( pFuncReturn, 1 );
+
+                std::size_t numOfVertices = static_cast<std::size_t>( PyList_Size( pVertexObj ) );
+                std::size_t numOfIndices = static_cast<std::size_t>( PyList_Size( pIndexObj ) );
+                
+                inputVertexData.resize( numOfVertices );
+                inputIndexData.resize( numOfIndices );
+
+                // Parsing Vertex Data
+                for( std::size_t i = 0; i < numOfVertices; i++ )
+                {
+                    PyObject* pVertexTuple = PyList_GetItem( pVertexObj, i );
+
+                    PyObject* pPositionObj = PyTuple_GetItem(pVertexTuple, 0);
+                    PyObject* pColorObj = PyTuple_GetItem(pVertexTuple, 1);
+
+
+                    // Parsing Position Data
+                    float posX = static_cast<float>(
+                        PyFloat_AsDouble(
+                            PyList_GetItem( pPositionObj, 0 )
+                        )
+                    );
+                    float posY = static_cast<float>(
+                        PyFloat_AsDouble(
+                            PyList_GetItem( pPositionObj, 1 )
+                        )
+                    );
+
+                    // Parsing Color Data
+                    float colorR = static_cast<float>(
+                        PyFloat_AsDouble(
+                            PyList_GetItem( pColorObj, 0 )
+                        )
+                    );
+                    float colorG = static_cast<float>(
+                        PyFloat_AsDouble(
+                            PyList_GetItem( pColorObj, 1 )
+                        )
+                    );
+                    float colorB = static_cast<float>(
+                        PyFloat_AsDouble(
+                            PyList_GetItem( pColorObj, 2 )
+                        )
+                    );
+                    
+                    vertex& vkApiVertex = inputVertexData[i];
+                    
+                    vkApiVertex.pos = glm::vec2{ posX, posY };
+                    vkApiVertex.color = glm::vec3{ colorR, colorG, colorB };
+
+                    //Py_DECREF( pVertexTuple );
+                }
+
+                // Parsing Index Data
+                for (std::size_t i = 0; i < numOfIndices; i++)
+                {
+                    PyObject* pIndexedValue = PyList_GetItem(pIndexObj, i);
+                    
+                    inputIndexData[i] = static_cast<std::uint16_t>(
+                        PyLong_AsUnsignedLong(pIndexedValue)
+                    );
+
+                    //Py_DECREF(pIndexedValue);
+                }
+                
                 Py_DECREF(pFuncReturn);
             }
             else {
