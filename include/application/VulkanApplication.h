@@ -130,6 +130,7 @@ protected:
     std::vector<vk::Framebuffer> m_swapchainFrameBuffers;
 
     vk::CommandPool m_vkGraphicsCommandPool;
+    vk::CommandPool m_vkTransferCommandPool;
     std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     vk::Buffer m_vkVertexBuffer;
     vk::DeviceMemory m_vkVertexBufferMemory;

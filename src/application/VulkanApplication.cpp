@@ -815,13 +815,21 @@ void VulkanApplication::createCommandPool()
 
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
-	vk::CommandPoolCreateInfo vkCommandPoolInfo{};
-	vkCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
-	vkCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-	vkCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
+	vk::CommandPoolCreateInfo vkGraphicsCommandPoolInfo{};
+	vkGraphicsCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
+	vkGraphicsCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vkGraphicsCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
 
-	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkCommandPoolInfo );
+	vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
+	vkTransferCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
+	vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
+
+	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
 	LOG_INFO("Graphics Command Pool created");
+
+	m_vkTransferCommandPool = m_vkLogicalDevice.createCommandPool( vkTransferCommandPoolInfo );
+	LOG_INFO("Transfer Command Pool created");
 }
 
 void VulkanApplication::createVertexBuffer()
