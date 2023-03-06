@@ -11,7 +11,13 @@ public:
 
     void run() override;
 
-    void ParseMeshInputData();
+    bool ParseMeshInputData( const int& argc, const char* argv[] );
+    
+private:
+    void PopulateMeshData( 
+        std::vector<vertex>&& vertexData,
+        std::vector<std::uint16_t>&& indexData
+    );
 };
 
 #endif
