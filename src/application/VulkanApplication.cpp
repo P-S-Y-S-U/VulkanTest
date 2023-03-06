@@ -1084,6 +1084,19 @@ vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk
 			queueFamilyIndices.m_graphicsFamily = validQueueIndex;
 		}
 
+		if( prop.queueFlags & vk::QueueFlagBits::eCompute )
+		{
+			queueFamilyIndices.m_computeFamily = validQueueIndex;
+		}
+
+		if( 
+			prop.queueFlags & vk::QueueFlagBits::eTransfer && 
+			( !( prop.queueFlags & vk::QueueFlagBits::eGraphics ) && !( prop.queueFlags & vk::QueueFlagBits::eCompute ) )
+		)
+		{
+			queueFamilyIndices.m_exclusiveTransferFamily = validQueueIndex;
+		}
+
 		if( pVkSurface )
 		{
 			vk::Bool32 bPresentationSupport = physicalDevice.getSurfaceSupportKHR( validQueueIndex, *pVkSurface );
