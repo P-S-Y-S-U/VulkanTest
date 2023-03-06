@@ -444,11 +444,24 @@ void VulkanApplication::createLogicalDevice()
 		populateDeviceQueueCreateInfo( vkDevicePresentationQueueCreateInfo, presentationQueueFamilyIndex, presentationQueuePriorities );
 	}
 
+	vk::DeviceQueueCreateInfo vkDeviceTransferQueueCreateInfo{};
+	std::size_t transferQueueCount = 1;
+	std::vector<float> transferQueuePriorities( transferQueueCount );
+	transferQueuePriorities[0] = 1.0f;
+	transferQueuePriorities.shrink_to_fit();
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	{
+		std::uint32_t transferQueueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
+		populateDeviceQueueCreateInfo( vkDeviceTransferQueueCreateInfo, transferQueueFamilyIndex, transferQueuePriorities );
+	}
+
 	vk::DeviceCreateInfo vkDeviceCreateInfo{};
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	queueCreateInfos.push_back( vkDeviceGraphicsQueueCreateInfo );
 	if( queueFamilyIndices.m_presentFamily.has_value() )
 		queueCreateInfos.push_back( vkDevicePresentationQueueCreateInfo );
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+		queueCreateInfos.push_back( vkDeviceTransferQueueCreateInfo );
 	queueCreateInfos.shrink_to_fit();
 	vk::PhysicalDeviceFeatures physicalDeviceFeatures = m_vkPhysicalDevice.getFeatures(); // TODO check state
 	populateDeviceCreateInfo( vkDeviceCreateInfo, queueCreateInfos, &physicalDeviceFeatures );
@@ -463,6 +476,12 @@ void VulkanApplication::createLogicalDevice()
 	{
 		m_vkPresentationQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_presentFamily.value(), 0 );
 		LOG_INFO("Presentation Queue created");
+	}
+
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	{
+		m_vkTransferQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_exclusiveTransferFamily.value(), 0 );	
+		LOG_INFO("Transfer Queue created");
 	}
 }
 

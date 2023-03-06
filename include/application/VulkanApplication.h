@@ -115,6 +115,7 @@ protected:
     vk::Device m_vkLogicalDevice;
     vk::Queue m_vkGraphicsQueue;
     vk::Queue m_vkPresentationQueue;
+    vk::Queue m_vkTransferQueue;
 
     vk::Format m_vkSwapchainImageFormat;
     vk::Extent2D m_vkSwapchainExtent;
