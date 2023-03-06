@@ -226,6 +226,7 @@ void VulkanApplication::shutdown()
 		m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphores[i] );
 	}
 
+	m_vkLogicalDevice.destroyCommandPool( m_vkTransferCommandPool );
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
 	destroySwapChain();
@@ -1054,11 +1055,22 @@ void VulkanApplication::createBuffer(
     vk::DeviceMemory& bufferMemory
 )
 {
+	vkrender::QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( 
+		m_vkPhysicalDevice,
+		&m_vkSurface
+	);
+
 	vk::BufferCreateInfo bufferInfo{};
 	bufferInfo.sType = vk::StructureType::eBufferCreateInfo;
 	bufferInfo.size = bufferSizeInBytes;
 	bufferInfo.usage = bufferUsage;
-	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+	bufferInfo.sharingMode = vk::SharingMode::eConcurrent;
+	std::uint32_t queueFamilyToShare[] = { 
+		queueFamilyIndices.m_graphicsFamily.value(),
+		queueFamilyIndices.m_exclusiveTransferFamily.value()
+	};
+	bufferInfo.pQueueFamilyIndices = queueFamilyToShare;
+	bufferInfo.queueFamilyIndexCount = 2;
 
 	buffer = m_vkLogicalDevice.createBuffer(
 		bufferInfo
@@ -1284,7 +1296,7 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 	vk::CommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandPool = m_vkGraphicsCommandPool;
+	allocInfo.commandPool = m_vkTransferCommandPool;
 	allocInfo.commandBufferCount = 1;
 
 	vk::CommandBuffer transferCmdBuf = m_vkLogicalDevice.allocateCommandBuffers( allocInfo )[0];
@@ -1313,8 +1325,8 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &transferCmdBuf;
 
-	m_vkGraphicsQueue.submit( 1, &submitInfo, nullptr );
-	m_vkGraphicsQueue.waitIdle();
+	m_vkTransferQueue.submit( 1, &submitInfo, nullptr );
+	m_vkTransferQueue.waitIdle();
 
-	m_vkLogicalDevice.freeCommandBuffers( m_vkGraphicsCommandPool, 1, &transferCmdBuf );
+	m_vkLogicalDevice.freeCommandBuffers( m_vkTransferCommandPool, 1, &transferCmdBuf );
 }
