@@ -226,6 +226,7 @@ void VulkanApplication::shutdown()
 		m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphores[i] );
 	}
 
+	m_vkLogicalDevice.destroyCommandPool( m_vkTransferCommandPool );
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
 	destroySwapChain();
@@ -444,11 +445,24 @@ void VulkanApplication::createLogicalDevice()
 		populateDeviceQueueCreateInfo( vkDevicePresentationQueueCreateInfo, presentationQueueFamilyIndex, presentationQueuePriorities );
 	}
 
+	vk::DeviceQueueCreateInfo vkDeviceTransferQueueCreateInfo{};
+	std::size_t transferQueueCount = 1;
+	std::vector<float> transferQueuePriorities( transferQueueCount );
+	transferQueuePriorities[0] = 1.0f;
+	transferQueuePriorities.shrink_to_fit();
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	{
+		std::uint32_t transferQueueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
+		populateDeviceQueueCreateInfo( vkDeviceTransferQueueCreateInfo, transferQueueFamilyIndex, transferQueuePriorities );
+	}
+
 	vk::DeviceCreateInfo vkDeviceCreateInfo{};
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	queueCreateInfos.push_back( vkDeviceGraphicsQueueCreateInfo );
 	if( queueFamilyIndices.m_presentFamily.has_value() )
 		queueCreateInfos.push_back( vkDevicePresentationQueueCreateInfo );
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+		queueCreateInfos.push_back( vkDeviceTransferQueueCreateInfo );
 	queueCreateInfos.shrink_to_fit();
 	vk::PhysicalDeviceFeatures physicalDeviceFeatures = m_vkPhysicalDevice.getFeatures(); // TODO check state
 	populateDeviceCreateInfo( vkDeviceCreateInfo, queueCreateInfos, &physicalDeviceFeatures );
@@ -463,6 +477,12 @@ void VulkanApplication::createLogicalDevice()
 	{
 		m_vkPresentationQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_presentFamily.value(), 0 );
 		LOG_INFO("Presentation Queue created");
+	}
+
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	{
+		m_vkTransferQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_exclusiveTransferFamily.value(), 0 );	
+		LOG_INFO("Transfer Queue created");
 	}
 }
 
@@ -796,13 +816,21 @@ void VulkanApplication::createCommandPool()
 
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
-	vk::CommandPoolCreateInfo vkCommandPoolInfo{};
-	vkCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
-	vkCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-	vkCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
+	vk::CommandPoolCreateInfo vkGraphicsCommandPoolInfo{};
+	vkGraphicsCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
+	vkGraphicsCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vkGraphicsCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
 
-	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkCommandPoolInfo );
+	vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
+	vkTransferCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
+	vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
+
+	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
 	LOG_INFO("Graphics Command Pool created");
+
+	m_vkTransferCommandPool = m_vkLogicalDevice.createCommandPool( vkTransferCommandPoolInfo );
+	LOG_INFO("Transfer Command Pool created");
 }
 
 void VulkanApplication::createVertexBuffer()
@@ -1027,11 +1055,22 @@ void VulkanApplication::createBuffer(
     vk::DeviceMemory& bufferMemory
 )
 {
+	vkrender::QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( 
+		m_vkPhysicalDevice,
+		&m_vkSurface
+	);
+
 	vk::BufferCreateInfo bufferInfo{};
 	bufferInfo.sType = vk::StructureType::eBufferCreateInfo;
 	bufferInfo.size = bufferSizeInBytes;
 	bufferInfo.usage = bufferUsage;
-	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+	bufferInfo.sharingMode = vk::SharingMode::eConcurrent;
+	std::uint32_t queueFamilyToShare[] = { 
+		queueFamilyIndices.m_graphicsFamily.value(),
+		queueFamilyIndices.m_exclusiveTransferFamily.value()
+	};
+	bufferInfo.pQueueFamilyIndices = queueFamilyToShare;
+	bufferInfo.queueFamilyIndexCount = 2;
 
 	buffer = m_vkLogicalDevice.createBuffer(
 		bufferInfo
@@ -1082,6 +1121,19 @@ vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk
 		if (prop.queueFlags & vk::QueueFlagBits::eGraphics )
 		{
 			queueFamilyIndices.m_graphicsFamily = validQueueIndex;
+		}
+
+		if( prop.queueFlags & vk::QueueFlagBits::eCompute )
+		{
+			queueFamilyIndices.m_computeFamily = validQueueIndex;
+		}
+
+		if( 
+			prop.queueFlags & vk::QueueFlagBits::eTransfer && 
+			( !( prop.queueFlags & vk::QueueFlagBits::eGraphics ) && !( prop.queueFlags & vk::QueueFlagBits::eCompute ) )
+		)
+		{
+			queueFamilyIndices.m_exclusiveTransferFamily = validQueueIndex;
 		}
 
 		if( pVkSurface )
@@ -1244,7 +1296,7 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 	vk::CommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandPool = m_vkGraphicsCommandPool;
+	allocInfo.commandPool = m_vkTransferCommandPool;
 	allocInfo.commandBufferCount = 1;
 
 	vk::CommandBuffer transferCmdBuf = m_vkLogicalDevice.allocateCommandBuffers( allocInfo )[0];
@@ -1273,8 +1325,8 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &transferCmdBuf;
 
-	m_vkGraphicsQueue.submit( 1, &submitInfo, nullptr );
-	m_vkGraphicsQueue.waitIdle();
+	m_vkTransferQueue.submit( 1, &submitInfo, nullptr );
+	m_vkTransferQueue.waitIdle();
 
-	m_vkLogicalDevice.freeCommandBuffers( m_vkGraphicsCommandPool, 1, &transferCmdBuf );
+	m_vkLogicalDevice.freeCommandBuffers( m_vkTransferCommandPool, 1, &transferCmdBuf );
 }

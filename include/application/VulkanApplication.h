@@ -115,6 +115,7 @@ protected:
     vk::Device m_vkLogicalDevice;
     vk::Queue m_vkGraphicsQueue;
     vk::Queue m_vkPresentationQueue;
+    vk::Queue m_vkTransferQueue;
 
     vk::Format m_vkSwapchainImageFormat;
     vk::Extent2D m_vkSwapchainExtent;
@@ -129,6 +130,7 @@ protected:
     std::vector<vk::Framebuffer> m_swapchainFrameBuffers;
 
     vk::CommandPool m_vkGraphicsCommandPool;
+    vk::CommandPool m_vkTransferCommandPool;
     std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     vk::Buffer m_vkVertexBuffer;
     vk::DeviceMemory m_vkVertexBufferMemory;
