@@ -18,7 +18,8 @@ class VulkanRendererConan(ConanFile):
         "glm/0.9.9.8@psy/dev",
         "spdlog/[~1.10.0]@psy/dev",
         "vulkan/1.3.216.0@psy/dev",
-        "python/3.10.4@psy/dev"
+        "python/3.10.4@psy/dev",
+        "boost/1.79.0@psy/dev"
     ] 
 
     @property
