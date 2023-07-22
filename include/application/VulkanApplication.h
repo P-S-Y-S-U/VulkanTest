@@ -10,9 +10,12 @@
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
 #include "vkrenderer/VulkanQueueFamily.hpp"
 #include "graphics/Vertex.hpp"
+#include "config.hpp"
 #include "exports.hpp"
 
 #include <vulkan/vulkan.hpp>
+
+#include <chrono>
 
 class VULKAN_EXPORTS VulkanApplication
 {
@@ -32,6 +35,10 @@ public:
     void initialise();
 protected:
     virtual void run() = 0;
+    virtual void updateUniformBuffer( const std::uint32_t& currentFrame );
+
+    template<typename countType, typename timeUnit>
+    std::chrono::duration<countType, timeUnit> durationSinceLastFrameUpdate();
 
     void initWindow();
     void initVulkan();
@@ -155,6 +162,10 @@ protected:
 
     VertexData m_inputVertexData;
     IndexData m_inputIndexData;
+
+    std::chrono::time_point< std::chrono::high_resolution_clock > m_timeSinceLastUpdateFrame;
 };
+
+#include "VulkanApplication.inl"
 
 #endif 

@@ -12,6 +12,9 @@
 #include <set>
 #include <fstream>
 
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+
 vk::SurfaceFormatKHR chooseSwapSurfaceFormat( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
 vk::PresentModeKHR chooseSwapPresentMode( const vkrender::SwapChainSupportDetails& swapChainSupportDetails );
 vk::Extent2D chooseSwapExtent( const vkrender::SwapChainSupportDetails& swapChainSupportDetails, const vkrender::Window& window );
@@ -104,6 +107,34 @@ void VulkanApplication::initialise()
 	initVulkan();
 }
 
+void VulkanApplication::updateUniformBuffer( const std::uint32_t& currentFrame )
+{
+	auto duration = durationSinceLastFrameUpdate<float, std::chrono::seconds::period>().count();
+
+	VulkanUniformBufferObject ubo{};
+
+	ubo.model = glm::rotate(
+		glm::mat4{1.0f},
+		duration * glm::radians( 90.0f ),
+		glm::vec3{ 0.0, 0.0, 1.0 }
+	);
+	ubo.view = glm::lookAt(
+		glm::vec3{ 2.0f, 2.0f, 2.0f },
+		glm::vec3{ 0.0f, 0.0f, 0.0f },
+		glm::vec3{ 0.0f, 0.0f, 1.0f }
+	);
+	ubo.projection = glm::perspective(
+		glm::radians( 45.0f ), 
+		m_vkSwapchainExtent.width / (float) m_vkSwapchainExtent.height,
+		0.1f,
+		10.0f
+	);
+	ubo.projection[1][1] *= -1.0f;
+
+	std::memcpy( m_uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo) );
+	
+}
+
 void VulkanApplication::initWindow()
 {
 	m_window.init();
@@ -169,6 +200,9 @@ void VulkanApplication::drawFrame()
 	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFences[m_currentFrame] );
 
 	imageIndex = opImageAcquistion.value;
+
+	m_timeSinceLastUpdateFrame = std::chrono::high_resolution_clock::now();
+	updateUniformBuffer(m_currentFrame);
 
 	m_vkGraphicsCommandBuffers[m_currentFrame].reset();
 	recordCommandBuffer( m_vkGraphicsCommandBuffers[m_currentFrame], imageIndex );
