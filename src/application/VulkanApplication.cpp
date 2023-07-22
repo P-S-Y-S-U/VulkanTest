@@ -118,6 +118,7 @@ void VulkanApplication::initVulkan()
 	createSwapchain();
 	createImageViews();
 	createRenderPass();
+	createDescriptorSetLayout();
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
@@ -236,6 +237,8 @@ void VulkanApplication::shutdown()
 
 	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkVertexBufferMemory );
+
+	m_vkLogicalDevice.destroyDescriptorSetLayout( m_vkDescriptorSetLayout );
 
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
 	m_vkLogicalDevice.destroyPipelineLayout( m_vkPipelineLayout );
@@ -617,6 +620,23 @@ void VulkanApplication::createRenderPass()
 	LOG_INFO("RenderPass created");
 }
 
+void VulkanApplication::createDescriptorSetLayout()
+{
+	vk::DescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	vk::DescriptorSetLayoutCreateInfo descLayoutInfo{};
+	descLayoutInfo.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo;
+	descLayoutInfo.bindingCount = 1;
+	descLayoutInfo.pBindings = &uboLayoutBinding;
+
+	m_vkDescriptorSetLayout = m_vkLogicalDevice.createDescriptorSetLayout( descLayoutInfo );
+}
+
 void VulkanApplication::createGraphicsPipeline()
 {
 	auto l_populatePipelineShaderStageCreateInfo = []( 
@@ -740,8 +760,8 @@ void VulkanApplication::createGraphicsPipeline()
 
 	vk::PipelineLayoutCreateInfo vkPipelineLayoutInfo{};
 	vkPipelineLayoutInfo.sType = vk::StructureType::ePipelineLayoutCreateInfo;
-	vkPipelineLayoutInfo.setLayoutCount = 0;
-	vkPipelineLayoutInfo.pSetLayouts = nullptr;
+	vkPipelineLayoutInfo.setLayoutCount = 1;
+	vkPipelineLayoutInfo.pSetLayouts = &m_vkDescriptorSetLayout;
 	vkPipelineLayoutInfo.pushConstantRangeCount = 0;
 	vkPipelineLayoutInfo.pPushConstantRanges = nullptr;
 	

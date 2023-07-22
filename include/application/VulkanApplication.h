@@ -46,6 +46,7 @@ protected:
     void createSwapchain();
     void createImageViews();
     void createRenderPass();
+    void createDescriptorSetLayout();
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
@@ -124,6 +125,7 @@ protected:
     std::vector<vk::ImageView> m_swapchainImageViews;
 
     vk::RenderPass m_vkRenderPass;
+    vk::DescriptorSetLayout m_vkDescriptorSetLayout;
     vk::PipelineLayout m_vkPipelineLayout;
     vk::Pipeline m_vkGraphicsPipeline;
 
