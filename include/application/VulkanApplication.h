@@ -53,6 +53,7 @@ protected:
     void createCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();
+    void createUniformBuffers();
     void createSyncObjects();
     void recreateSwapChain();
     void destroySwapChain();
@@ -139,6 +140,10 @@ protected:
     vk::Buffer m_vkIndexBuffer;
     vk::DeviceMemory m_vkIndexBufferMemory;
     
+    std::vector<vk::Buffer> m_vkUniformBuffers;
+    std::vector<vk::DeviceMemory> m_vkUniformBuffersMemory;
+    std::vector<void*> m_uniformBuffersMapped;
+
     std::vector<vk::Semaphore> m_vkImageAvailableSemaphores;
     std::vector<vk::Semaphore> m_vkRenderFinishedSemaphores;
     std::vector<vk::Fence> m_vkInFlightFences;

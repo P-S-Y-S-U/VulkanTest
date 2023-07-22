@@ -2,6 +2,7 @@
 #include "vkrenderer/VulkanLayer.hpp"
 #include "vkrenderer/VulkanDebugMessenger.h"
 #include "vkrenderer/VulkanSwapChainFactory.h"
+#include "vkrenderer/VulkanUBO.hpp"
 #include "graphics/Vertex.hpp"
 #include "utilities/VulkanLogger.h"
 
@@ -124,6 +125,7 @@ void VulkanApplication::initVulkan()
 	createCommandPool();
 	createVertexBuffer();
 	createIndexBuffer();
+	createUniformBuffers();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -237,6 +239,12 @@ void VulkanApplication::shutdown()
 
 	m_vkLogicalDevice.destroyBuffer( m_vkVertexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkVertexBufferMemory );
+
+	for( std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		m_vkLogicalDevice.destroyBuffer( m_vkUniformBuffers[i] );
+		m_vkLogicalDevice.freeMemory( m_vkUniformBuffersMemory[i] );
+	}
 
 	m_vkLogicalDevice.destroyDescriptorSetLayout( m_vkDescriptorSetLayout );
 
@@ -929,6 +937,26 @@ void VulkanApplication::createIndexBuffer()
 
 	m_vkLogicalDevice.destroyBuffer( stagingBuffer );
 	m_vkLogicalDevice.freeMemory( stagingBufferMemory );
+}
+
+void VulkanApplication::createUniformBuffers()
+{
+	vk::DeviceSize bufferSize = sizeof(VulkanUniformBufferObject);
+
+	m_vkUniformBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+	m_vkUniformBuffersMemory.resize( MAX_FRAMES_IN_FLIGHT );
+	m_uniformBuffersMapped.resize( MAX_FRAMES_IN_FLIGHT );
+
+	for( std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		createBuffer(
+			bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			m_vkUniformBuffers[i], m_vkUniformBuffersMemory[i]
+		);
+
+		m_uniformBuffersMapped[i] = m_vkLogicalDevice.mapMemory( m_vkUniformBuffersMemory[i], 0, bufferSize );
+	}
 }
 
 void VulkanApplication::createCommandBuffers()
