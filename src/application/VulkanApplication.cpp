@@ -151,6 +151,8 @@ void VulkanApplication::initVulkan()
 	createImageViews();
 	createRenderPass();
 	createDescriptorSetLayout();
+	createDescriptorPool();
+	createDescriptorSets();
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
@@ -280,6 +282,7 @@ void VulkanApplication::shutdown()
 		m_vkLogicalDevice.freeMemory( m_vkUniformBuffersMemory[i] );
 	}
 
+	m_vkLogicalDevice.destroyDescriptorPool( m_vkDescriptorPool );
 	m_vkLogicalDevice.destroyDescriptorSetLayout( m_vkDescriptorSetLayout );
 
 	m_vkLogicalDevice.destroyPipeline( m_vkGraphicsPipeline );
@@ -677,6 +680,56 @@ void VulkanApplication::createDescriptorSetLayout()
 	descLayoutInfo.pBindings = &uboLayoutBinding;
 
 	m_vkDescriptorSetLayout = m_vkLogicalDevice.createDescriptorSetLayout( descLayoutInfo );
+}
+
+void VulkanApplication::createDescriptorPool()
+{
+	vk::DescriptorPoolSize descPoolSize{};
+	descPoolSize.type = vk::DescriptorType::eUniformBuffer;
+	descPoolSize.descriptorCount = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
+
+	vk::DescriptorPoolCreateInfo descCreateInfo{};
+	descCreateInfo.sType = vk::StructureType::eDescriptorPoolCreateInfo;
+	descCreateInfo.poolSizeCount = 1;
+	descCreateInfo.pPoolSizes = &descPoolSize;
+	descCreateInfo.maxSets = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
+
+	m_vkDescriptorPool = m_vkLogicalDevice.createDescriptorPool( descCreateInfo );
+}
+
+void VulkanApplication::createDescriptorSets()
+{
+	std::vector<vk::DescriptorSetLayout> descLayouts( MAX_FRAMES_IN_FLIGHT, m_vkDescriptorSetLayout );
+
+	vk::DescriptorSetAllocateInfo descSetAllocInfo{};
+	descSetAllocInfo.sType = vk::StructureType::eDescriptorSetAllocateInfo;
+	descSetAllocInfo.descriptorPool = m_vkDescriptorPool;
+	descSetAllocInfo.descriptorSetCount = static_cast<std::uint32_t>(MAX_FRAMES_IN_FLIGHT);
+	descSetAllocInfo.pSetLayouts = descLayouts.data();
+
+	m_vkDescriptorSets = m_vkLogicalDevice.allocateDescriptorSets( descSetAllocInfo );
+
+
+	for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		vk::DescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = m_vkUniformBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(VulkanUniformBufferObject);
+
+		vk::WriteDescriptorSet descWriteSet{};
+		descWriteSet.sType = vk::StructureType::eWriteDescriptorSet;
+		descWriteSet.dstSet = m_vkDescriptorSets[i];
+		descWriteSet.dstBinding = 0;
+		descWriteSet.dstArrayElement = 0;
+		descWriteSet.descriptorType = vk::DescriptorType::eUniformBuffer;
+		descWriteSet.descriptorCount = 1;
+		descWriteSet.pBufferInfo = &bufferInfo;
+		descWriteSet.pImageInfo = nullptr;
+		descWriteSet.pTexelBufferView = nullptr;
+
+		m_vkLogicalDevice.updateDescriptorSets( 1, &descWriteSet, 0, nullptr );
+	}
 }
 
 void VulkanApplication::createGraphicsPipeline()

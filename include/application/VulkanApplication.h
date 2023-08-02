@@ -54,6 +54,8 @@ protected:
     void createImageViews();
     void createRenderPass();
     void createDescriptorSetLayout();
+    void createDescriptorPool();
+    void createDescriptorSets();
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
@@ -134,6 +136,9 @@ protected:
 
     vk::RenderPass m_vkRenderPass;
     vk::DescriptorSetLayout m_vkDescriptorSetLayout;
+    vk::DescriptorPool m_vkDescriptorPool;
+    std::vector<vk::DescriptorSet> m_vkDescriptorSets;
+    
     vk::PipelineLayout m_vkPipelineLayout;
     vk::Pipeline m_vkGraphicsPipeline;
 
