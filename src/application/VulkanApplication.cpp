@@ -151,14 +151,14 @@ void VulkanApplication::initVulkan()
 	createImageViews();
 	createRenderPass();
 	createDescriptorSetLayout();
-	createDescriptorPool();
-	createDescriptorSets();
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffers();
+	createDescriptorPool();
+	createDescriptorSets();
 	createCommandBuffers();
 	createSyncObjects();
 }
@@ -198,13 +198,13 @@ void VulkanApplication::drawFrame()
 		throw std::runtime_error( errorMsg );
 	}
 
+	m_timeSinceLastUpdateFrame = std::chrono::high_resolution_clock::now();
+	updateUniformBuffer(m_currentFrame);
+	
 	// only reset the fence if we are submitting for work
 	auto opFenceReset = m_vkLogicalDevice.resetFences( 1, &m_vkInFlightFences[m_currentFrame] );
 
 	imageIndex = opImageAcquistion.value;
-
-	m_timeSinceLastUpdateFrame = std::chrono::high_resolution_clock::now();
-	updateUniformBuffer(m_currentFrame);
 
 	m_vkGraphicsCommandBuffers[m_currentFrame].reset();
 	recordCommandBuffer( m_vkGraphicsCommandBuffers[m_currentFrame], imageIndex );
@@ -1158,6 +1158,11 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 
 	vkCommandBuffer.bindVertexBuffers( 0, vertexBuffers, offsets );
 	vkCommandBuffer.bindIndexBuffer( m_vkIndexBuffer, 0, vk::IndexType::eUint16 );
+	vkCommandBuffer.bindDescriptorSets( 
+		vk::PipelineBindPoint::eGraphics, m_vkPipelineLayout, 
+		0, 1, &m_vkDescriptorSets[m_currentFrame],
+		0, nullptr
+	);
 	vkCommandBuffer.drawIndexed(
 		static_cast<std::uint32_t>( m_inputIndexData.size() ),
 		1,
