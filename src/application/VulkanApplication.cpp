@@ -718,18 +718,34 @@ void VulkanApplication::createDescriptorSets()
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(VulkanUniformBufferObject);
 
-		vk::WriteDescriptorSet descWriteSet{};
-		descWriteSet.sType = vk::StructureType::eWriteDescriptorSet;
-		descWriteSet.dstSet = m_vkDescriptorSets[i];
-		descWriteSet.dstBinding = 0;
-		descWriteSet.dstArrayElement = 0;
-		descWriteSet.descriptorType = vk::DescriptorType::eUniformBuffer;
-		descWriteSet.descriptorCount = 1;
-		descWriteSet.pBufferInfo = &bufferInfo;
-		descWriteSet.pImageInfo = nullptr;
-		descWriteSet.pTexelBufferView = nullptr;
+		vk::DescriptorImageInfo imageInfo{};
+		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		imageInfo.imageView = m_vkTextureImageView;
+		imageInfo.sampler = m_vkTextureSampler;
 
-		m_vkLogicalDevice.updateDescriptorSets( 1, &descWriteSet, 0, nullptr );
+		std::array<vk::WriteDescriptorSet, 2> descWrites;
+		
+		descWrites[0].sType = vk::StructureType::eWriteDescriptorSet;
+		descWrites[0].dstSet = m_vkDescriptorSets[i];
+		descWrites[0].dstBinding = 0;
+		descWrites[0].dstArrayElement = 0;
+		descWrites[0].descriptorType = vk::DescriptorType::eUniformBuffer;
+		descWrites[0].descriptorCount = 1;
+		descWrites[0].pBufferInfo = &bufferInfo;
+		descWrites[0].pImageInfo = nullptr;
+		descWrites[0].pTexelBufferView = nullptr;
+
+		descWrites[1].sType = vk::StructureType::eWriteDescriptorSet;
+		descWrites[1].dstSet = m_vkDescriptorSets[i];
+		descWrites[1].dstBinding = 1;
+		descWrites[1].dstArrayElement = 0;
+		descWrites[1].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+		descWrites[1].descriptorCount = 1;
+		descWrites[1].pBufferInfo = nullptr;
+		descWrites[1].pImageInfo = &imageInfo;
+		descWrites[1].pTexelBufferView = nullptr;
+
+		m_vkLogicalDevice.updateDescriptorSets( descWrites, {} );
 	}
 }
 
