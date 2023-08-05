@@ -271,6 +271,9 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
+	m_vkLogicalDevice.destroyImage( m_vkTextureImage );
+	m_vkLogicalDevice.freeMemory( m_vkTextureImageMemory );
+
 	m_vkLogicalDevice.destroyBuffer( m_vkIndexBuffer );
 	m_vkLogicalDevice.freeMemory( m_vkIndexBufferMemory );
 
@@ -988,17 +991,32 @@ void VulkanApplication::createTextureImage()
 
 	stbi_image_free(pixels);
 
-	vk::Image textureImage;
-	vk::DeviceMemory textureImageMemory;
-
 	createImage( 
 		texWidth, texHeight,
 		vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
-		textureImage, textureImageMemory
+		m_vkTextureImage, m_vkTextureImageMemory
 	);
 
+	transitionImageLayout( 
+		m_vkTextureImage, vk::Format::eR8G8B8A8Srgb, 
+		vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal 
+	);
+
+	copyBufferToImage( 
+		stagingBuffer, m_vkTextureImage, 
+		static_cast<std::uint32_t>( texWidth ), 
+		static_cast<std::uint32_t>( texHeight )
+	);
+
+	transitionImageLayout(
+		m_vkTextureImage, vk::Format::eR8G8B8A8Srgb,
+		vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal
+	);
+
+	m_vkLogicalDevice.destroyBuffer( stagingBuffer, nullptr );
+	m_vkLogicalDevice.freeMemory( stagingBufferMemory, nullptr );
 }
 
 void VulkanApplication::createVertexBuffer()
@@ -1269,6 +1287,35 @@ void VulkanApplication::transitionImageLayout(
 {
 	vk::CommandBuffer cmdBuf = beginSingleTimeCommands(m_vkGraphicsCommandPool);
 
+	vk::AccessFlags srcAccessMask;
+	vk::AccessFlags dstAccessMask;
+
+	vk::PipelineStageFlags srcStage;
+	vk::PipelineStageFlags dstStage;
+
+	if( oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal )
+	{
+		srcAccessMask = {};
+		dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+		srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+		dstStage = vk::PipelineStageFlagBits::eTransfer;
+	}
+	else if( oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal )
+	{
+		srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+		srcStage = vk::PipelineStageFlagBits::eTransfer;
+		dstStage = vk::PipelineStageFlagBits::eFragmentShader;
+	}
+	else 
+	{
+		std::string errorMsg = "unsupported image layout transition!";
+		LOG_ERROR(errorMsg);
+		throw  std::invalid_argument(errorMsg);
+	}
+
 	vk::ImageMemoryBarrier imgBarrier{};
 	imgBarrier.sType = vk::StructureType::eImageMemoryBarrier;
 	imgBarrier.oldLayout = oldLayout;
@@ -1281,11 +1328,11 @@ void VulkanApplication::transitionImageLayout(
 	imgBarrier.subresourceRange.levelCount = 1;
 	imgBarrier.subresourceRange.baseArrayLayer = 0;
 	imgBarrier.subresourceRange.layerCount = 1;
-	imgBarrier.srcAccessMask = {};
-	imgBarrier.dstAccessMask = {};
+	imgBarrier.srcAccessMask = srcAccessMask;
+	imgBarrier.dstAccessMask = dstAccessMask;
 
 	cmdBuf.pipelineBarrier( 
-		{}, {},
+		srcStage, dstStage,
 		{},
 		0, nullptr,
 		0, nullptr,
