@@ -969,6 +969,36 @@ void VulkanApplication::createTextureImage()
 	}
 
 	vk::DeviceSize imageSize = texWidth * texHeight * 4;
+
+	vk::Buffer stagingBuffer;
+	vk::DeviceMemory stagingBufferMemory;
+
+	createBuffer( 
+		imageSize, 
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		stagingBuffer,
+		stagingBufferMemory
+	);
+
+
+	void* bufferMappedData = m_vkLogicalDevice.mapMemory( stagingBufferMemory, 0, imageSize );
+	std::memcpy(bufferMappedData, pixels, static_cast<std::size_t>(imageSize) );
+	m_vkLogicalDevice.unmapMemory(stagingBufferMemory);
+
+	stbi_image_free(pixels);
+
+	vk::Image textureImage;
+	vk::DeviceMemory textureImageMemory;
+
+	createImage( 
+		texWidth, texHeight,
+		vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		textureImage, textureImageMemory
+	);
+
 }
 
 void VulkanApplication::createVertexBuffer()
@@ -1249,6 +1279,43 @@ void VulkanApplication::createBuffer(
 	bufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
 
 	m_vkLogicalDevice.bindBufferMemory( buffer, bufferMemory, 0 );
+}
+
+void VulkanApplication::createImage(
+    const std::uint32_t& width, const std::uint32_t& height,
+    const vk::Format& format, const vk::ImageTiling& tiling,
+    const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
+    vk::Image& image, vk::DeviceMemory& imageMemory
+)
+{
+	vk::ImageCreateInfo imageCreateInfo{};
+	imageCreateInfo.sType = vk::StructureType::eImageCreateInfo;
+	imageCreateInfo.imageType = vk::ImageType::e2D;
+	imageCreateInfo.extent.width = static_cast<std::uint32_t>( width );
+	imageCreateInfo.extent.height = static_cast<std::uint32_t>( height );
+	imageCreateInfo.extent.depth = 1;
+	imageCreateInfo.mipLevels = 1;
+	imageCreateInfo.arrayLayers = 1;
+	imageCreateInfo.format = format;
+	imageCreateInfo.tiling = tiling;
+	imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
+	imageCreateInfo.usage = usageFlags;
+	imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+	imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
+	imageCreateInfo.flags = {};
+
+	image = m_vkLogicalDevice.createImage( imageCreateInfo );
+
+	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getImageMemoryRequirements( image );
+	
+	vk::MemoryAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memPropFlags );
+
+	imageMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
+
+	m_vkLogicalDevice.bindImageMemory( image, imageMemory, 0 );
 }
 
 void VulkanApplication::populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer )

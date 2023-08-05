@@ -78,6 +78,12 @@ protected:
         vk::Buffer& buffer,
         vk::DeviceMemory& bufferMemory
     );
+    void createImage(
+        const std::uint32_t& width, const std::uint32_t& height,
+        const vk::Format& format, const vk::ImageTiling& tiling,
+        const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
+        vk::Image& image, vk::DeviceMemory& imageMemory
+    );
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
