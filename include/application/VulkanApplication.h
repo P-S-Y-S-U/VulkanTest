@@ -51,7 +51,7 @@ protected:
     void pickPhysicalDevice();
     void createLogicalDevice();
     void createSwapchain();
-    void createImageViews();
+    void createSwapChainImageViews();
     void createRenderPass();
     void createDescriptorSetLayout();
     void createDescriptorPool();
@@ -60,6 +60,7 @@ protected:
     void createFrameBuffers();
     void createCommandPool();
     void createTextureImage();
+    void createTextureImageView();
     void createCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();
@@ -91,6 +92,7 @@ protected:
         const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
         vk::Image& image, vk::DeviceMemory& imageMemory
     );
+    vk::ImageView createImageView( const vk::Image& image, const vk::Format& format );
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
@@ -151,7 +153,8 @@ protected:
 
     vk::Image m_vkTextureImage;
     vk::DeviceMemory m_vkTextureImageMemory;
-    
+    vk::ImageView m_vkTextureImageView;
+
     vk::RenderPass m_vkRenderPass;
     vk::DescriptorSetLayout m_vkDescriptorSetLayout;
     vk::DescriptorPool m_vkDescriptorPool;

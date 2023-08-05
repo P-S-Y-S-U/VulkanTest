@@ -148,13 +148,14 @@ void VulkanApplication::initVulkan()
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapchain();
-	createImageViews();
+	createSwapChainImageViews();
 	createRenderPass();
 	createDescriptorSetLayout();
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
 	createTextureImage();
+	createTextureImageView();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffers();
@@ -271,6 +272,7 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
+	m_vkLogicalDevice.destroyImageView( m_vkTextureImageView );
 	m_vkLogicalDevice.destroyImage( m_vkTextureImage );
 	m_vkLogicalDevice.freeMemory( m_vkTextureImageMemory );
 
@@ -593,33 +595,13 @@ void VulkanApplication::createSwapchain()
 	LOG_INFO("Swapchain Created");
 }
 
-void VulkanApplication::createImageViews()
+void VulkanApplication::createSwapChainImageViews()
 {
 	m_swapchainImageViews.resize( m_swapchainImages.size() );
 
 	for( auto i = 0u; i < m_swapchainImages.size(); i++ )
-	{
-		vk::ImageViewCreateInfo vkImageViewCreateInfo{};
-		vkImageViewCreateInfo.sType = vk::StructureType::eImageViewCreateInfo;
-		vkImageViewCreateInfo.image = m_swapchainImages[i];
-		vkImageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-        vkImageViewCreateInfo.format = m_vkSwapchainImageFormat;
-        vk::ComponentMapping componentMap;
-        componentMap.r = vk::ComponentSwizzle::eIdentity;
-        componentMap.g = vk::ComponentSwizzle::eIdentity;
-        componentMap.b = vk::ComponentSwizzle::eIdentity;
-        componentMap.a = vk::ComponentSwizzle::eIdentity;
-        vkImageViewCreateInfo.components = componentMap;
-        vk::ImageSubresourceRange subResourceRange;
-        subResourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-        subResourceRange.baseMipLevel = 0;
-        subResourceRange.levelCount = 1;
-        subResourceRange.baseArrayLayer = 0;
-        subResourceRange.layerCount = 1;
-        vkImageViewCreateInfo.subresourceRange = subResourceRange;
-
-		vk::ImageView vkImageView = m_vkLogicalDevice.createImageView( vkImageViewCreateInfo );
-		m_swapchainImageViews[i] = vkImageView;
+	{		
+		m_swapchainImageViews[i] = createImageView( m_swapchainImages[i], m_vkSwapchainImageFormat );
 	}
 	m_swapchainImageViews.shrink_to_fit();
 
@@ -1019,6 +1001,11 @@ void VulkanApplication::createTextureImage()
 	m_vkLogicalDevice.freeMemory( stagingBufferMemory, nullptr );
 }
 
+void VulkanApplication::createTextureImageView()
+{
+	m_vkTextureImageView = createImageView( m_vkTextureImage, vk::Format::eR8G8B8A8Srgb );
+}
+
 void VulkanApplication::createVertexBuffer()
 {
 
@@ -1164,7 +1151,7 @@ void VulkanApplication::recreateSwapChain()
 	destroySwapChain();
 	
 	createSwapchain();
-	createImageViews();
+	createSwapChainImageViews();
 	createFrameBuffers();	
 }
 
@@ -1430,6 +1417,30 @@ void VulkanApplication::createImage(
 	imageMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
 
 	m_vkLogicalDevice.bindImageMemory( image, imageMemory, 0 );
+}
+
+vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const vk::Format& format )
+{
+	vk::ImageViewCreateInfo vkImageViewCreateInfo{};
+	vkImageViewCreateInfo.sType = vk::StructureType::eImageViewCreateInfo;
+	vkImageViewCreateInfo.image = image;
+	vkImageViewCreateInfo.viewType = vk::ImageViewType::e2D;
+    vkImageViewCreateInfo.format = format;
+    vk::ComponentMapping componentMap;
+    componentMap.r = vk::ComponentSwizzle::eIdentity;
+    componentMap.g = vk::ComponentSwizzle::eIdentity;
+    componentMap.b = vk::ComponentSwizzle::eIdentity;
+    componentMap.a = vk::ComponentSwizzle::eIdentity;
+    vkImageViewCreateInfo.components = componentMap;
+    vk::ImageSubresourceRange subResourceRange;
+    subResourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    subResourceRange.baseMipLevel = 0;
+    subResourceRange.levelCount = 1;
+    subResourceRange.baseArrayLayer = 0;
+    subResourceRange.layerCount = 1;
+    vkImageViewCreateInfo.subresourceRange = subResourceRange;
+
+	return m_vkLogicalDevice.createImageView( vkImageViewCreateInfo );
 }
 
 void VulkanApplication::populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer )
