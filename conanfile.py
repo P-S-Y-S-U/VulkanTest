@@ -3,6 +3,7 @@ from re import sub
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
 from os import path
+import shutil
 import glob
 
 class VulkanRendererConan(ConanFile):
@@ -38,6 +39,10 @@ class VulkanRendererConan(ConanFile):
         return path.join( self.source_folder, "media" )
     
     @property
+    def _textures_dir(self):
+        return path.join( self._project_media_dir, "textures" )
+
+    @property
     def _shaders_dir(self):
         return path.join( self._project_media_dir, "shaders" )
 
@@ -56,6 +61,16 @@ class VulkanRendererConan(ConanFile):
     def _is_linux(self):
         return self.settings.os == 'linux'
 
+    def copy_media(self):
+        self.output.info("Copying Media")
+
+        try :
+            shutil.copytree( src=self._textures_dir, dst=f"{self._project_bin_dir}/textures", dirs_exist_ok=True )
+            self.output.info("Copied textures")
+        except Exception as e:
+            self.output.info(e)
+
+    
     def compile_shaders(self):
         self.output.info("compiling Shaders")
 
@@ -102,6 +117,7 @@ class VulkanRendererConan(ConanFile):
         cmake = self.configure_cmake()
         cmake.build()
         self.compile_shaders()
+        self.copy_media()
 
     def package(self):
         cmake = self.configure_cmake()
