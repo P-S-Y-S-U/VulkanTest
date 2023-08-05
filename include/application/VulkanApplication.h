@@ -59,6 +59,7 @@ protected:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
+    void createTextureImage();
     void createCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();

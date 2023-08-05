@@ -154,6 +154,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
+	createTextureImage();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffers();
@@ -946,6 +947,28 @@ void VulkanApplication::createCommandPool()
 
 	m_vkTransferCommandPool = m_vkLogicalDevice.createCommandPool( vkTransferCommandPoolInfo );
 	LOG_INFO("Transfer Command Pool created");
+}
+
+void VulkanApplication::createTextureImage()
+{
+	int texWidth, texHeight, texChannels;
+	
+	std::filesystem::path texPath{"textures/texture.jpg"};
+
+	stbi_uc* pixels = stbi_load(
+		texPath.string().data(),
+		&texWidth, &texHeight, &texChannels,
+		STBI_rgb_alpha
+	);
+
+	if(!pixels)
+	{
+		std::string errorMsg = fmt::format("Failed to load {} image",texPath.string());
+		LOG_ERROR(errorMsg);
+		throw  std::runtime_error(errorMsg);
+	}
+
+	vk::DeviceSize imageSize = texWidth * texHeight * 4;
 }
 
 void VulkanApplication::createVertexBuffer()
