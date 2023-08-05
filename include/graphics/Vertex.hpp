@@ -35,7 +35,7 @@ struct vertex
 
         vertexAttributes[2].binding = 0;
         vertexAttributes[2].location = 2;
-        vertexAttributes[2].format = vk::Format::eR32G32B32Sfloat;
+        vertexAttributes[2].format = vk::Format::eR32G32Sfloat;
         vertexAttributes[2].offset = offsetof( vertex, texCoord );
 
         return vertexAttributes;
