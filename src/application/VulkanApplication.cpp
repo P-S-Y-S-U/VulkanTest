@@ -156,6 +156,7 @@ void VulkanApplication::initVulkan()
 	createCommandPool();
 	createTextureImage();
 	createTextureImageView();
+	createTextureSampler();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffers();
@@ -272,6 +273,7 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
+	m_vkLogicalDevice.destroySampler( m_vkTextureSampler );
 	m_vkLogicalDevice.destroyImageView( m_vkTextureImageView );
 	m_vkLogicalDevice.destroyImage( m_vkTextureImage );
 	m_vkLogicalDevice.freeMemory( m_vkTextureImageMemory );
@@ -410,7 +412,8 @@ void VulkanApplication::pickPhysicalDevice()
 
         bool bShader =  vkPhysicalDeviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu && 
                         vkPhysicalDeviceFeatures.geometryShader;
-        
+        bool bSamplerAnisotropy = static_cast<bool>( vkPhysicalDeviceFeatures.samplerAnisotropy );
+
         bool bGraphicsFamily = queueFamilyIndices.m_graphicsFamily.has_value();
         
 		auto l_checkDeviceExtensionSupport = []( const vk::PhysicalDevice& physicalDevice, const std::vector<const char*>& requiredExtensions ){
@@ -442,7 +445,7 @@ void VulkanApplication::pickPhysicalDevice()
         bool bExtensionsSupported =  l_checkDeviceExtensionSupport( physicalDevice, requiredExtensions );
         bool bSwapChainAdequate = l_checkSwapChainAdequacy( physicalDevice, *surface, bExtensionsSupported );
 
-        return bShader && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate;
+        return bShader && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate & bSamplerAnisotropy;
 	};
 
 	for( auto& vkTemporaryDevice : devices )
@@ -1004,6 +1007,31 @@ void VulkanApplication::createTextureImage()
 void VulkanApplication::createTextureImageView()
 {
 	m_vkTextureImageView = createImageView( m_vkTextureImage, vk::Format::eR8G8B8A8Srgb );
+}
+
+void VulkanApplication::createTextureSampler()
+{
+	vk::PhysicalDeviceProperties phyDeviceProp = m_vkPhysicalDevice.getProperties(); 
+
+	vk::SamplerCreateInfo samplerCreateInfo{};
+	samplerCreateInfo.sType = vk::StructureType::eSamplerCreateInfo;
+	samplerCreateInfo.magFilter = vk::Filter::eLinear;
+	samplerCreateInfo.minFilter = vk::Filter::eLinear;
+	samplerCreateInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+	samplerCreateInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+	samplerCreateInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+	samplerCreateInfo.anisotropyEnable = VK_TRUE;
+	samplerCreateInfo.maxAnisotropy = phyDeviceProp.limits.maxSamplerAnisotropy;
+	samplerCreateInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+	samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerCreateInfo.compareEnable = VK_FALSE;
+	samplerCreateInfo.compareOp = vk::CompareOp::eAlways;
+	samplerCreateInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+	samplerCreateInfo.mipLodBias = 0.0f;
+	samplerCreateInfo.minLod = 0.0f;
+	samplerCreateInfo.maxLod = 0.0f;
+
+	m_vkTextureSampler = m_vkLogicalDevice.createSampler( samplerCreateInfo );
 }
 
 void VulkanApplication::createVertexBuffer()

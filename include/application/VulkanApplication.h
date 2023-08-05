@@ -61,6 +61,7 @@ protected:
     void createCommandPool();
     void createTextureImage();
     void createTextureImageView();
+    void createTextureSampler();
     void createCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();
@@ -154,6 +155,7 @@ protected:
     vk::Image m_vkTextureImage;
     vk::DeviceMemory m_vkTextureImageMemory;
     vk::ImageView m_vkTextureImageView;
+    vk::Sampler m_vkTextureSampler;
 
     vk::RenderPass m_vkRenderPass;
     vk::DescriptorSetLayout m_vkDescriptorSetLayout;
