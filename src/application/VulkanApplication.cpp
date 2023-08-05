@@ -1605,3 +1605,25 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 
 	endSingleTimeCommands( m_vkTransferCommandPool, transferCmdBuf, m_vkTransferQueue );
 }
+
+void VulkanApplication::copyBufferToImage( const vk::Buffer& srcBuffer, const vk::Image& dstImage, const std::uint32_t& width, const std::uint32_t& height )
+{
+	vk::CommandBuffer cmdBuf = beginSingleTimeCommands( m_vkTransferCommandPool );
+
+	vk::BufferImageCopy copyRegion{};
+	copyRegion.bufferOffset = 0;
+	copyRegion.bufferRowLength = 0;
+	copyRegion.bufferImageHeight = 0;
+
+	copyRegion.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	copyRegion.imageSubresource.mipLevel = 0;
+	copyRegion.imageSubresource.baseArrayLayer = 0;
+	copyRegion.imageSubresource.layerCount = 1;
+
+	copyRegion.imageOffset = vk::Offset3D{ 0, 0, 0 };
+	copyRegion.imageExtent = vk::Extent3D{ width, height, 1 };
+
+	cmdBuf.copyBufferToImage( srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, 1, &copyRegion );
+
+	endSingleTimeCommands(m_vkTransferCommandPool, cmdBuf, m_vkTransferQueue );
+}
