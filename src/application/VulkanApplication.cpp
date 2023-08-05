@@ -1262,6 +1262,38 @@ void VulkanApplication::endSingleTimeCommands( const vk::CommandPool& commandPoo
 	m_vkLogicalDevice.freeCommandBuffers( commandPoolAllocFrom, 1, &vkCommandBuffer );
 }
 
+void VulkanApplication::transitionImageLayout( 
+    const vk::Image& image, const vk::Format& format, 
+    const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout
+)
+{
+	vk::CommandBuffer cmdBuf = beginSingleTimeCommands(m_vkGraphicsCommandPool);
+
+	vk::ImageMemoryBarrier imgBarrier{};
+	imgBarrier.sType = vk::StructureType::eImageMemoryBarrier;
+	imgBarrier.oldLayout = oldLayout;
+	imgBarrier.newLayout = newLayout;
+	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imgBarrier.image = image;
+	imgBarrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imgBarrier.subresourceRange.baseMipLevel = 0;
+	imgBarrier.subresourceRange.levelCount = 1;
+	imgBarrier.subresourceRange.baseArrayLayer = 0;
+	imgBarrier.subresourceRange.layerCount = 1;
+	imgBarrier.srcAccessMask = {};
+	imgBarrier.dstAccessMask = {};
+
+	cmdBuf.pipelineBarrier( 
+		{}, {},
+		{},
+		0, nullptr,
+		0, nullptr,
+		1, &imgBarrier
+	);
+
+	endSingleTimeCommands( m_vkGraphicsCommandPool, cmdBuf, m_vkGraphicsQueue );
+}
 
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
 {

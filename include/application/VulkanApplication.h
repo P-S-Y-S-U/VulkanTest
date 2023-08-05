@@ -72,6 +72,11 @@ protected:
     vk::CommandBuffer beginSingleTimeCommands( const vk::CommandPool& commandPoolToAllocFrom );
     void endSingleTimeCommands( const vk::CommandPool& commandPoolAllocFrom, vk::CommandBuffer vkCommandBuffer, vk::Queue queueToSubmitOn );
 
+    void transitionImageLayout( 
+        const vk::Image& image, const vk::Format& format, 
+        const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout
+    );
+
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
     void createBuffer(
         const vk::DeviceSize& bufferSizeInBytes,
