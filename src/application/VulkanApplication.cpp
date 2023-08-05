@@ -798,7 +798,7 @@ void VulkanApplication::createGraphicsPipeline()
 	vk::PipelineVertexInputStateCreateInfo vkVertexInputInfo{};
 	vkVertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
 	vk::VertexInputBindingDescription bindingDesc = vertex::getBindingDescription();
-	std::array<vk::VertexInputAttributeDescription, 2> attributeDesc = vertex::getAttributeDescriptions();
+	std::array<vk::VertexInputAttributeDescription, 3> attributeDesc = vertex::getAttributeDescriptions();
 	vkVertexInputInfo.vertexBindingDescriptionCount = 1;
 	vkVertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
 	vkVertexInputInfo.vertexAttributeDescriptionCount = attributeDesc.size();
