@@ -663,24 +663,36 @@ void VulkanApplication::createDescriptorSetLayout()
 	uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 
+	vk::DescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eFragment;
+
+	std::array<vk::DescriptorSetLayoutBinding, 2> bindings{ uboLayoutBinding, samplerLayoutBinding };
+
 	vk::DescriptorSetLayoutCreateInfo descLayoutInfo{};
 	descLayoutInfo.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo;
-	descLayoutInfo.bindingCount = 1;
-	descLayoutInfo.pBindings = &uboLayoutBinding;
+	descLayoutInfo.bindingCount = static_cast<std::uint32_t>( bindings.size() );
+	descLayoutInfo.pBindings = bindings.data();
 
 	m_vkDescriptorSetLayout = m_vkLogicalDevice.createDescriptorSetLayout( descLayoutInfo );
 }
 
 void VulkanApplication::createDescriptorPool()
 {
-	vk::DescriptorPoolSize descPoolSize{};
-	descPoolSize.type = vk::DescriptorType::eUniformBuffer;
-	descPoolSize.descriptorCount = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
+	std::array<vk::DescriptorPoolSize, 2> descPoolSizes;
+	descPoolSizes[0].type = vk::DescriptorType::eUniformBuffer;
+	descPoolSizes[0].descriptorCount = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
+	descPoolSizes[1].type = vk::DescriptorType::eCombinedImageSampler;
+	descPoolSizes[1].descriptorCount = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
 
 	vk::DescriptorPoolCreateInfo descCreateInfo{};
 	descCreateInfo.sType = vk::StructureType::eDescriptorPoolCreateInfo;
-	descCreateInfo.poolSizeCount = 1;
-	descCreateInfo.pPoolSizes = &descPoolSize;
+	descCreateInfo.poolSizeCount = static_cast<std::uint32_t>( descPoolSizes.size() );
+	descCreateInfo.pPoolSizes = descPoolSizes.data();
 	descCreateInfo.maxSets = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
 
 	m_vkDescriptorPool = m_vkLogicalDevice.createDescriptorPool( descCreateInfo );
