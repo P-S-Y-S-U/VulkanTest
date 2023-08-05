@@ -1228,6 +1228,41 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkCommandBuffer.end();
 }
 
+vk::CommandBuffer VulkanApplication::beginSingleTimeCommands( const vk::CommandPool& commandPoolToAllocFrom )
+{
+	vk::CommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandPool = commandPoolToAllocFrom;
+	allocInfo.commandBufferCount = 1;
+
+	vk::CommandBuffer commandBuffer = m_vkLogicalDevice.allocateCommandBuffers(allocInfo)[0];
+
+	vk::CommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+	commandBuffer.begin( beginInfo );
+
+	return commandBuffer;
+}
+
+void VulkanApplication::endSingleTimeCommands( const vk::CommandPool& commandPoolAllocFrom, vk::CommandBuffer vkCommandBuffer, vk::Queue queueToSubmitOn )
+{
+	vkCommandBuffer.end();
+
+	vk::SubmitInfo submitInfo{};
+	submitInfo.sType = vk::StructureType::eSubmitInfo;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &vkCommandBuffer;
+
+	queueToSubmitOn.submit( 1, &submitInfo, nullptr );
+	queueToSubmitOn.waitIdle();
+
+	m_vkLogicalDevice.freeCommandBuffers( commandPoolAllocFrom, 1, &vkCommandBuffer );
+}
+
+
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
 {
 	vk::ShaderModuleCreateInfo vkShaderModuleCreateInfo{};
@@ -1523,19 +1558,7 @@ std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter
 
 void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& sizeInBytes )
 {
-	vk::CommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
-	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandPool = m_vkTransferCommandPool;
-	allocInfo.commandBufferCount = 1;
-
-	vk::CommandBuffer transferCmdBuf = m_vkLogicalDevice.allocateCommandBuffers( allocInfo )[0];
-
-	vk::CommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
-	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-	transferCmdBuf.begin( beginInfo );
+	vk::CommandBuffer transferCmdBuf = beginSingleTimeCommands( m_vkTransferCommandPool );
 
 	vk::BufferCopy copyRegion{};
 	copyRegion.srcOffset = 0;
@@ -1548,15 +1571,5 @@ void VulkanApplication::copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffe
 
 	transferCmdBuf.copyBuffer( srcBuffer, dstBuffer, copyRegionArray );
 
-	transferCmdBuf.end();
-
-	vk::SubmitInfo submitInfo{};
-	submitInfo.sType = vk::StructureType::eSubmitInfo;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &transferCmdBuf;
-
-	m_vkTransferQueue.submit( 1, &submitInfo, nullptr );
-	m_vkTransferQueue.waitIdle();
-
-	m_vkLogicalDevice.freeCommandBuffers( m_vkTransferCommandPool, 1, &transferCmdBuf );
+	endSingleTimeCommands( m_vkTransferCommandPool, transferCmdBuf, m_vkTransferQueue );
 }

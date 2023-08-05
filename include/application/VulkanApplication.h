@@ -69,6 +69,8 @@ protected:
     void destroySwapChain();
 
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
+    vk::CommandBuffer beginSingleTimeCommands( const vk::CommandPool& commandPoolToAllocFrom );
+    void endSingleTimeCommands( const vk::CommandPool& commandPoolAllocFrom, vk::CommandBuffer vkCommandBuffer, vk::Queue queueToSubmitOn );
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
     void createBuffer(
