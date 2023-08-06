@@ -154,6 +154,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
+	createConfigCommandBuffer();
 	createTextureImage();
 	createTextureImageView();
 	createTextureSampler();
@@ -162,7 +163,7 @@ void VulkanApplication::initVulkan()
 	createUniformBuffers();
 	createDescriptorPool();
 	createDescriptorSets();
-	createCommandBuffers();
+	createGraphicsCommandBuffers();
 	createSyncObjects();
 }
 
@@ -965,6 +966,19 @@ void VulkanApplication::createCommandPool()
 	LOG_INFO("Transfer Command Pool created");
 }
 
+void VulkanApplication::createConfigCommandBuffer()
+{
+	vk::CommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+	allocInfo.commandPool = m_vkGraphicsCommandPool;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandBufferCount = 1;
+
+	m_vkConfigCommandBuffer = m_vkLogicalDevice.allocateCommandBuffers(allocInfo)[0];
+
+	LOG_INFO("Config Command Buffer created");
+}
+
 void VulkanApplication::createTextureImage()
 {
 	int texWidth, texHeight, texChannels;
@@ -1160,7 +1174,7 @@ void VulkanApplication::createUniformBuffers()
 	}
 }
 
-void VulkanApplication::createCommandBuffers()
+void VulkanApplication::createGraphicsCommandBuffers()
 {
 	m_vkGraphicsCommandBuffers.resize( MAX_FRAMES_IN_FLIGHT );
 
@@ -1227,6 +1241,31 @@ void VulkanApplication::destroySwapChain()
 
 	m_vkLogicalDevice.destroySwapchainKHR( m_vkSwapchain );
 }
+
+void VulkanApplication::setupConfigCommandBuffer()
+{
+	m_vkConfigCommandBuffer.reset();
+
+	vk::CommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+	
+	m_vkConfigCommandBuffer.begin( beginInfo );
+}
+
+void VulkanApplication::flushConfigCommandBuffer()
+{
+	m_vkConfigCommandBuffer.end();
+
+	vk::SubmitInfo submitInfo{};
+	submitInfo.sType = vk::StructureType::eSubmitInfo;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &m_vkConfigCommandBuffer;
+
+	m_vkGraphicsQueue.submit( 1, &submitInfo, {} );
+	m_vkGraphicsQueue.waitIdle();
+}
+
 
 void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )
 {
@@ -1328,7 +1367,7 @@ void VulkanApplication::transitionImageLayout(
     const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout
 )
 {
-	vk::CommandBuffer cmdBuf = beginSingleTimeCommands(m_vkGraphicsCommandPool);
+	setupConfigCommandBuffer();
 
 	vk::AccessFlags srcAccessMask;
 	vk::AccessFlags dstAccessMask;
@@ -1374,7 +1413,7 @@ void VulkanApplication::transitionImageLayout(
 	imgBarrier.srcAccessMask = srcAccessMask;
 	imgBarrier.dstAccessMask = dstAccessMask;
 
-	cmdBuf.pipelineBarrier( 
+	m_vkConfigCommandBuffer.pipelineBarrier( 
 		srcStage, dstStage,
 		{},
 		0, nullptr,
@@ -1382,7 +1421,7 @@ void VulkanApplication::transitionImageLayout(
 		1, &imgBarrier
 	);
 
-	endSingleTimeCommands( m_vkGraphicsCommandPool, cmdBuf, m_vkGraphicsQueue );
+	flushConfigCommandBuffer();
 }
 
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)

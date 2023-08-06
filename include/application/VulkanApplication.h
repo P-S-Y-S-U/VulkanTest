@@ -59,10 +59,11 @@ protected:
     void createGraphicsPipeline();
     void createFrameBuffers();
     void createCommandPool();
+    void createConfigCommandBuffer();
     void createTextureImage();
     void createTextureImageView();
     void createTextureSampler();
-    void createCommandBuffers();
+    void createGraphicsCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();
@@ -70,6 +71,8 @@ protected:
     void recreateSwapChain();
     void destroySwapChain();
 
+    void setupConfigCommandBuffer();
+    void flushConfigCommandBuffer();
     void recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex );
     vk::CommandBuffer beginSingleTimeCommands( const vk::CommandPool& commandPoolToAllocFrom );
     void endSingleTimeCommands( const vk::CommandPool& commandPoolAllocFrom, vk::CommandBuffer vkCommandBuffer, vk::Queue queueToSubmitOn );
@@ -169,6 +172,7 @@ protected:
 
     vk::CommandPool m_vkGraphicsCommandPool;
     vk::CommandPool m_vkTransferCommandPool;
+    vk::CommandBuffer m_vkConfigCommandBuffer;
     std::vector<vk::CommandBuffer> m_vkGraphicsCommandBuffers;
     vk::Buffer m_vkVertexBuffer;
     vk::DeviceMemory m_vkVertexBufferMemory;
