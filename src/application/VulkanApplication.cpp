@@ -633,23 +633,39 @@ void VulkanApplication::createRenderPass()
 	vkColorAttachmentRef.attachment = 0;
 	vkColorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
+	vk::AttachmentDescription vkDepthAttachment{};
+	vkDepthAttachment.format = findDepthFormat();
+	vkDepthAttachment.samples = vk::SampleCountFlagBits::e1;
+	vkDepthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	vkDepthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
+	vkDepthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	vkDepthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	vkDepthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	vkDepthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+	vk::AttachmentReference vkDepthAttachmentRef{};
+	vkDepthAttachmentRef.attachment = 1;
+	vkDepthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
 	vk::SubpassDescription vkSubPassDesc{};
 	vkSubPassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 	vkSubPassDesc.colorAttachmentCount = 1;
 	vkSubPassDesc.pColorAttachments = &vkColorAttachmentRef;
+	vkSubPassDesc.pDepthStencilAttachment = &vkDepthAttachmentRef;
 
 	vk::SubpassDependency vkSubpassDependency{};
 	vkSubpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 	vkSubpassDependency.dstSubpass = 0;
-	vkSubpassDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	vkSubpassDependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
 	vkSubpassDependency.srcAccessMask = vk::AccessFlagBits::eNone;
-	vkSubpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-	vkSubpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+	vkSubpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+	vkSubpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
+	std::array<vk::AttachmentDescription, 2> attachments{ vkColorAttachment, vkDepthAttachment };
 	vk::RenderPassCreateInfo vkRenderPassInfo{};
 	vkRenderPassInfo.sType = vk::StructureType::eRenderPassCreateInfo;
-	vkRenderPassInfo.attachmentCount = 1;
-	vkRenderPassInfo.pAttachments = &vkColorAttachment;
+	vkRenderPassInfo.attachmentCount = static_cast<std::uint32_t>( attachments.size() );
+	vkRenderPassInfo.pAttachments = attachments.data();
 	vkRenderPassInfo.subpassCount = 1;
 	vkRenderPassInfo.pSubpasses = &vkSubPassDesc;
 	vkRenderPassInfo.dependencyCount = 1;
@@ -995,6 +1011,8 @@ void VulkanApplication::createDepthResources()
 		m_vkDepthImage, m_vkDepthImageMemory
 	);
 	m_vkDepthImageView = createImageView( m_vkDepthImage, depthFormat, vk::ImageAspectFlagBits::eDepth );
+
+	transitionImageLayout( m_vkDepthImage, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal );
 
 	LOG_INFO("Depth Resources Created");
 }
@@ -1394,6 +1412,20 @@ void VulkanApplication::transitionImageLayout(
 
 	vk::PipelineStageFlags srcStage;
 	vk::PipelineStageFlags dstStage;
+	
+	vk::ImageAspectFlags aspectMask;
+
+	if( newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal )
+	{
+		aspectMask = vk::ImageAspectFlagBits::eDepth;
+
+		if( hasStencilComponent(format) )
+			aspectMask |= vk::ImageAspectFlagBits::eStencil;
+	}
+	else
+	{
+		aspectMask = vk::ImageAspectFlagBits::eColor;
+	}
 
 	if( oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal )
 	{
@@ -1411,6 +1443,14 @@ void VulkanApplication::transitionImageLayout(
 		srcStage = vk::PipelineStageFlagBits::eTransfer;
 		dstStage = vk::PipelineStageFlagBits::eFragmentShader;
 	}
+	else if( oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal )
+	{
+		srcAccessMask = {};
+		dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+
+		srcStage = vk::PipelineStageFlagBits::eTopOfPipe;
+		dstStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+	}
 	else 
 	{
 		std::string errorMsg = "unsupported image layout transition!";
@@ -1425,7 +1465,7 @@ void VulkanApplication::transitionImageLayout(
 	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imgBarrier.image = image;
-	imgBarrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imgBarrier.subresourceRange.aspectMask = aspectMask;
 	imgBarrier.subresourceRange.baseMipLevel = 0;
 	imgBarrier.subresourceRange.levelCount = 1;
 	imgBarrier.subresourceRange.baseArrayLayer = 0;
