@@ -152,10 +152,10 @@ void VulkanApplication::initVulkan()
 	createRenderPass();
 	createDescriptorSetLayout();
 	createGraphicsPipeline();
-	createFrameBuffers();
 	createCommandPool();
 	createConfigCommandBuffer();
 	createDepthResources();
+	createFrameBuffers();
 	createTextureImage();
 	createTextureImageView();
 	createTextureSampler();
@@ -860,6 +860,18 @@ void VulkanApplication::createGraphicsPipeline()
 	vkMultisamplingInfo.alphaToCoverageEnable = VK_FALSE;
 	vkMultisamplingInfo.alphaToOneEnable = VK_FALSE;
 
+	vk::PipelineDepthStencilStateCreateInfo vkDepthStencil{};
+	vkDepthStencil.sType = vk::StructureType::ePipelineDepthStencilStateCreateInfo;
+	vkDepthStencil.depthTestEnable = VK_TRUE;
+	vkDepthStencil.depthWriteEnable = VK_TRUE;
+	vkDepthStencil.depthCompareOp = vk::CompareOp::eLess;
+	vkDepthStencil.depthBoundsTestEnable = VK_FALSE;
+	vkDepthStencil.minDepthBounds = 0.0f;
+	vkDepthStencil.maxDepthBounds = 1.0f;
+	vkDepthStencil.stencilTestEnable = VK_FALSE;
+	vkDepthStencil.front = vk::StencilOp::eKeep;
+	vkDepthStencil.back = vk::StencilOp::eKeep;
+
 	vk::PipelineColorBlendAttachmentState vkColorBlendAttachment{};
 	vkColorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | 
 											vk::ColorComponentFlagBits::eG |
@@ -912,7 +924,7 @@ void VulkanApplication::createGraphicsPipeline()
 	vkGraphicsPipelineCreateInfo.pViewportState = &vkViewportInfo;
 	vkGraphicsPipelineCreateInfo.pRasterizationState = &vkRasterizerInfo;
 	vkGraphicsPipelineCreateInfo.pMultisampleState = &vkMultisamplingInfo;
-	vkGraphicsPipelineCreateInfo.pDepthStencilState = nullptr;
+	vkGraphicsPipelineCreateInfo.pDepthStencilState = &vkDepthStencil;
 	vkGraphicsPipelineCreateInfo.pColorBlendState = &vkColorBlendInfo;
 	vkGraphicsPipelineCreateInfo.pDynamicState = &vkDynamicStateInfo;
 	vkGraphicsPipelineCreateInfo.layout = m_vkPipelineLayout;
@@ -944,15 +956,16 @@ void VulkanApplication::createFrameBuffers()
 
 	for( size_t i = 0; i < m_swapchainFrameBuffers.size(); i++ )
 	{
-		vk::ImageView attachments[] = {
-			m_swapchainImageViews[i]
+		std::array<vk::ImageView, 2> attachments = {
+			m_swapchainImageViews[i],
+			m_vkDepthImageView
 		};
 
 		vk::FramebufferCreateInfo vkFrameBufferInfo{};
 		vkFrameBufferInfo.sType = vk::StructureType::eFramebufferCreateInfo;
 		vkFrameBufferInfo.renderPass = m_vkRenderPass;
-		vkFrameBufferInfo.attachmentCount = 1;
-		vkFrameBufferInfo.pAttachments = attachments;
+		vkFrameBufferInfo.attachmentCount = static_cast<std::uint32_t>( attachments.size() );
+		vkFrameBufferInfo.pAttachments = attachments.data();
 		vkFrameBufferInfo.width = m_vkSwapchainExtent.width;
 		vkFrameBufferInfo.height = m_vkSwapchainExtent.height;
 		vkFrameBufferInfo.layers = 1;
@@ -1300,7 +1313,7 @@ void VulkanApplication::flushConfigCommandBuffer()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_vkConfigCommandBuffer;
 
-	m_vkGraphicsQueue.submit( 1, &submitInfo, {} );
+	vk::Result opResult = m_vkGraphicsQueue.submit( 1, &submitInfo, {} );
 	m_vkGraphicsQueue.waitIdle();
 }
 
@@ -1320,12 +1333,14 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkRenderPassBeginInfo.framebuffer = m_swapchainFrameBuffers[ imageIndex ];
 	vkRenderPassBeginInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
 	vkRenderPassBeginInfo.renderArea.extent = m_vkSwapchainExtent;
-	vk::ClearValue clearValue;
+	std::array<vk::ClearValue, 2> clearValues{};
 	vk::ClearColorValue clearColorValue;
 	clearColorValue.setFloat32( {0.0f, 0.0f, 0.0f, 1.0f} );
-	clearValue.setColor( clearColorValue );
-	vkRenderPassBeginInfo.clearValueCount = 1;
-	vkRenderPassBeginInfo.pClearValues = &clearValue;
+	clearValues[0].setColor( clearColorValue );
+	vk::ClearDepthStencilValue clearDepthStencilValue{ 1.0f, 0 };
+	clearValues[1].setDepthStencil(clearDepthStencilValue);
+	vkRenderPassBeginInfo.clearValueCount = static_cast<std::uint32_t>( clearValues.size() );
+	vkRenderPassBeginInfo.pClearValues = clearValues.data();
 
 	vkCommandBuffer.beginRenderPass( vkRenderPassBeginInfo, vk::SubpassContents::eInline );
 	vkCommandBuffer.bindPipeline( vk::PipelineBindPoint::eGraphics, m_vkGraphicsPipeline );
@@ -1394,7 +1409,7 @@ void VulkanApplication::endSingleTimeCommands( const vk::CommandPool& commandPoo
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &vkCommandBuffer;
 
-	queueToSubmitOn.submit( 1, &submitInfo, nullptr );
+	vk::Result opResult = queueToSubmitOn.submit( 1, &submitInfo, nullptr );
 	queueToSubmitOn.waitIdle();
 
 	m_vkLogicalDevice.freeCommandBuffers( commandPoolAllocFrom, 1, &vkCommandBuffer );
