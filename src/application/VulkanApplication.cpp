@@ -107,6 +107,14 @@ void VulkanApplication::initialise()
 	initVulkan();
 }
 
+void VulkanApplication::initialise( const std::filesystem::path& modelPath, const std::filesystem::path& texturePath )
+{
+	m_modelFilePath = modelPath; 
+	m_textureImageFilePath = texturePath;
+
+	initialise();
+}
+
 void VulkanApplication::updateUniformBuffer( const std::uint32_t& currentFrame )
 {
 	auto duration = durationSinceLastFrameUpdate<float, std::chrono::seconds::period>().count();
@@ -1030,17 +1038,20 @@ void VulkanApplication::createTextureImage()
 {
 	int texWidth, texHeight, texChannels;
 	
-	std::filesystem::path texPath{"textures/texture.jpg"};
+	std::filesystem::path def_texPath{"textures/texture.jpg"};
+
+	if( !std::filesystem::exists(m_textureImageFilePath) )
+		m_textureImageFilePath = def_texPath;
 
 	stbi_uc* pixels = stbi_load(
-		texPath.string().data(),
+		m_textureImageFilePath.string().data(),
 		&texWidth, &texHeight, &texChannels,
 		STBI_rgb_alpha
 	);
 
 	if(!pixels)
 	{
-		std::string errorMsg = fmt::format("Failed to load {} image",texPath.string());
+		std::string errorMsg = fmt::format("Failed to load {} image",m_textureImageFilePath.string());
 		LOG_ERROR(errorMsg);
 		throw  std::runtime_error(errorMsg);
 	}

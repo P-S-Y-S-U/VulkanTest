@@ -33,6 +33,7 @@ public:
 #endif // NDEBUG
 
     void initialise();
+    void initialise( const std::filesystem::path& modelPath, const std::filesystem::path& texturePath );
 protected:
     virtual void run() = 0;
     virtual void updateUniformBuffer( const std::uint32_t& currentFrame );
@@ -203,6 +204,9 @@ protected:
     IndexData m_inputIndexData;
 
     std::chrono::time_point< std::chrono::high_resolution_clock > m_timeSinceLastUpdateFrame;
+
+    std::filesystem::path m_textureImageFilePath;
+    std::filesystem::path m_modelFilePath;
 };
 
 #include "VulkanApplication.inl"
