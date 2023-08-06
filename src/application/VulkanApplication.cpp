@@ -155,6 +155,7 @@ void VulkanApplication::initVulkan()
 	createFrameBuffers();
 	createCommandPool();
 	createConfigCommandBuffer();
+	createDepthResources();
 	createTextureImage();
 	createTextureImageView();
 	createTextureSampler();
@@ -273,6 +274,10 @@ void VulkanApplication::shutdown()
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
 	destroySwapChain();
+
+	m_vkLogicalDevice.destroyImageView( m_vkDepthImageView );
+	m_vkLogicalDevice.destroyImage( m_vkDepthImage );
+	m_vkLogicalDevice.freeMemory( m_vkDepthImageMemory );
 
 	m_vkLogicalDevice.destroySampler( m_vkTextureSampler );
 	m_vkLogicalDevice.destroyImageView( m_vkTextureImageView );
@@ -605,7 +610,7 @@ void VulkanApplication::createSwapChainImageViews()
 
 	for( auto i = 0u; i < m_swapchainImages.size(); i++ )
 	{		
-		m_swapchainImageViews[i] = createImageView( m_swapchainImages[i], m_vkSwapchainImageFormat );
+		m_swapchainImageViews[i] = createImageView( m_swapchainImages[i], m_vkSwapchainImageFormat, vk::ImageAspectFlagBits::eColor );
 	}
 	m_swapchainImageViews.shrink_to_fit();
 
@@ -979,6 +984,21 @@ void VulkanApplication::createConfigCommandBuffer()
 	LOG_INFO("Config Command Buffer created");
 }
 
+void VulkanApplication::createDepthResources()
+{
+	vk::Format depthFormat = findDepthFormat();
+
+	createImage(
+		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height,
+		depthFormat, vk::ImageTiling::eOptimal, 
+		vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal,
+		m_vkDepthImage, m_vkDepthImageMemory
+	);
+	m_vkDepthImageView = createImageView( m_vkDepthImage, depthFormat, vk::ImageAspectFlagBits::eDepth );
+
+	LOG_INFO("Depth Resources Created");
+}
+
 void VulkanApplication::createTextureImage()
 {
 	int texWidth, texHeight, texChannels;
@@ -1048,7 +1068,7 @@ void VulkanApplication::createTextureImage()
 
 void VulkanApplication::createTextureImageView()
 {
-	m_vkTextureImageView = createImageView( m_vkTextureImage, vk::Format::eR8G8B8A8Srgb );
+	m_vkTextureImageView = createImageView( m_vkTextureImage, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor );
 }
 
 void VulkanApplication::createTextureSampler()
@@ -1514,7 +1534,7 @@ void VulkanApplication::createImage(
 	m_vkLogicalDevice.bindImageMemory( image, imageMemory, 0 );
 }
 
-vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const vk::Format& format )
+vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const vk::Format& format, const vk::ImageAspectFlags& aspect )
 {
 	vk::ImageViewCreateInfo vkImageViewCreateInfo{};
 	vkImageViewCreateInfo.sType = vk::StructureType::eImageViewCreateInfo;
@@ -1528,7 +1548,7 @@ vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const 
     componentMap.a = vk::ComponentSwizzle::eIdentity;
     vkImageViewCreateInfo.components = componentMap;
     vk::ImageSubresourceRange subResourceRange;
-    subResourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    subResourceRange.aspectMask = aspect;
     subResourceRange.baseMipLevel = 0;
     subResourceRange.levelCount = 1;
     subResourceRange.baseArrayLayer = 0;
@@ -1721,6 +1741,40 @@ vk::Result VulkanApplication::queuePresentWrapper(
 	return static_cast<vk::Result>( dispatcher.vkQueuePresentKHR(
 		presentationQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
 	) );
+}
+
+vk::Format VulkanApplication::findSupportedImgFormat( const std::initializer_list<vk::Format>& candidates, const vk::ImageTiling& tiling, const vk::FormatFeatureFlags& features )
+{
+	for( const vk::Format& format : candidates )
+	{
+		vk::FormatProperties prop = m_vkPhysicalDevice.getFormatProperties( format );
+
+		if( tiling == vk::ImageTiling::eLinear && (prop.linearTilingFeatures & features) == features )
+		{
+			return format;
+		}
+		else if ( tiling == vk::ImageTiling::eOptimal && (prop.optimalTilingFeatures & features) == features )
+		{
+			return format;
+		}
+	}
+
+	std::string errorMsg{ "failed to find supported format"};
+	LOG_ERROR(errorMsg);
+	throw std::runtime_error(errorMsg);
+}
+
+vk::Format VulkanApplication::findDepthFormat()
+{
+	return findSupportedImgFormat(
+		{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+		vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment
+	);
+}
+
+bool VulkanApplication::hasStencilComponent( const vk::Format& format ) const
+{
+	return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
 }
 
 std::uint32_t VulkanApplication::findMemoryType( const std::uint32_t& typeFilter, const vk::MemoryPropertyFlags& propertyFlags )

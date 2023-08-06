@@ -60,6 +60,7 @@ protected:
     void createFrameBuffers();
     void createCommandPool();
     void createConfigCommandBuffer();
+    void createDepthResources();
     void createTextureImage();
     void createTextureImageView();
     void createTextureSampler();
@@ -96,7 +97,7 @@ protected:
         const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
         vk::Image& image, vk::DeviceMemory& imageMemory
     );
-    vk::ImageView createImageView( const vk::Image& image, const vk::Format& format );
+    vk::ImageView createImageView( const vk::Image& image, const vk::Format& format, const vk::ImageAspectFlags& aspect );
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
@@ -131,6 +132,9 @@ protected:
         const vk::PresentInfoKHR& presentInfo
     );
     
+    vk::Format findSupportedImgFormat( const std::initializer_list<vk::Format>& candidates, const vk::ImageTiling& tiling, const vk::FormatFeatureFlags& features );
+    vk::Format findDepthFormat();
+    bool hasStencilComponent( const vk::Format& format ) const;
     std::uint32_t findMemoryType( const std::uint32_t& typeFilter, const vk::MemoryPropertyFlags& propertyFlags );
     void copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& sizeInBytes );
     void copyBufferToImage( const vk::Buffer& srcBuffer, const vk::Image& dstImage, const std::uint32_t& width, const std::uint32_t& height );
@@ -154,6 +158,9 @@ protected:
     vk::SwapchainKHR m_vkSwapchain;
     std::vector<vk::Image> m_swapchainImages;
     std::vector<vk::ImageView> m_swapchainImageViews;
+    vk::Image m_vkDepthImage;
+    vk::DeviceMemory m_vkDepthImageMemory;
+    vk::ImageView m_vkDepthImageView;
 
     vk::Image m_vkTextureImage;
     vk::DeviceMemory m_vkTextureImageMemory;
