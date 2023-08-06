@@ -275,10 +275,6 @@ void VulkanApplication::shutdown()
 
 	destroySwapChain();
 
-	m_vkLogicalDevice.destroyImageView( m_vkDepthImageView );
-	m_vkLogicalDevice.destroyImage( m_vkDepthImage );
-	m_vkLogicalDevice.freeMemory( m_vkDepthImageMemory );
-
 	m_vkLogicalDevice.destroySampler( m_vkTextureSampler );
 	m_vkLogicalDevice.destroyImageView( m_vkTextureImageView );
 	m_vkLogicalDevice.destroyImage( m_vkTextureImage );
@@ -1273,11 +1269,16 @@ void VulkanApplication::recreateSwapChain()
 	
 	createSwapchain();
 	createSwapChainImageViews();
+	createDepthResources();
 	createFrameBuffers();	
 }
 
 void VulkanApplication::destroySwapChain()
 {
+	m_vkLogicalDevice.destroyImageView( m_vkDepthImageView );
+	m_vkLogicalDevice.destroyImage( m_vkDepthImage );
+	m_vkLogicalDevice.freeMemory( m_vkDepthImageMemory );
+
 	for( auto& vkFramebuffer : m_swapchainFrameBuffers )
 	{
 		m_vkLogicalDevice.destroyFramebuffer( vkFramebuffer );
