@@ -19,6 +19,7 @@ class VulkanRendererConan(ConanFile):
         "glm/0.9.9.8@psy/dev",
         "spdlog/[~1.10.0]@psy/dev",
         "stb/master@psy/dev",
+        "tinyobjloader/1.0.6@psy/dev",
         "vulkan/1.3.216.0@psy/dev"
     ] 
 
@@ -60,6 +61,9 @@ class VulkanRendererConan(ConanFile):
     @property
     def _is_linux(self):
         return self.settings.os == 'linux'
+
+    def configure(self):
+        self.options['tinyobjloader'].shared = False
 
     def copy_media(self):
         self.output.info("Copying Media")
