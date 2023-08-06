@@ -1177,7 +1177,7 @@ void VulkanApplication::createVertexBuffer()
 
 void VulkanApplication::createIndexBuffer()
 {
-	std::size_t bufferSizeInBytes = sizeof(std::uint16_t) * m_inputIndexData.size();
+	std::size_t bufferSizeInBytes = sizeof(IndexData::value_type) * m_inputIndexData.size();
 
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
