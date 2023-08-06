@@ -1375,7 +1375,7 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vk::DeviceSize offsets[] = { 0 };
 
 	vkCommandBuffer.bindVertexBuffers( 0, vertexBuffers, offsets );
-	vkCommandBuffer.bindIndexBuffer( m_vkIndexBuffer, 0, vk::IndexType::eUint16 );
+	vkCommandBuffer.bindIndexBuffer( m_vkIndexBuffer, 0, vk::IndexType::eUint32 );
 	vkCommandBuffer.bindDescriptorSets( 
 		vk::PipelineBindPoint::eGraphics, m_vkPipelineLayout, 
 		0, 1, &m_vkDescriptorSets[m_currentFrame],

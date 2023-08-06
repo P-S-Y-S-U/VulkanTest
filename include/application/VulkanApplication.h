@@ -21,7 +21,7 @@ class VULKAN_EXPORTS VulkanApplication
 {
 public:
     using VertexData = std::vector<vertex>;
-    using IndexData = std::vector<std::uint16_t>;
+    using IndexData = std::vector<std::uint32_t>;
 
     VulkanApplication( const std::string& applicationName );
     virtual ~VulkanApplication();
