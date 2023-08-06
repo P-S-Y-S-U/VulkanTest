@@ -348,4 +348,8 @@ healthchecksdb
 # vscode config files
 .vscode/
 
+# conan config files
 *_info
+
+# except .obj model files
+!media/models/*.obj

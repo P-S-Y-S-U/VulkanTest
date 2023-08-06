@@ -40,6 +40,10 @@ class VulkanRendererConan(ConanFile):
         return path.join( self.source_folder, "media" )
     
     @property
+    def _model_dir(self):
+        return path.join( self._project_media_dir, "models" )
+
+    @property
     def _textures_dir(self):
         return path.join( self._project_media_dir, "textures" )
 
@@ -71,6 +75,9 @@ class VulkanRendererConan(ConanFile):
         try :
             shutil.copytree( src=self._textures_dir, dst=f"{self._project_bin_dir}/textures", dirs_exist_ok=True )
             self.output.info("Copied textures")
+
+            shutil.copytree( src=self._model_dir, dst=f"{self._project_bin_dir}/models", dirs_exist_ok=True )
+            self.output.info("Copied models")
         except Exception as e:
             self.output.info(e)
 
