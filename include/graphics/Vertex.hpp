@@ -6,7 +6,7 @@
 
 struct vertex
 {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
 
@@ -25,7 +25,7 @@ struct vertex
 
         vertexAttributes[0].binding = 0;
         vertexAttributes[0].location = 0;
-        vertexAttributes[0].format = vk::Format::eR32G32Sfloat;
+        vertexAttributes[0].format = vk::Format::eR32G32B32Sfloat;
         vertexAttributes[0].offset = offsetof( vertex, pos );
 
         vertexAttributes[1].binding = 0;
