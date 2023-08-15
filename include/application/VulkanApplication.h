@@ -204,6 +204,7 @@ protected:
     VertexData m_inputVertexData;
     IndexData m_inputIndexData;
 
+    std::chrono::time_point< std::chrono::high_resolution_clock > m_simulationStart;
     std::chrono::time_point< std::chrono::high_resolution_clock > m_timeSinceLastUpdateFrame;
 
     std::filesystem::path m_textureImageFilePath;

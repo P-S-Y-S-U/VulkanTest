@@ -118,7 +118,9 @@ void VulkanApplication::initialise( const std::filesystem::path& modelPath, cons
 
 void VulkanApplication::updateUniformBuffer( const std::uint32_t& currentFrame )
 {
-	auto duration = durationSinceLastFrameUpdate<float, std::chrono::seconds::period>().count();
+	auto timeNow = std::chrono::high_resolution_clock::now();
+
+	auto duration = std::chrono::duration<float, std::chrono::seconds::period>(timeNow - m_simulationStart).count();
 
 	VulkanUniformBufferObject ubo{};
 
@@ -181,6 +183,8 @@ void VulkanApplication::initVulkan()
 
 void VulkanApplication::mainLoop()
 {
+	m_simulationStart = std::chrono::high_resolution_clock::now();
+
 	while( !m_window.quit() )
 	{
 		m_window.processEvents();
