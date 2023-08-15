@@ -12,6 +12,7 @@
 #include <set>
 #include <fstream>
 #include <vector>
+#include <map>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -1141,6 +1142,66 @@ void VulkanApplication::createTextureSampler()
 	m_vkTextureSampler = m_vkLogicalDevice.createSampler( samplerCreateInfo );
 }
 
+void VulkanApplication::createGraphicsCommandBuffers()
+{
+	m_vkGraphicsCommandBuffers.resize( MAX_FRAMES_IN_FLIGHT );
+
+	vk::CommandBufferAllocateInfo vkCmdBufAllocateInfo{};
+	vkCmdBufAllocateInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
+	vkCmdBufAllocateInfo.commandPool = m_vkGraphicsCommandPool;
+	vkCmdBufAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
+	vkCmdBufAllocateInfo.commandBufferCount = m_vkGraphicsCommandBuffers.size();
+	
+	m_vkGraphicsCommandBuffers = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo );
+
+	LOG_INFO("Graphics Command Buffer created");
+}
+
+void VulkanApplication::loadModel()
+{
+	tinyobj::attrib_t attributes;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string errorMsg;
+
+	if( !tinyobj::LoadObj(
+			&attributes,
+			&shapes,
+			&materials,
+			&errorMsg,
+			m_modelFilePath.string().c_str()
+		)
+	)
+	{
+		LOG_ERROR(errorMsg);
+		throw std::runtime_error(errorMsg);
+	}
+
+	for( const auto& shape : shapes )
+	{
+		for( const auto& index : shape.mesh.indices )
+		{
+			vertex vertexData{};
+			
+			vertexData.pos = { 
+				attributes.vertices[ 3 * index.vertex_index + 0 ],
+				attributes.vertices[ 3 * index.vertex_index + 1 ],
+				attributes.vertices[ 3 * index.vertex_index + 2 ]
+			};
+			
+			vertexData.texCoord = { 
+				attributes.texcoords[ 2 * index.texcoord_index + 0 ],
+				1.0f - attributes.texcoords[ 2 * index.texcoord_index + 1 ]
+			};
+
+			vertexData.color = { 1.0, 1.0, 1.0 };
+			
+			m_inputVertexData.push_back( vertexData );
+			m_inputIndexData.push_back( m_inputIndexData.size() );
+		}
+	}
+}
+
 void VulkanApplication::createVertexBuffer()
 {
 
@@ -1236,66 +1297,6 @@ void VulkanApplication::createUniformBuffers()
 		);
 
 		m_uniformBuffersMapped[i] = m_vkLogicalDevice.mapMemory( m_vkUniformBuffersMemory[i], 0, bufferSize );
-	}
-}
-
-void VulkanApplication::createGraphicsCommandBuffers()
-{
-	m_vkGraphicsCommandBuffers.resize( MAX_FRAMES_IN_FLIGHT );
-
-	vk::CommandBufferAllocateInfo vkCmdBufAllocateInfo{};
-	vkCmdBufAllocateInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
-	vkCmdBufAllocateInfo.commandPool = m_vkGraphicsCommandPool;
-	vkCmdBufAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
-	vkCmdBufAllocateInfo.commandBufferCount = m_vkGraphicsCommandBuffers.size();
-	
-	m_vkGraphicsCommandBuffers = m_vkLogicalDevice.allocateCommandBuffers( vkCmdBufAllocateInfo );
-
-	LOG_INFO("Graphics Command Buffer created");
-}
-
-void VulkanApplication::loadModel()
-{
-	tinyobj::attrib_t attributes;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string errorMsg;
-
-	if( !tinyobj::LoadObj(
-			&attributes,
-			&shapes,
-			&materials,
-			&errorMsg,
-			m_modelFilePath.string().c_str()
-		)
-	)
-	{
-		LOG_ERROR(errorMsg);
-		throw std::runtime_error(errorMsg);
-	}
-
-	for( const auto& shape : shapes )
-	{
-		for( const auto& index : shape.mesh.indices )
-		{
-			vertex vertexData{};
-			
-			vertexData.pos = { 
-				attributes.vertices[ 3 * index.vertex_index + 0 ],
-				attributes.vertices[ 3 * index.vertex_index + 1 ],
-				attributes.vertices[ 3 * index.vertex_index + 2 ]
-			};
-			
-			vertexData.texCoord = { 
-				attributes.texcoords[ 2 * index.texcoord_index + 0 ],
-				1.0f - attributes.texcoords[ 2 * index.texcoord_index + 1 ]
-			};
-
-			vertexData.color = { 1.0, 1.0, 1.0 };
-			
-			m_inputVertexData.push_back( vertexData );
-			m_inputIndexData.push_back( m_inputIndexData.size() );
-		}
 	}
 }
 
