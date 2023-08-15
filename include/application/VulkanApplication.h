@@ -66,6 +66,7 @@ protected:
     void createTextureImageView();
     void createTextureSampler();
     void createGraphicsCommandBuffers();
+    void loadModel();
     void createVertexBuffer();
     void createIndexBuffer();
     void createUniformBuffers();

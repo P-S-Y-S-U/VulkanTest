@@ -7,7 +7,7 @@
 class ModelApplication : public VulkanApplication
 {
 public:
-    ModelApplication( const std::filesystem::path& modelFilePath, const std::filesystem::path& imageFilePath )
+    ModelApplication(const std::filesystem::path& modelFilePath, const std::filesystem::path& imageFilePath);
     ~ModelApplication();
 
     void run() override;
