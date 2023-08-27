@@ -2,6 +2,7 @@
 #define GRAPHICS_VERTEX_HPP
 
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 #include <vulkan/vulkan.hpp>
 
 struct vertex
@@ -10,6 +11,10 @@ struct vertex
     glm::vec3 color;
     glm::vec2 texCoord;
 
+    bool operator==(const vertex& other) const {
+        return pos == other.pos && color == other.color && texCoord == other.texCoord;
+    }
+    
     static vk::VertexInputBindingDescription getBindingDescription(){
         vk::VertexInputBindingDescription bindingDescription{};
 
@@ -41,5 +46,13 @@ struct vertex
         return vertexAttributes;
     };
 };
+
+namespace std {
+    template<> struct hash<vertex> {
+        size_t operator()(vertex const& vertexData) const {
+            return ( (hash<glm::vec3>()(vertexData.pos) ^ (hash<glm::vec3>()(vertexData.color) << 1) ) >> 1 ) ^ ( hash<glm::vec2>()(vertexData.texCoord) << 1 );
+        }
+    };
+}
 
 #endif 

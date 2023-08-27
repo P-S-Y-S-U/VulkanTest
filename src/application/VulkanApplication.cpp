@@ -12,7 +12,7 @@
 #include <set>
 #include <fstream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -1177,6 +1177,8 @@ void VulkanApplication::loadModel()
 		throw std::runtime_error(errorMsg);
 	}
 
+	std::unordered_map<vertex, std::uint32_t> unique_vertices;
+
 	for( const auto& shape : shapes )
 	{
 		for( const auto& index : shape.mesh.indices )
@@ -1196,8 +1198,12 @@ void VulkanApplication::loadModel()
 
 			vertexData.color = { 1.0, 1.0, 1.0 };
 			
-			m_inputVertexData.push_back( vertexData );
-			m_inputIndexData.push_back( m_inputIndexData.size() );
+			if( unique_vertices.count(vertexData) == 0 )
+			{
+				unique_vertices[vertexData] = static_cast<std::uint32_t>( m_inputVertexData.size() );
+				m_inputVertexData.push_back( vertexData );
+			}
+			m_inputIndexData.push_back( unique_vertices[vertexData] );
 		}
 	}
 }
