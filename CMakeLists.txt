@@ -1,6 +1,14 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 project(VulkanTest)
 set(CMAKE_CXX_STANDARD 17)
+
+# Find CMAKE package
+find_package(glm CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
+find_package(tinyobjloader CONFIG REQUIRED)
+
+message( "glm include ${GLM_INCLUDE_DIRS}" )
 
 # CMAKE C & CXX FLAGS SETUP
 
@@ -17,8 +25,6 @@ set(PROJECT_INSTALL ${CMAKE_INSTALL_PREFIX})
 # PROJECT CMAKE SCRIPT REQUIREMENTS (Dependencies cmake script)#
 
 # CONAN SETUP #
-include(${CONAN_INSTALL_INFO}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
 
 # Additional cmake scripts in sub-directory #
 add_subdirectory(src)
