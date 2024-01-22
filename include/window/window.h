@@ -3,13 +3,20 @@
 
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
-#endif 
+#else
+#define VK_USE_KHR_WAYLAND_SURFACE
+#endif
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
+#else
+#define GLFW_EXPOSE_NATIVE_WAYLAND
 #endif
 #include <GLFW/glfw3native.h>
+
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -21,6 +28,12 @@ namespace vkrender
 	class VULKAN_EXPORTS Window
 	{
 	public:
+#ifdef _WIN32
+		using PlatformWindowHandle = HWND;
+#else
+		using PlatformWindowHandle = wl_surface*;
+		using PlatformDisplayHandle = wl_display*;
+#endif 
 		explicit Window( const std::uint32_t& width, const std::uint32_t& height );
 		explicit Window();
 		Window(const Window&) = delete;
@@ -36,7 +49,10 @@ namespace vkrender
 		void destroy();
 		bool quit() const;
 
-		HWND getHandle() const;
+		PlatformWindowHandle getHandle() const;
+#ifndef _WIN32
+		PlatformDisplayHandle getDisplayHandle() const;
+#endif
 
 		std::pair<std::uint32_t, std::uint32_t> getDimensions() const ;
 		std::pair<std::uint32_t, std::uint32_t> getFrameBufferSize() const ;

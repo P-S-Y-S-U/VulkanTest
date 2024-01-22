@@ -81,10 +81,21 @@ namespace vkrender
 		return m_bQuit;
 	}
 
-	HWND Window::getHandle() const 
+	Window::PlatformWindowHandle Window::getHandle() const 
 	{
+#ifdef _WIN32	
 		return glfwGetWin32Window( m_pWindow );
+#else
+		return glfwGetWaylandWindow( m_pWindow );
+#endif
 	}
+
+#ifndef _WIN32
+	Window::PlatformDisplayHandle Window::getDisplayHandle() const
+	{
+		return glfwGetWaylandDisplay();
+	}
+#endif
 
 	std::pair<std::uint32_t, std::uint32_t> Window::getDimensions() const
 	{

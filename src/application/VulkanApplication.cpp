@@ -7,12 +7,14 @@
 #include "utilities/VulkanLogger.h"
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_wayland.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <set>
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -380,12 +382,27 @@ void VulkanApplication::createInstance()
 
 void VulkanApplication::createSurface()
 {
+#ifdef _WIN32
 	vk::Win32SurfaceCreateInfoKHR surfaceCreateInfo;
 	surfaceCreateInfo.sType = vk::StructureType::eWin32SurfaceCreateInfoKHR;
 	surfaceCreateInfo.hwnd = m_window.getHandle();
 	surfaceCreateInfo.hinstance = GetModuleHandle( nullptr );
 
 	m_vkSurface = m_vkInstance.createWin32SurfaceKHR( surfaceCreateInfo );
+#else
+	VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo;
+	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.surface = m_window.getHandle();
+	surfaceCreateInfo.display = m_window.getDisplayHandle();
+	surfaceCreateInfo.pNext = nullptr;
+
+	vkCreateWaylandSurfaceKHR( 
+		reinterpret_cast<const VkInstance&>( m_vkInstance ),
+		&surfaceCreateInfo,
+		nullptr,
+		reinterpret_cast<VkSurfaceKHR*>( &m_vkSurface )
+	);
+#endif
 	LOG_INFO( "Vulkan Surface Created" );
 }
 
