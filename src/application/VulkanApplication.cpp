@@ -1405,8 +1405,13 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkScissor.extent = m_vkSwapchainExtent;
 	vkCommandBuffer.setScissor(0, 1, &vkScissor);
 
+#if 0 // REMOVE
 	vk::Buffer vertexBuffers[] = { m_vkVertexBuffer };
 	vk::DeviceSize offsets[] = { 0 };
+#else 
+	vk::ArrayProxy<const vk::Buffer> vertexBuffers{ m_vkVertexBuffer };
+	vk::ArrayProxy<const vk::DeviceSize> offsets{ 0 };
+#endif 
 
 	vkCommandBuffer.bindVertexBuffers( 0, vertexBuffers, offsets );
 	vkCommandBuffer.bindIndexBuffer( m_vkIndexBuffer, 0, vk::IndexType::eUint32 );
