@@ -7,6 +7,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
+find_package(Wayland REQUIRED)
 find_package(VulkanLoader CONFIG REQUIRED)
 
 # CMAKE C & CXX FLAGS SETUP
