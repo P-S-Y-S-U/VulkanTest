@@ -1814,8 +1814,7 @@ vk::ResultValue<std::uint32_t> VulkanApplication::swapchainNextImageWrapper(
     vk::Fence imageAcquireFence
 )
 {
-	std::uint32_t imageIndex;
-
+#if 0 // REMOVE THIS DEF 
 	vk::DispatchLoaderStatic& dispatcher = vk::getDispatchLoaderStatic();
 	vk::Result result = static_cast<vk::Result>( dispatcher.vkAcquireNextImageKHR(
 		static_cast<VkDevice>( logicalDevice ),
@@ -1825,8 +1824,10 @@ vk::ResultValue<std::uint32_t> VulkanApplication::swapchainNextImageWrapper(
 		static_cast<VkFence>( imageAcquireFence ),
 		&imageIndex
 	) );
-
 	return vk::ResultValue<std::uint32_t>( result, imageIndex );
+#else 
+	return logicalDevice.acquireNextImageKHR( swapchain, timeout, imageAcquireSemaphore, imageAcquireFence );
+#endif 
 }
 
 vk::Result VulkanApplication::queuePresentWrapper(
@@ -1834,10 +1835,14 @@ vk::Result VulkanApplication::queuePresentWrapper(
     const vk::PresentInfoKHR& presentInfo
 )
 {
+#if 0 // REMOVE THIS DEF
 	vk::DispatchLoaderStatic& dispatcher = vk::getDispatchLoaderStatic();
 	return static_cast<vk::Result>( dispatcher.vkQueuePresentKHR(
 		presentationQueue, reinterpret_cast<const VkPresentInfoKHR*>(&presentInfo)
 	) );
+#else 
+	return presentationQueue.presentKHR( presentInfo );
+#endif 
 }
 
 vk::Format VulkanApplication::findSupportedImgFormat( const std::initializer_list<vk::Format>& candidates, const vk::ImageTiling& tiling, const vk::FormatFeatureFlags& features )
