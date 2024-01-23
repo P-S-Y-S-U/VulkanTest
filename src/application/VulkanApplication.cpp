@@ -7,6 +7,7 @@
 #include "utilities/VulkanLogger.h"
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_wayland.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -233,7 +234,6 @@ void VulkanApplication::drawFrame()
 	recordCommandBuffer( m_vkGraphicsCommandBuffers[m_currentFrame], imageIndex );
 
 	vk::SubmitInfo vkCmdSubmitInfo{};
-	vkCmdSubmitInfo.sType = vk::StructureType::eSubmitInfo;
 	vk::Semaphore waitSemaphores[] = { m_vkImageAvailableSemaphores[m_currentFrame] };
 	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 	vkCmdSubmitInfo.waitSemaphoreCount = 1;
@@ -249,7 +249,6 @@ void VulkanApplication::drawFrame()
 	m_vkGraphicsQueue.submit( submitInfos, m_vkInFlightFences[m_currentFrame] );
 
 	vk::PresentInfoKHR vkPresentInfo{};
-	vkPresentInfo.sType = vk::StructureType::ePresentInfoKHR;
 	vkPresentInfo.waitSemaphoreCount = 1;
 	vkPresentInfo.pWaitSemaphores = signalSemaphores;
 	vk::SwapchainKHR swapchains[] = { m_vkSwapchain };
@@ -339,7 +338,6 @@ void VulkanApplication::createInstance()
 	}
 
     vk::ApplicationInfo applicationInfo{};
-	applicationInfo.sType = vk::StructureType::eApplicationInfo;
 	applicationInfo.pApplicationName = m_applicationName.c_str();
 	applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	applicationInfo.pEngineName = "No Engine";
@@ -348,7 +346,6 @@ void VulkanApplication::createInstance()
 	applicationInfo.pNext = nullptr;
 
 	vk::InstanceCreateInfo instanceCreateInfo{};
-	instanceCreateInfo.sType = vk::StructureType::eInstanceCreateInfo;
 	instanceCreateInfo.pApplicationInfo = &applicationInfo;
 	m_instanceExtensionContainer = Window::populateAvailableExtensions();
 	if( ENABLE_VALIDATION_LAYER )
@@ -608,7 +605,6 @@ void VulkanApplication::createSwapchain()
 	queueFamilyContainer.shrink_to_fit();
 
 	vk::SwapchainCreateInfoKHR vkSwapChainCreateInfo{};
-	vkSwapChainCreateInfo.sType = vk::StructureType::eSwapchainCreateInfoKHR;
 	vkSwapChainCreateInfo.surface = m_vkSurface;
 	vkSwapChainCreateInfo.imageFormat = surfaceFormat.format;
     vkSwapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -692,7 +688,6 @@ void VulkanApplication::createRenderPass()
 
 	std::array<vk::AttachmentDescription, 2> attachments{ vkColorAttachment, vkDepthAttachment };
 	vk::RenderPassCreateInfo vkRenderPassInfo{};
-	vkRenderPassInfo.sType = vk::StructureType::eRenderPassCreateInfo;
 	vkRenderPassInfo.attachmentCount = static_cast<std::uint32_t>( attachments.size() );
 	vkRenderPassInfo.pAttachments = attachments.data();
 	vkRenderPassInfo.subpassCount = 1;
@@ -725,7 +720,6 @@ void VulkanApplication::createDescriptorSetLayout()
 	std::array<vk::DescriptorSetLayoutBinding, 2> bindings{ uboLayoutBinding, samplerLayoutBinding };
 
 	vk::DescriptorSetLayoutCreateInfo descLayoutInfo{};
-	descLayoutInfo.sType = vk::StructureType::eDescriptorSetLayoutCreateInfo;
 	descLayoutInfo.bindingCount = static_cast<std::uint32_t>( bindings.size() );
 	descLayoutInfo.pBindings = bindings.data();
 
@@ -741,7 +735,6 @@ void VulkanApplication::createDescriptorPool()
 	descPoolSizes[1].descriptorCount = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
 
 	vk::DescriptorPoolCreateInfo descCreateInfo{};
-	descCreateInfo.sType = vk::StructureType::eDescriptorPoolCreateInfo;
 	descCreateInfo.poolSizeCount = static_cast<std::uint32_t>( descPoolSizes.size() );
 	descCreateInfo.pPoolSizes = descPoolSizes.data();
 	descCreateInfo.maxSets = static_cast<std::uint32_t>( MAX_FRAMES_IN_FLIGHT );
@@ -754,7 +747,6 @@ void VulkanApplication::createDescriptorSets()
 	std::vector<vk::DescriptorSetLayout> descLayouts( MAX_FRAMES_IN_FLIGHT, m_vkDescriptorSetLayout );
 
 	vk::DescriptorSetAllocateInfo descSetAllocInfo{};
-	descSetAllocInfo.sType = vk::StructureType::eDescriptorSetAllocateInfo;
 	descSetAllocInfo.descriptorPool = m_vkDescriptorPool;
 	descSetAllocInfo.descriptorSetCount = static_cast<std::uint32_t>(MAX_FRAMES_IN_FLIGHT);
 	descSetAllocInfo.pSetLayouts = descLayouts.data();
@@ -776,7 +768,6 @@ void VulkanApplication::createDescriptorSets()
 
 		std::array<vk::WriteDescriptorSet, 2> descWrites;
 		
-		descWrites[0].sType = vk::StructureType::eWriteDescriptorSet;
 		descWrites[0].dstSet = m_vkDescriptorSets[i];
 		descWrites[0].dstBinding = 0;
 		descWrites[0].dstArrayElement = 0;
@@ -786,7 +777,6 @@ void VulkanApplication::createDescriptorSets()
 		descWrites[0].pImageInfo = nullptr;
 		descWrites[0].pTexelBufferView = nullptr;
 
-		descWrites[1].sType = vk::StructureType::eWriteDescriptorSet;
 		descWrites[1].dstSet = m_vkDescriptorSets[i];
 		descWrites[1].dstBinding = 1;
 		descWrites[1].dstArrayElement = 0;
@@ -809,7 +799,6 @@ void VulkanApplication::createGraphicsPipeline()
 		const std::string& entryPoint
 	)
 	{
-		shaderStageCreateInfo.sType = vk::StructureType::ePipelineShaderStageCreateInfo;
 		shaderStageCreateInfo.stage = shaderStage;
 		shaderStageCreateInfo.module = shaderModule;
 		shaderStageCreateInfo.pName =  entryPoint.c_str();
@@ -847,7 +836,6 @@ void VulkanApplication::createGraphicsPipeline()
 	};
 	
 	vk::PipelineVertexInputStateCreateInfo vkVertexInputInfo{};
-	vkVertexInputInfo.sType = vk::StructureType::ePipelineVertexInputStateCreateInfo;
 	vk::VertexInputBindingDescription bindingDesc = vertex::getBindingDescription();
 	std::array<vk::VertexInputAttributeDescription, 3> attributeDesc = vertex::getAttributeDescriptions();
 	vkVertexInputInfo.vertexBindingDescriptionCount = 1;
@@ -856,19 +844,16 @@ void VulkanApplication::createGraphicsPipeline()
 	vkVertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
 
 	vk::PipelineInputAssemblyStateCreateInfo vkInputAssemblyInfo{};
-	vkInputAssemblyInfo.sType = vk::StructureType::ePipelineInputAssemblyStateCreateInfo;
 	vkInputAssemblyInfo.topology = vk::PrimitiveTopology::eTriangleList;
 	vkInputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
 	vk::PipelineViewportStateCreateInfo vkViewportInfo{};
-	vkViewportInfo.sType = vk::StructureType::ePipelineViewportStateCreateInfo;
 	vkViewportInfo.viewportCount = 1;
 	vkViewportInfo.pViewports = nullptr;
 	vkViewportInfo.scissorCount = 1;
 	vkViewportInfo.pScissors = nullptr;
 
 	vk::PipelineRasterizationStateCreateInfo vkRasterizerInfo{};
-	vkRasterizerInfo.sType = vk::StructureType::ePipelineRasterizationStateCreateInfo;
 	vkRasterizerInfo.depthClampEnable = VK_FALSE;
 	vkRasterizerInfo.rasterizerDiscardEnable = VK_FALSE;
 	vkRasterizerInfo.polygonMode = vk::PolygonMode::eFill;
@@ -881,7 +866,6 @@ void VulkanApplication::createGraphicsPipeline()
 	vkRasterizerInfo.depthBiasSlopeFactor = 0.0f;
 
 	vk::PipelineMultisampleStateCreateInfo vkMultisamplingInfo{};
-	vkMultisamplingInfo.sType = vk::StructureType::ePipelineMultisampleStateCreateInfo;
 	vkMultisamplingInfo.sampleShadingEnable = VK_FALSE;
 	vkMultisamplingInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
 	vkMultisamplingInfo.minSampleShading = 1.0f;
@@ -890,7 +874,6 @@ void VulkanApplication::createGraphicsPipeline()
 	vkMultisamplingInfo.alphaToOneEnable = VK_FALSE;
 
 	vk::PipelineDepthStencilStateCreateInfo vkDepthStencil{};
-	vkDepthStencil.sType = vk::StructureType::ePipelineDepthStencilStateCreateInfo;
 	vkDepthStencil.depthTestEnable = VK_TRUE;
 	vkDepthStencil.depthWriteEnable = VK_TRUE;
 	vkDepthStencil.depthCompareOp = vk::CompareOp::eLess;
@@ -914,7 +897,6 @@ void VulkanApplication::createGraphicsPipeline()
 	vkColorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
 	vkColorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
 	vk::PipelineColorBlendStateCreateInfo vkColorBlendInfo{};
-	vkColorBlendInfo.sType = vk::StructureType::ePipelineColorBlendStateCreateInfo;
 	vkColorBlendInfo.logicOpEnable = VK_FALSE;
 	vkColorBlendInfo.logicOp = vk::LogicOp::eCopy;
 	vkColorBlendInfo.attachmentCount = 1;
@@ -929,12 +911,10 @@ void VulkanApplication::createGraphicsPipeline()
 		vk::DynamicState::eScissor
 	};
 	vk::PipelineDynamicStateCreateInfo vkDynamicStateInfo{};
-	vkDynamicStateInfo.sType = vk::StructureType::ePipelineDynamicStateCreateInfo;
 	vkDynamicStateInfo.dynamicStateCount = static_cast<std::uint32_t>(dynamicStates.size());
 	vkDynamicStateInfo.pDynamicStates = dynamicStates.data();
 
 	vk::PipelineLayoutCreateInfo vkPipelineLayoutInfo{};
-	vkPipelineLayoutInfo.sType = vk::StructureType::ePipelineLayoutCreateInfo;
 	vkPipelineLayoutInfo.setLayoutCount = 1;
 	vkPipelineLayoutInfo.pSetLayouts = &m_vkDescriptorSetLayout;
 	vkPipelineLayoutInfo.pushConstantRangeCount = 0;
@@ -945,7 +925,6 @@ void VulkanApplication::createGraphicsPipeline()
 	LOG_INFO("Pipeline Layout created");
 
 	vk::GraphicsPipelineCreateInfo vkGraphicsPipelineCreateInfo{};
-	vkGraphicsPipelineCreateInfo.sType = vk::StructureType::eGraphicsPipelineCreateInfo;
 	vkGraphicsPipelineCreateInfo.stageCount = 2;
 	vkGraphicsPipelineCreateInfo.pStages = vkShaderStages;
 	vkGraphicsPipelineCreateInfo.pVertexInputState = &vkVertexInputInfo;
@@ -991,7 +970,6 @@ void VulkanApplication::createFrameBuffers()
 		};
 
 		vk::FramebufferCreateInfo vkFrameBufferInfo{};
-		vkFrameBufferInfo.sType = vk::StructureType::eFramebufferCreateInfo;
 		vkFrameBufferInfo.renderPass = m_vkRenderPass;
 		vkFrameBufferInfo.attachmentCount = static_cast<std::uint32_t>( attachments.size() );
 		vkFrameBufferInfo.pAttachments = attachments.data();
@@ -1013,12 +991,10 @@ void VulkanApplication::createCommandPool()
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
 	vk::CommandPoolCreateInfo vkGraphicsCommandPoolInfo{};
-	vkGraphicsCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
 	vkGraphicsCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 	vkGraphicsCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
 
 	vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
-	vkTransferCommandPoolInfo.sType = vk::StructureType::eCommandPoolCreateInfo;
 	vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
 
@@ -1032,7 +1008,6 @@ void VulkanApplication::createCommandPool()
 void VulkanApplication::createConfigCommandBuffer()
 {
 	vk::CommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	allocInfo.commandPool = m_vkGraphicsCommandPool;
 	allocInfo.level = vk::CommandBufferLevel::ePrimary;
 	allocInfo.commandBufferCount = 1;
@@ -1139,7 +1114,6 @@ void VulkanApplication::createTextureSampler()
 	vk::PhysicalDeviceProperties phyDeviceProp = m_vkPhysicalDevice.getProperties(); 
 
 	vk::SamplerCreateInfo samplerCreateInfo{};
-	samplerCreateInfo.sType = vk::StructureType::eSamplerCreateInfo;
 	samplerCreateInfo.magFilter = vk::Filter::eLinear;
 	samplerCreateInfo.minFilter = vk::Filter::eLinear;
 	samplerCreateInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
@@ -1164,7 +1138,6 @@ void VulkanApplication::createGraphicsCommandBuffers()
 	m_vkGraphicsCommandBuffers.resize( MAX_FRAMES_IN_FLIGHT );
 
 	vk::CommandBufferAllocateInfo vkCmdBufAllocateInfo{};
-	vkCmdBufAllocateInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	vkCmdBufAllocateInfo.commandPool = m_vkGraphicsCommandPool;
 	vkCmdBufAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
 	vkCmdBufAllocateInfo.commandBufferCount = m_vkGraphicsCommandBuffers.size();
@@ -1330,10 +1303,8 @@ void VulkanApplication::createSyncObjects()
 	m_vkInFlightFences.resize( MAX_FRAMES_IN_FLIGHT );
 
 	vk::SemaphoreCreateInfo vkSemaphoreInfo{};
-	vkSemaphoreInfo.sType = vk::StructureType::eSemaphoreCreateInfo;
 
 	vk::FenceCreateInfo vkFenceInfo{};
-	vkFenceInfo.sType = vk::StructureType::eFenceCreateInfo;
 	vkFenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
 	for( auto i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
@@ -1386,7 +1357,6 @@ void VulkanApplication::setupConfigCommandBuffer()
 	m_vkConfigCommandBuffer.reset( {} );
 
 	vk::CommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
 	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 	
 	m_vkConfigCommandBuffer.begin( beginInfo );
@@ -1397,7 +1367,6 @@ void VulkanApplication::flushConfigCommandBuffer()
 	m_vkConfigCommandBuffer.end();
 
 	vk::SubmitInfo submitInfo{};
-	submitInfo.sType = vk::StructureType::eSubmitInfo;
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_vkConfigCommandBuffer;
 
@@ -1409,14 +1378,12 @@ void VulkanApplication::flushConfigCommandBuffer()
 void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer, const std::uint32_t& imageIndex )
 {
 	vk::CommandBufferBeginInfo vkCmdBufBeginInfo{};
-	vkCmdBufBeginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
 	vkCmdBufBeginInfo.flags = {};
 	vkCmdBufBeginInfo.pInheritanceInfo = nullptr;
 
 	vkCommandBuffer.begin( vkCmdBufBeginInfo );
 
 	vk::RenderPassBeginInfo vkRenderPassBeginInfo{};
-	vkRenderPassBeginInfo.sType = vk::StructureType::eRenderPassBeginInfo;
 	vkRenderPassBeginInfo.renderPass = m_vkRenderPass;
 	vkRenderPassBeginInfo.framebuffer = m_swapchainFrameBuffers[ imageIndex ];
 	vkRenderPassBeginInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
@@ -1472,7 +1439,6 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 vk::CommandBuffer VulkanApplication::beginSingleTimeCommands( const vk::CommandPool& commandPoolToAllocFrom )
 {
 	vk::CommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eCommandBufferAllocateInfo;
 	allocInfo.level = vk::CommandBufferLevel::ePrimary;
 	allocInfo.commandPool = commandPoolToAllocFrom;
 	allocInfo.commandBufferCount = 1;
@@ -1480,7 +1446,6 @@ vk::CommandBuffer VulkanApplication::beginSingleTimeCommands( const vk::CommandP
 	vk::CommandBuffer commandBuffer = m_vkLogicalDevice.allocateCommandBuffers(allocInfo)[0];
 
 	vk::CommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
 	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
 	commandBuffer.begin( beginInfo );
@@ -1493,7 +1458,6 @@ void VulkanApplication::endSingleTimeCommands( const vk::CommandPool& commandPoo
 	vkCommandBuffer.end();
 
 	vk::SubmitInfo submitInfo{};
-	submitInfo.sType = vk::StructureType::eSubmitInfo;
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &vkCommandBuffer;
 
@@ -1562,7 +1526,6 @@ void VulkanApplication::transitionImageLayout(
 	}
 
 	vk::ImageMemoryBarrier imgBarrier{};
-	imgBarrier.sType = vk::StructureType::eImageMemoryBarrier;
 	imgBarrier.oldLayout = oldLayout;
 	imgBarrier.newLayout = newLayout;
 	imgBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -1590,7 +1553,6 @@ void VulkanApplication::transitionImageLayout(
 vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& shaderSourceBuffer)
 {
 	vk::ShaderModuleCreateInfo vkShaderModuleCreateInfo{};
-	vkShaderModuleCreateInfo.sType = vk::StructureType::eShaderModuleCreateInfo;
 	vkShaderModuleCreateInfo.codeSize = shaderSourceBuffer.size();
 	vkShaderModuleCreateInfo.pCode = reinterpret_cast<const std::uint32_t*>( shaderSourceBuffer.data() );
 
@@ -1613,7 +1575,6 @@ void VulkanApplication::createBuffer(
 	);
 
 	vk::BufferCreateInfo bufferInfo{};
-	bufferInfo.sType = vk::StructureType::eBufferCreateInfo;
 	bufferInfo.size = bufferSizeInBytes;
 	bufferInfo.usage = bufferUsage;
 	bufferInfo.sharingMode = vk::SharingMode::eConcurrent;
@@ -1631,7 +1592,6 @@ void VulkanApplication::createBuffer(
 	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getBufferMemoryRequirements( buffer );
 
 	vk::MemoryAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memProps );
 
@@ -1648,7 +1608,6 @@ void VulkanApplication::createImage(
 )
 {
 	vk::ImageCreateInfo imageCreateInfo{};
-	imageCreateInfo.sType = vk::StructureType::eImageCreateInfo;
 	imageCreateInfo.imageType = vk::ImageType::e2D;
 	imageCreateInfo.extent.width = static_cast<std::uint32_t>( width );
 	imageCreateInfo.extent.height = static_cast<std::uint32_t>( height );
@@ -1668,7 +1627,6 @@ void VulkanApplication::createImage(
 	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getImageMemoryRequirements( image );
 	
 	vk::MemoryAllocateInfo allocInfo{};
-	allocInfo.sType = vk::StructureType::eMemoryAllocateInfo;
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memPropFlags );
 
@@ -1680,7 +1638,6 @@ void VulkanApplication::createImage(
 vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const vk::Format& format, const vk::ImageAspectFlags& aspect )
 {
 	vk::ImageViewCreateInfo vkImageViewCreateInfo{};
-	vkImageViewCreateInfo.sType = vk::StructureType::eImageViewCreateInfo;
 	vkImageViewCreateInfo.image = image;
 	vkImageViewCreateInfo.viewType = vk::ImageViewType::e2D;
     vkImageViewCreateInfo.format = format;
@@ -1767,7 +1724,6 @@ void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMes
 {
 	using namespace vkrender;
 
-	vkDebugUtilsMessengerCreateInfo.sType = vk::StructureType::eDebugUtilsMessengerCreateInfoEXT;
 	vkDebugUtilsMessengerCreateInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 	vkDebugUtilsMessengerCreateInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
 	vkDebugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugMessenger::debugCallback;
@@ -1775,7 +1731,6 @@ void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMes
 
 void VulkanApplication::populateDeviceQueueCreateInfo( vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, const std::uint32_t& queueFamilyIndex, const std::vector<float>& queuePriorities )
 {
-	vkDeviceQueueCreateInfo.sType = vk::StructureType::eDeviceQueueCreateInfo;
 	vkDeviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
 	vkDeviceQueueCreateInfo.queueCount = queuePriorities.size();
 	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriorities.data();
@@ -1789,7 +1744,6 @@ void VulkanApplication::populateDeviceCreateInfo(
 {
 	using namespace vkrender;
 
-	vkDeviceCreateInfo.sType = vk::StructureType::eDeviceCreateInfo;
 	vkDeviceCreateInfo.enabledExtensionCount = m_deviceExtensionContainer.size();
 	vkDeviceCreateInfo.ppEnabledExtensionNames = m_deviceExtensionContainer.data();
 	vkDeviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
