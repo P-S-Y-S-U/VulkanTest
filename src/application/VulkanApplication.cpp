@@ -229,7 +229,7 @@ void VulkanApplication::drawFrame()
 
 	imageIndex = opImageAcquistion.value;
 
-	m_vkGraphicsCommandBuffers[m_currentFrame].reset();
+	m_vkGraphicsCommandBuffers[m_currentFrame].reset( {} );
 	recordCommandBuffer( m_vkGraphicsCommandBuffers[m_currentFrame], imageIndex );
 
 	vk::SubmitInfo vkCmdSubmitInfo{};
@@ -1383,7 +1383,7 @@ void VulkanApplication::destroySwapChain()
 
 void VulkanApplication::setupConfigCommandBuffer()
 {
-	m_vkConfigCommandBuffer.reset();
+	m_vkConfigCommandBuffer.reset( {} );
 
 	vk::CommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = vk::StructureType::eCommandBufferBeginInfo;
