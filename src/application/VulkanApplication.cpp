@@ -941,8 +941,19 @@ void VulkanApplication::createGraphicsPipeline()
 	vkGraphicsPipelineCreateInfo.basePipelineHandle = nullptr;
 	vkGraphicsPipelineCreateInfo.basePipelineIndex = -1;
 
-	m_vkGraphicsPipeline = m_vkLogicalDevice.createGraphicsPipeline( nullptr, vkGraphicsPipelineCreateInfo );
-	LOG_INFO("Graphics Pipeline created");
+	
+	vk::ResultValue<vk::Pipeline> operationResult = m_vkLogicalDevice.createGraphicsPipeline( nullptr, vkGraphicsPipelineCreateInfo );
+	if( operationResult.result == vk::Result::eSuccess )
+	{
+		m_vkGraphicsPipeline = operationResult.value;
+		LOG_INFO("Graphics Pipeline created");
+	}
+	else
+	{
+		std::string errorMsg = "Failed to create Graphics Pipeline";
+		LOG_ERROR(errorMsg);
+		throw std::runtime_error(errorMsg);
+	}
 	
 
 	m_vkLogicalDevice.destroyShaderModule( fragmentShaderModule );
