@@ -8,7 +8,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
 find_package(Wayland REQUIRED)
-find_package(VulkanLoader CONFIG REQUIRED)
+find_package(VulkanLoader 1.3.275 CONFIG REQUIRED)
 
 # CMAKE C & CXX FLAGS SETUP
 
@@ -21,6 +21,14 @@ set(PROJECT_LIB     "lib")
 set(PROJECT_ARCHIVE "lib/static")
 set(_EXPORT_PREFIX "Vulkan_Export")
 set(PROJECT_INSTALL ${CMAKE_INSTALL_PREFIX})
+
+set(PROJECT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(DEPENDENCIES_DIR "")
+
+foreach( PREFIX_ITEM IN LISTS CMAKE_PREFIX_PATH )
+    list(APPEND DEPENDENCIES_DIR "${PREFIX_ITEM}/include" )
+endforeach( PREFIX_ITEM IN LISTS CMAKE_PREFIX_PATH )
+list(APPEND DEPENDENCIES_DIR ${Wayland_Client_INCLUDE_DIR})
 
 # PROJECT CMAKE SCRIPT REQUIREMENTS (Dependencies cmake script)#
 

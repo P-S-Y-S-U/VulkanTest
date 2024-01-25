@@ -8,8 +8,8 @@ set(PROJECT_SRC_FILES       window/window.cpp
 
 # library & executable config #
 add_library(vulkanrenderer SHARED ${PROJECT_SRC_FILES})
-target_include_directories(vulkanrenderer PUBLIC        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-                                                        $<BUILD_INTERFACE:${Wayland_Client_INCLUDE_DIR}>
+target_include_directories(vulkanrenderer PUBLIC        $<BUILD_INTERFACE:${PROJECT_INCLUDE_DIR}>
+                                                        $<BUILD_INTERFACE:${DEPENDENCIES_DIR}>
                                                         $<INSTALL_INTERFACE:include>
                                                         )
 target_link_libraries(vulkanrenderer PUBLIC glm::glm glfw spdlog::spdlog tinyobjloader Vulkan::Loader ) 
