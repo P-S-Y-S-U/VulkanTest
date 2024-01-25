@@ -10,6 +10,15 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(Wayland REQUIRED)
 find_package(VulkanLoader 1.3.275 CONFIG REQUIRED)
 
+# Find Vulkan Shader Compiler
+find_file( VULKAN_SHADER_COMPILER   NAMES glslc 
+                                    HINTS bin
+                                    REQUIRED 
+)
+
+message( "Found Vulkan Shader Compiler ${VULKAN_SHADER_COMPILER}" )
+
+
 # CMAKE VAR SETUP
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
@@ -38,4 +47,5 @@ list(APPEND DEPENDENCIES_DIR ${Wayland_Client_INCLUDE_DIR})
 
 # Additional cmake scripts in sub-directory #
 add_subdirectory(src)
+add_subdirectory(media)
 add_subdirectory(test)
