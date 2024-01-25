@@ -10,7 +10,9 @@ find_package(tinyobjloader CONFIG REQUIRED)
 find_package(Wayland REQUIRED)
 find_package(VulkanLoader 1.3.275 CONFIG REQUIRED)
 
-# CMAKE C & CXX FLAGS SETUP
+# CMAKE VAR SETUP
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+
 
 # compile definitions
 add_compile_definitions(NOMINMAX)
