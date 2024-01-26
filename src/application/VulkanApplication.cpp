@@ -374,7 +374,7 @@ void VulkanApplication::createInstance()
 		throw std::runtime_error( errorMsg );
 	}
 	LOG_INFO( "Created Vulkan instance successfully" );
-
+	logVulkanInstanceCreationInfo(instanceCreateInfo);
 }
 
 void VulkanApplication::createSurface()
@@ -394,13 +394,14 @@ void VulkanApplication::createSurface()
 	surfaceCreateInfo.display = m_window.getDisplayHandle();
 	surfaceCreateInfo.pNext = nullptr;
 
-	if( ! vkCreateWaylandSurfaceKHR( 
-			reinterpret_cast<const VkInstance&>( m_vkInstance ),
-			&surfaceCreateInfo,
-			nullptr,
-			reinterpret_cast<VkSurfaceKHR*>( &m_vkSurface )
-		)
-	)
+ 	VkResult surfaceCreateReslt = vkCreateWaylandSurfaceKHR( 
+		reinterpret_cast<const VkInstance&>( m_vkInstance ),
+		&surfaceCreateInfo,
+		nullptr,
+		reinterpret_cast<VkSurfaceKHR*>( &m_vkSurface )	
+	);
+
+	if( surfaceCreateReslt != VK_SUCCESS )
 	{
 		LOG_ERROR("Failed to Create Vulkan Wayland Surface");
 	}
@@ -1948,4 +1949,20 @@ void VulkanApplication::copyBufferToImage( const vk::Buffer& srcBuffer, const vk
 	cmdBuf.copyBufferToImage( srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, 1, &copyRegion );
 
 	endSingleTimeCommands(m_vkTransferCommandPool, cmdBuf, m_vkTransferQueue );
+}
+
+void VulkanApplication::logVulkanInstanceCreationInfo(const vk::InstanceCreateInfo &instanceCreateInfo)
+{
+	LOG_INFO( fmt::format( "Enabled Extensions Count : {}", instanceCreateInfo.enabledExtensionCount) );
+
+	for( auto i = 0u; i < instanceCreateInfo.enabledExtensionCount; i++ )
+	{
+		LOG_INFO( fmt::format("EXTENSION: {}", instanceCreateInfo.ppEnabledExtensionNames[i]) );
+	}
+
+	LOG_INFO( fmt::format("Enabled Layers Count : {}", instanceCreateInfo.enabledLayerCount) );
+	for( auto i = 0u; i < instanceCreateInfo.enabledLayerCount; i++ )
+	{
+		LOG_INFO( fmt::format("LAYER: {}", instanceCreateInfo.ppEnabledLayerNames[i]) );
+	}
 }
