@@ -107,7 +107,9 @@ protected:
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
     void populateDeviceQueueCreateInfo( 
         vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 
-        const std::uint32_t& queueFamilyIndex, const std::vector<float>& queuePriorities 
+        const std::uint32_t& queueFamilyIndex, 
+        const std::uint32_t& queueCount, 
+        const float* queuePriorities
     );
     void populateDeviceCreateInfo(
         vk::DeviceCreateInfo& vkDeviceCreateInfo,

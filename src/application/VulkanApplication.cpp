@@ -522,51 +522,36 @@ void VulkanApplication::createLogicalDevice()
 	using namespace vkrender;
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
-	vk::DeviceQueueCreateInfo vkDeviceGraphicsQueueCreateInfo{};	
-	std::uint32_t graphicsQueueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
-	std::size_t graphicsQueueCount = 1;
-	std::vector<float> graphicsQueuePriorities( graphicsQueueCount ); // TODO check state
-	graphicsQueuePriorities[0] = 1.0f;
-	graphicsQueuePriorities.shrink_to_fit();
-	populateDeviceQueueCreateInfo( vkDeviceGraphicsQueueCreateInfo, graphicsQueueFamilyIndex, graphicsQueuePriorities );
+	std::set<std::uint32_t> uniqueQueueFamilies{ 
+		queueFamilyIndices.m_graphicsFamily.value(), 
+		queueFamilyIndices.m_presentFamily.value(), 
+		queueFamilyIndices.m_exclusiveTransferFamily.value() 
+	};
+	
+	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos{ uniqueQueueFamilies.size() };
 
-	vk::DeviceQueueCreateInfo vkDevicePresentationQueueCreateInfo{};
-	std::size_t presentationQueueCount = 1;
-	std::vector<float> presentationQueuePriorities( presentationQueueCount );
-	presentationQueuePriorities[0] = 1.0f;
-	presentationQueuePriorities.shrink_to_fit();
-	if( queueFamilyIndices.m_presentFamily.has_value() )
-	{	
-		std::uint32_t presentationQueueFamilyIndex = queueFamilyIndices.m_presentFamily.value();
-		populateDeviceQueueCreateInfo( vkDevicePresentationQueueCreateInfo, presentationQueueFamilyIndex, presentationQueuePriorities );
-	}
 
-	vk::DeviceQueueCreateInfo vkDeviceTransferQueueCreateInfo{};
-	std::size_t transferQueueCount = 1;
-	std::vector<float> transferQueuePriorities( transferQueueCount );
-	transferQueuePriorities[0] = 1.0f;
-	transferQueuePriorities.shrink_to_fit();
-	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	std::vector<float> queuePriorities{1};
+	queuePriorities[0] = 1.0f;
+
+	auto createInfoIndex = 0u;
+	for( const auto& queueFamilyIndex : uniqueQueueFamilies )
 	{
-		std::uint32_t transferQueueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
-		populateDeviceQueueCreateInfo( vkDeviceTransferQueueCreateInfo, transferQueueFamilyIndex, transferQueuePriorities );
+		vk::DeviceQueueCreateInfo queueCreateInfo{};
+		std::size_t queueCount = 1;
+		populateDeviceQueueCreateInfo( queueCreateInfo, queueFamilyIndex, queueCount, queuePriorities.data() );
+		deviceQueueCreateInfos[createInfoIndex] = queueCreateInfo;
+		createInfoIndex++;
 	}
 
 	vk::DeviceCreateInfo vkDeviceCreateInfo{};
-	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-	queueCreateInfos.push_back( vkDeviceGraphicsQueueCreateInfo );
-	if( queueFamilyIndices.m_presentFamily.has_value() )
-		queueCreateInfos.push_back( vkDevicePresentationQueueCreateInfo );
-	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
-		queueCreateInfos.push_back( vkDeviceTransferQueueCreateInfo );
-	queueCreateInfos.shrink_to_fit();
 	vk::PhysicalDeviceFeatures physicalDeviceFeatures = m_vkPhysicalDevice.getFeatures(); // TODO check state
-	populateDeviceCreateInfo( vkDeviceCreateInfo, queueCreateInfos, &physicalDeviceFeatures );
+	populateDeviceCreateInfo( vkDeviceCreateInfo, deviceQueueCreateInfos, &physicalDeviceFeatures );
 
 	m_vkLogicalDevice = m_vkPhysicalDevice.createDevice( vkDeviceCreateInfo );	
 	LOG_INFO("Logical Device created");
 
-	m_vkGraphicsQueue = m_vkLogicalDevice.getQueue( graphicsQueueFamilyIndex, 0 );
+	m_vkGraphicsQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_graphicsFamily.value(), 0 );
 	LOG_INFO("Graphics Queue created");
 
 	if( queueFamilyIndices.m_presentFamily.has_value() )
@@ -1743,11 +1728,16 @@ void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMes
 	vkDebugUtilsMessengerCreateInfo.pfnUserCallback = VulkanDebugMessenger::debugCallback;
 }
 
-void VulkanApplication::populateDeviceQueueCreateInfo( vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, const std::uint32_t& queueFamilyIndex, const std::vector<float>& queuePriorities )
+void VulkanApplication::populateDeviceQueueCreateInfo( 
+        vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 
+        const std::uint32_t& queueFamilyIndex, 
+        const std::uint32_t& queueCount, 
+        const float* queuePriorities
+)
 {
 	vkDeviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
-	vkDeviceQueueCreateInfo.queueCount = queuePriorities.size();
-	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriorities.data();
+	vkDeviceQueueCreateInfo.queueCount = queueCount;
+	vkDeviceQueueCreateInfo.pQueuePriorities = queuePriorities;
 }
 
 void VulkanApplication::populateDeviceCreateInfo( 
