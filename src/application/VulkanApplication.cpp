@@ -389,16 +389,22 @@ void VulkanApplication::createSurface()
 #else
 	VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo;
 	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.flags = 0;
 	surfaceCreateInfo.surface = m_window.getHandle();
 	surfaceCreateInfo.display = m_window.getDisplayHandle();
 	surfaceCreateInfo.pNext = nullptr;
 
-	vkCreateWaylandSurfaceKHR( 
-		reinterpret_cast<const VkInstance&>( m_vkInstance ),
-		&surfaceCreateInfo,
-		nullptr,
-		reinterpret_cast<VkSurfaceKHR*>( &m_vkSurface )
-	);
+	if( ! vkCreateWaylandSurfaceKHR( 
+			reinterpret_cast<const VkInstance&>( m_vkInstance ),
+			&surfaceCreateInfo,
+			nullptr,
+			reinterpret_cast<VkSurfaceKHR*>( &m_vkSurface )
+		)
+	)
+	{
+		LOG_ERROR("Failed to Create Vulkan Wayland Surface");
+	}
+
 #endif
 	LOG_INFO( "Vulkan Surface Created" );
 }
