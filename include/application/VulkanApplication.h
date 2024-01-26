@@ -6,12 +6,12 @@
 #include <vector>
 #include <filesystem>
 
+#include "config.hpp"
+#include "exports.hpp"
 #include "window/window.h"
 #include "vkrenderer/VulkanSwapChainStructs.hpp"
 #include "vkrenderer/VulkanQueueFamily.hpp"
 #include "graphics/Vertex.hpp"
-#include "config.hpp"
-#include "exports.hpp"
 
 #include <vulkan/vulkan.hpp>
 

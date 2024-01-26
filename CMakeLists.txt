@@ -7,24 +7,31 @@ find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
-find_package(Wayland REQUIRED)
-find_package(VulkanLoader 1.3.275 CONFIG REQUIRED)
 
-# Find Vulkan Shader Compiler
-find_file( VULKAN_SHADER_COMPILER   NAMES glslc 
-                                    HINTS bin
-                                    REQUIRED 
-)
+if(LINUX)
+    find_package(VulkanLoader 1.3.275 CONFIG REQUIRED)
+    find_package(Wayland REQUIRED)
+    # Find Vulkan Shader Compiler
+    find_file( VULKAN_SHADER_COMPILER   NAMES glslc 
+                                        HINTS bin
+                                        REQUIRED 
+    )
+    set(Vulkan_LIBRARY Vulkan::Loader)
+elseif(WIN32)
+    find_package(Vulkan 1.3.275 REQUIRED)
+    set(VULKAN_SHADER_COMPILER ${Vulkan_GLSLC_EXECUTABLE})
+endif(LINUX)
 
 message( "Found Vulkan Shader Compiler ${VULKAN_SHADER_COMPILER}" )
 
-
 # CMAKE VAR SETUP
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # compile definitions
-add_compile_definitions(NOMINMAX)
+set(PROJECT_COMPILER_DEFINITIONS NOMINMAX)
+if(WIN32)
+list(APPEND PROJECT_COMPILER_DEFINITIONS _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
+endif()
 
 # PROJECT VARS SETUP
 set(PROJECT_BIN     "bin")
@@ -34,12 +41,17 @@ set(_EXPORT_PREFIX "Vulkan_Export")
 set(PROJECT_INSTALL ${CMAKE_INSTALL_PREFIX})
 
 set(PROJECT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(DEPENDENCIES_DIR "")
+set(DEPENDENCIES_INCLUDE_DIR "")
 
 foreach( PREFIX_ITEM IN LISTS CMAKE_PREFIX_PATH )
-    list(APPEND DEPENDENCIES_DIR "${PREFIX_ITEM}/include" )
+    list(APPEND DEPENDENCIES_INCLUDE_DIR "${PREFIX_ITEM}/include" )
 endforeach( PREFIX_ITEM IN LISTS CMAKE_PREFIX_PATH )
-list(APPEND DEPENDENCIES_DIR ${Wayland_Client_INCLUDE_DIR})
+
+if(LINUX)
+list(APPEND DEPENDENCIES_INCLUDE_DIR ${Wayland_Client_INCLUDE_DIR})
+elseif(WIN32)
+list(APPEND DEPENDENCIES_INCLUDE_DIR ${Vulkan_INCLUDE_DIR})
+endif(LINUX)
 
 # PROJECT CMAKE SCRIPT REQUIREMENTS (Dependencies cmake script)#
 

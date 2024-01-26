@@ -9,10 +9,11 @@ set(PROJECT_SRC_FILES       window/window.cpp
 # library & executable config #
 add_library(vulkanrenderer SHARED ${PROJECT_SRC_FILES})
 target_include_directories(vulkanrenderer PUBLIC        $<BUILD_INTERFACE:${PROJECT_INCLUDE_DIR}>
-                                                        $<BUILD_INTERFACE:${DEPENDENCIES_DIR}>
+                                                        $<BUILD_INTERFACE:${DEPENDENCIES_INCLUDE_DIR}>
                                                         $<INSTALL_INTERFACE:include>
                                                         )
-target_link_libraries(vulkanrenderer PUBLIC glm::glm glfw spdlog::spdlog tinyobjloader Vulkan::Loader ) 
+target_compile_definitions(vulkanrenderer PUBLIC ${PROJECT_COMPILER_DEFINITIONS})
+target_link_libraries(vulkanrenderer PUBLIC glm::glm glfw spdlog::spdlog tinyobjloader ${Vulkan_LIBRARY} ) 
 
 # cmake install config #
 install(TARGETS vulkanrenderer  EXPORT ${_EXPORT_PREFIX}
