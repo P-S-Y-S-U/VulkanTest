@@ -1079,7 +1079,7 @@ void VulkanApplication::createTextureImage()
 	createImage( 
 		texWidth, texHeight, m_imageMiplevels,
 		vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkTextureImage, m_vkTextureImageMemory
 	);
