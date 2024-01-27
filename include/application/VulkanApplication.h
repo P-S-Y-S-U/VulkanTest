@@ -82,7 +82,8 @@ protected:
 
     void transitionImageLayout( 
         const vk::Image& image, const vk::Format& format, 
-        const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout
+        const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout,
+        const std::uint32_t& mipmapLevels
     );
 
     vk::ShaderModule createShaderModule(const std::vector<char>& shaderSourceBuffer);
@@ -94,12 +95,17 @@ protected:
         vk::DeviceMemory& bufferMemory
     );
     void createImage(
-        const std::uint32_t& width, const std::uint32_t& height,
+        const std::uint32_t& width, const std::uint32_t& height, const std::uint32_t& mipmapLevels,
         const vk::Format& format, const vk::ImageTiling& tiling,
         const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
         vk::Image& image, vk::DeviceMemory& imageMemory
     );
-    vk::ImageView createImageView( const vk::Image& image, const vk::Format& format, const vk::ImageAspectFlags& aspect );
+    vk::ImageView createImageView( 
+        const vk::Image& image, 
+        const vk::Format& format, 
+        const vk::ImageAspectFlags& aspect,
+        const std::uint32_t& mipmapLevels
+    );
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
@@ -168,6 +174,7 @@ protected:
     vk::DeviceMemory m_vkDepthImageMemory;
     vk::ImageView m_vkDepthImageView;
 
+    std::uint32_t m_imageMiplevels;
     vk::Image m_vkTextureImage;
     vk::DeviceMemory m_vkTextureImageMemory;
     vk::ImageView m_vkTextureImageView;

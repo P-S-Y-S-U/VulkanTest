@@ -627,7 +627,7 @@ void VulkanApplication::createSwapChainImageViews()
 
 	for( auto i = 0u; i < m_swapchainImages.size(); i++ )
 	{		
-		m_swapchainImageViews[i] = createImageView( m_swapchainImages[i], m_vkSwapchainImageFormat, vk::ImageAspectFlagBits::eColor );
+		m_swapchainImageViews[i] = createImageView( m_swapchainImages[i], m_vkSwapchainImageFormat, vk::ImageAspectFlagBits::eColor, 1 );
 	}
 	m_swapchainImageViews.shrink_to_fit();
 
@@ -1016,14 +1016,18 @@ void VulkanApplication::createDepthResources()
 	vk::Format depthFormat = findDepthFormat();
 
 	createImage(
-		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height,
+		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1,
 		depthFormat, vk::ImageTiling::eOptimal, 
 		vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkDepthImage, m_vkDepthImageMemory
 	);
-	m_vkDepthImageView = createImageView( m_vkDepthImage, depthFormat, vk::ImageAspectFlagBits::eDepth );
+	m_vkDepthImageView = createImageView( m_vkDepthImage, depthFormat, vk::ImageAspectFlagBits::eDepth, 1);
 
-	transitionImageLayout( m_vkDepthImage, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal );
+	transitionImageLayout( 
+		m_vkDepthImage, depthFormat, 
+		vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal,
+		1
+	);
 
 	LOG_INFO("Depth Resources Created");
 }
@@ -1050,6 +1054,8 @@ void VulkanApplication::createTextureImage()
 		throw  std::runtime_error(errorMsg);
 	}
 
+	m_imageMiplevels = static_cast<std::uint32_t>( std::floor( std::log2( std::max( texWidth, texHeight ) ) ) ) + 1;
+
 	vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
 	vk::Buffer stagingBuffer;
@@ -1071,7 +1077,7 @@ void VulkanApplication::createTextureImage()
 	stbi_image_free(pixels);
 
 	createImage( 
-		texWidth, texHeight,
+		texWidth, texHeight, m_imageMiplevels,
 		vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -1080,7 +1086,8 @@ void VulkanApplication::createTextureImage()
 
 	transitionImageLayout( 
 		m_vkTextureImage, vk::Format::eR8G8B8A8Srgb, 
-		vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal 
+		vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+		m_imageMiplevels
 	);
 
 	copyBufferToImage( 
@@ -1091,7 +1098,8 @@ void VulkanApplication::createTextureImage()
 
 	transitionImageLayout(
 		m_vkTextureImage, vk::Format::eR8G8B8A8Srgb,
-		vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal
+		vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+		m_imageMiplevels
 	);
 
 	m_vkLogicalDevice.destroyBuffer( stagingBuffer, nullptr );
@@ -1100,7 +1108,11 @@ void VulkanApplication::createTextureImage()
 
 void VulkanApplication::createTextureImageView()
 {
-	m_vkTextureImageView = createImageView( m_vkTextureImage, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor );
+	m_vkTextureImageView = createImageView( 
+		m_vkTextureImage, vk::Format::eR8G8B8A8Srgb, 
+		vk::ImageAspectFlagBits::eColor,
+		m_imageMiplevels 
+	);
 }
 
 void VulkanApplication::createTextureSampler()
@@ -1468,7 +1480,8 @@ void VulkanApplication::endSingleTimeCommands( const vk::CommandPool& commandPoo
 
 void VulkanApplication::transitionImageLayout( 
     const vk::Image& image, const vk::Format& format, 
-    const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout
+    const vk::ImageLayout& oldLayout, const vk::ImageLayout& newLayout,
+	const std::uint32_t& mipmapLevels
 )
 {
 	setupConfigCommandBuffer();
@@ -1532,7 +1545,7 @@ void VulkanApplication::transitionImageLayout(
 	imgBarrier.image = image;
 	imgBarrier.subresourceRange.aspectMask = aspectMask;
 	imgBarrier.subresourceRange.baseMipLevel = 0;
-	imgBarrier.subresourceRange.levelCount = 1;
+	imgBarrier.subresourceRange.levelCount = mipmapLevels;
 	imgBarrier.subresourceRange.baseArrayLayer = 0;
 	imgBarrier.subresourceRange.layerCount = 1;
 	imgBarrier.srcAccessMask = srcAccessMask;
@@ -1600,7 +1613,7 @@ void VulkanApplication::createBuffer(
 }
 
 void VulkanApplication::createImage(
-    const std::uint32_t& width, const std::uint32_t& height,
+    const std::uint32_t& width, const std::uint32_t& height, const std::uint32_t& mipmapLevels,
     const vk::Format& format, const vk::ImageTiling& tiling,
     const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
     vk::Image& image, vk::DeviceMemory& imageMemory
@@ -1611,7 +1624,7 @@ void VulkanApplication::createImage(
 	imageCreateInfo.extent.width = static_cast<std::uint32_t>( width );
 	imageCreateInfo.extent.height = static_cast<std::uint32_t>( height );
 	imageCreateInfo.extent.depth = 1;
-	imageCreateInfo.mipLevels = 1;
+	imageCreateInfo.mipLevels = mipmapLevels;
 	imageCreateInfo.arrayLayers = 1;
 	imageCreateInfo.format = format;
 	imageCreateInfo.tiling = tiling;
@@ -1634,7 +1647,12 @@ void VulkanApplication::createImage(
 	m_vkLogicalDevice.bindImageMemory( image, imageMemory, 0 );
 }
 
-vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const vk::Format& format, const vk::ImageAspectFlags& aspect )
+vk::ImageView VulkanApplication::createImageView( 
+	const vk::Image& image,
+	const vk::Format& format,
+	const vk::ImageAspectFlags& aspect,
+	const std::uint32_t& mipmapLevels
+)
 {
 	vk::ImageViewCreateInfo vkImageViewCreateInfo{};
 	vkImageViewCreateInfo.image = image;
@@ -1649,7 +1667,7 @@ vk::ImageView VulkanApplication::createImageView( const vk::Image& image, const 
     vk::ImageSubresourceRange subResourceRange;
     subResourceRange.aspectMask = aspect;
     subResourceRange.baseMipLevel = 0;
-    subResourceRange.levelCount = 1;
+    subResourceRange.levelCount = mipmapLevels;
     subResourceRange.baseArrayLayer = 0;
     subResourceRange.layerCount = 1;
     vkImageViewCreateInfo.subresourceRange = subResourceRange;
