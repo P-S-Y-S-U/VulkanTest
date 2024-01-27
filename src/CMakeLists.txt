@@ -10,11 +10,14 @@ set(PROJECT_SRC_FILES       window/window.cpp
 add_library(vulkanrenderer SHARED ${PROJECT_SRC_FILES})
 target_include_directories(vulkanrenderer PUBLIC        $<BUILD_INTERFACE:${PROJECT_INCLUDE_DIR}>
                                                         $<BUILD_INTERFACE:${DEPENDENCIES_INCLUDE_DIR}>
+                                                        $<BUILD_INTERFACE:${Vulkan_INCLUDE_DIR}>
                                                         $<INSTALL_INTERFACE:include>
                                                         )
 target_compile_definitions(vulkanrenderer PUBLIC ${PROJECT_COMPILER_DEFINITIONS})
 target_link_libraries(vulkanrenderer PUBLIC glm::glm glfw spdlog::spdlog tinyobjloader ${Vulkan_LIBRARY} ) 
 
+get_target_property(VULKANRENDERPROPERTY vulkanrenderer INCLUDE_DIRECTORIES)
+message(${VULKANRENDERPROPERTY})
 # cmake install config #
 install(TARGETS vulkanrenderer  EXPORT ${_EXPORT_PREFIX}
                                 RUNTIME DESTINATION ${PROJECT_BIN}
