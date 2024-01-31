@@ -148,7 +148,12 @@ protected:
     std::uint32_t findMemoryType( const std::uint32_t& typeFilter, const vk::MemoryPropertyFlags& propertyFlags );
     void copyBuffer( const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const vk::DeviceSize& sizeInBytes );
     void copyBufferToImage( const vk::Buffer& srcBuffer, const vk::Image& dstImage, const std::uint32_t& width, const std::uint32_t& height );
-
+    void generateMipmaps( 
+        const vk::Image& image, 
+        const vk::Format& imgFormat,
+        const std::int32_t& texWidth, const std::int32_t& texHeight,
+        const std::uint32_t& mipLevels
+    );
     void logVulkanInstanceCreationInfo( const vk::InstanceCreateInfo& instanceCreateInfo );
     
     static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
