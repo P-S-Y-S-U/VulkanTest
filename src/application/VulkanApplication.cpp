@@ -1137,7 +1137,7 @@ void VulkanApplication::createTextureSampler()
 	samplerCreateInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 	samplerCreateInfo.mipLodBias = 0.0f;
 	samplerCreateInfo.minLod = 0.0f;
-	samplerCreateInfo.maxLod = 0.0f;
+	samplerCreateInfo.maxLod = static_cast<float>(m_imageMiplevels);
 
 	m_vkTextureSampler = m_vkLogicalDevice.createSampler( samplerCreateInfo );
 }
