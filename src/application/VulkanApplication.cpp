@@ -1034,7 +1034,7 @@ void VulkanApplication::createDepthResources()
 	vk::Format depthFormat = findDepthFormat();
 
 	createImage(
-		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1, vk::SampleCountFlagBits::e1,
+		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1, m_msaaSampleCount,
 		depthFormat, vk::ImageTiling::eOptimal, 
 		vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkDepthImage, m_vkDepthImageMemory
@@ -1355,12 +1355,17 @@ void VulkanApplication::recreateSwapChain()
 	
 	createSwapchain();
 	createSwapChainImageViews();
+	createColorResources();
 	createDepthResources();
 	createFrameBuffers();	
 }
 
 void VulkanApplication::destroySwapChain()
 {
+	m_vkLogicalDevice.destroyImageView( m_vkColorImageView );
+	m_vkLogicalDevice.destroyImage( m_vkColorImage );
+	m_vkLogicalDevice.freeMemory( m_vkColorImageMemory );
+
 	m_vkLogicalDevice.destroyImageView( m_vkDepthImageView );
 	m_vkLogicalDevice.destroyImage( m_vkDepthImage );
 	m_vkLogicalDevice.freeMemory( m_vkDepthImageMemory );
