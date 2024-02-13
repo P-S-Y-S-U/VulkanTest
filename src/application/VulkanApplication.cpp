@@ -640,13 +640,13 @@ void VulkanApplication::createRenderPass()
 {
 	vk::AttachmentDescription vkColorAttachment{};
 	vkColorAttachment.format = m_vkSwapchainImageFormat;
-	vkColorAttachment.samples = vk::SampleCountFlagBits::e1;
+	vkColorAttachment.samples = m_msaaSampleCount;
 	vkColorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	vkColorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	vkColorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
 	vkColorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 	vkColorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-	vkColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+	vkColorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
 	vk::AttachmentReference vkColorAttachmentRef{};
 	vkColorAttachmentRef.attachment = 0;
@@ -654,7 +654,7 @@ void VulkanApplication::createRenderPass()
 
 	vk::AttachmentDescription vkDepthAttachment{};
 	vkDepthAttachment.format = findDepthFormat();
-	vkDepthAttachment.samples = vk::SampleCountFlagBits::e1;
+	vkDepthAttachment.samples = m_msaaSampleCount;
 	vkDepthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	vkDepthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
 	vkDepthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
@@ -666,11 +666,26 @@ void VulkanApplication::createRenderPass()
 	vkDepthAttachmentRef.attachment = 1;
 	vkDepthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
+	vk::AttachmentDescription vkColorAttachmentResolve{};
+	vkColorAttachment.format = m_vkSwapchainImageFormat;
+	vkColorAttachment.samples = vk::SampleCountFlagBits::e1;
+	vkColorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+	vkColorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	vkColorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	vkColorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	vkColorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	vkColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+	vk::AttachmentReference vkColorAttachmentResolveRef{};
+	vkColorAttachmentRef.attachment = 2;
+	vkColorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
 	vk::SubpassDescription vkSubPassDesc{};
 	vkSubPassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 	vkSubPassDesc.colorAttachmentCount = 1;
 	vkSubPassDesc.pColorAttachments = &vkColorAttachmentRef;
 	vkSubPassDesc.pDepthStencilAttachment = &vkDepthAttachmentRef;
+	vkSubPassDesc.pResolveAttachments = &vkColorAttachmentResolveRef;
 
 	vk::SubpassDependency vkSubpassDependency{};
 	vkSubpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -680,7 +695,7 @@ void VulkanApplication::createRenderPass()
 	vkSubpassDependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
 	vkSubpassDependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
-	std::array<vk::AttachmentDescription, 2> attachments{ vkColorAttachment, vkDepthAttachment };
+	std::array<vk::AttachmentDescription, 3> attachments{ vkColorAttachment, vkDepthAttachment, vkColorAttachmentResolve };
 	vk::RenderPassCreateInfo vkRenderPassInfo{};
 	vkRenderPassInfo.attachmentCount = static_cast<std::uint32_t>( attachments.size() );
 	vkRenderPassInfo.pAttachments = attachments.data();
