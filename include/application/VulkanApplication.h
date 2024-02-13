@@ -155,6 +155,7 @@ protected:
         const std::uint32_t& mipLevels
     );
     void logVulkanInstanceCreationInfo( const vk::InstanceCreateInfo& instanceCreateInfo );
+    vk::SampleCountFlagBits getMaxUsableSampleCount();
     
     static constexpr std::uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -164,6 +165,7 @@ protected:
     vk::DebugUtilsMessengerEXT m_vkDebugUtilsMessenger;
     vk::SurfaceKHR m_vkSurface;
     vk::PhysicalDevice m_vkPhysicalDevice;
+    vk::SampleCountFlagBits m_msaaSampleCount;
 
     vk::Device m_vkLogicalDevice;
     vk::Queue m_vkGraphicsQueue;

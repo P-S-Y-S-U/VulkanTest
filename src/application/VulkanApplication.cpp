@@ -503,6 +503,7 @@ void VulkanApplication::pickPhysicalDevice()
 		if( l_isDeviceSuitable( vkTemporaryDevice, &m_vkSurface, requiredExtensions ) )
 		{
 			m_vkPhysicalDevice = vkTemporaryDevice;
+			m_msaaSampleCount = getMaxUsableSampleCount();
 			m_deviceExtensionContainer = requiredExtensions;
 			m_deviceExtensionContainer.shrink_to_fit();
 
@@ -2086,4 +2087,20 @@ void VulkanApplication::logVulkanInstanceCreationInfo(const vk::InstanceCreateIn
 	{
 		LOG_INFO( fmt::format("LAYER: {}", instanceCreateInfo.ppEnabledLayerNames[i]) );
 	}
+}
+
+vk::SampleCountFlagBits VulkanApplication::getMaxUsableSampleCount()
+{
+	vk::PhysicalDeviceProperties physicalDeviceProps = m_vkPhysicalDevice.getProperties();
+
+	vk::SampleCountFlags counts = physicalDeviceProps.limits.framebufferColorSampleCounts & physicalDeviceProps.limits.framebufferDepthSampleCounts;
+
+	if( counts & vk::SampleCountFlagBits::e64 ) { return vk::SampleCountFlagBits::e64; }
+	if( counts & vk::SampleCountFlagBits::e32 ) { return vk::SampleCountFlagBits::e32; }
+	if( counts & vk::SampleCountFlagBits::e16 ) { return vk::SampleCountFlagBits::e16; }
+	if( counts & vk::SampleCountFlagBits::e8 ) { return vk::SampleCountFlagBits::e8; }
+	if( counts & vk::SampleCountFlagBits::e4 ) { return vk::SampleCountFlagBits::e4; }
+	if( counts & vk::SampleCountFlagBits::e2 ) { return vk::SampleCountFlagBits::e2; }
+
+	return vk::SampleCountFlagBits::e1;
 }
