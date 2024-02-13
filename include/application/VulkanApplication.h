@@ -61,6 +61,7 @@ protected:
     void createFrameBuffers();
     void createCommandPool();
     void createConfigCommandBuffer();
+    void createColorResources();
     void createDepthResources();
     void createTextureImage();
     void createTextureImageView();
@@ -96,6 +97,7 @@ protected:
     );
     void createImage(
         const std::uint32_t& width, const std::uint32_t& height, const std::uint32_t& mipmapLevels,
+        const vk::SampleCountFlagBits& numOfSamples,
         const vk::Format& format, const vk::ImageTiling& tiling,
         const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
         vk::Image& image, vk::DeviceMemory& imageMemory
@@ -177,6 +179,10 @@ protected:
     vk::SwapchainKHR m_vkSwapchain;
     std::vector<vk::Image> m_swapchainImages;
     std::vector<vk::ImageView> m_swapchainImageViews;
+
+    vk::Image m_vkColorImage;
+    vk::DeviceMemory m_vkColorImageMemory;
+    vk::ImageView m_vkColorImageView;
     vk::Image m_vkDepthImage;
     vk::DeviceMemory m_vkDepthImageMemory;
     vk::ImageView m_vkDepthImageView;

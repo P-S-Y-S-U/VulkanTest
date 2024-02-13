@@ -169,6 +169,7 @@ void VulkanApplication::initVulkan()
 	createGraphicsPipeline();
 	createCommandPool();
 	createConfigCommandBuffer();
+	createColorResources();
 	createDepthResources();
 	createFrameBuffers();
 	createTextureImage();
@@ -1012,12 +1013,28 @@ void VulkanApplication::createConfigCommandBuffer()
 	LOG_INFO("Config Command Buffer created");
 }
 
+void VulkanApplication::createColorResources()
+{
+	vk::Format colorFormat = m_vkSwapchainImageFormat;
+
+	createImage(
+		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1,
+		m_msaaSampleCount, 
+		colorFormat, vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+		vk::MemoryPropertyFlagBits::eDeviceLocal,
+		m_vkColorImage, m_vkColorImageMemory
+	);
+
+	m_vkColorImageView = createImageView( m_vkColorImage, colorFormat, vk::ImageAspectFlagBits::eColor, 1 );
+}
+
 void VulkanApplication::createDepthResources()
 {
 	vk::Format depthFormat = findDepthFormat();
 
 	createImage(
-		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1,
+		m_vkSwapchainExtent.width, m_vkSwapchainExtent.height, 1, vk::SampleCountFlagBits::e1,
 		depthFormat, vk::ImageTiling::eOptimal, 
 		vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkDepthImage, m_vkDepthImageMemory
@@ -1079,6 +1096,7 @@ void VulkanApplication::createTextureImage()
 
 	createImage( 
 		texWidth, texHeight, m_imageMiplevels,
+		vk::SampleCountFlagBits::e1,
 		vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
 		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -1618,6 +1636,7 @@ void VulkanApplication::createBuffer(
 
 void VulkanApplication::createImage(
     const std::uint32_t& width, const std::uint32_t& height, const std::uint32_t& mipmapLevels,
+	const vk::SampleCountFlagBits& numOfSamples,
     const vk::Format& format, const vk::ImageTiling& tiling,
     const vk::ImageUsageFlags& usageFlags, const vk::MemoryPropertyFlags& memPropFlags,
     vk::Image& image, vk::DeviceMemory& imageMemory
@@ -1635,7 +1654,7 @@ void VulkanApplication::createImage(
 	imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
 	imageCreateInfo.usage = usageFlags;
 	imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
-	imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
+	imageCreateInfo.samples = numOfSamples;
 	imageCreateInfo.flags = {};
 
 	image = m_vkLogicalDevice.createImage( imageCreateInfo );
