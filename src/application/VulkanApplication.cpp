@@ -876,7 +876,7 @@ void VulkanApplication::createGraphicsPipeline()
 
 	vk::PipelineMultisampleStateCreateInfo vkMultisamplingInfo{};
 	vkMultisamplingInfo.sampleShadingEnable = VK_FALSE;
-	vkMultisamplingInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
+	vkMultisamplingInfo.rasterizationSamples = m_msaaSampleCount;
 	vkMultisamplingInfo.minSampleShading = 1.0f;
 	vkMultisamplingInfo.pSampleMask = nullptr;
 	vkMultisamplingInfo.alphaToCoverageEnable = VK_FALSE;
@@ -975,9 +975,10 @@ void VulkanApplication::createFrameBuffers()
 
 	for( size_t i = 0; i < m_swapchainFrameBuffers.size(); i++ )
 	{
-		std::array<vk::ImageView, 2> attachments = {
-			m_swapchainImageViews[i],
-			m_vkDepthImageView
+		std::array<vk::ImageView, 3> attachments = {
+			m_vkColorImageView,
+			m_vkDepthImageView,
+			m_swapchainImageViews[i]
 		};
 
 		vk::FramebufferCreateInfo vkFrameBufferInfo{};
