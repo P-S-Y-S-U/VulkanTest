@@ -1015,7 +1015,7 @@ void VulkanApplication::createCommandPool()
 
 	vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
 	vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.value();
+	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.has_value() ? queueFamilyIndices.m_exclusiveTransferFamily.value() : queueFamilyIndices.m_graphicsFamily.value();
 
 	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
 	LOG_INFO("Graphics Command Pool created");
