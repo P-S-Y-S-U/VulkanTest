@@ -111,7 +111,8 @@ protected:
     void populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer );
 
     vkrender::QueueFamilyIndices findQueueFamilyIndices( const vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR* pVkSurface );
-
+    void logQueueFamilyIndices( const vkrender::QueueFamilyIndices& queueFamilyIndices );
+    
     void populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& createInfo );
     void populateDeviceQueueCreateInfo( 
         vk::DeviceQueueCreateInfo& vkDeviceQueueCreateInfo, 

@@ -450,8 +450,9 @@ void VulkanApplication::pickPhysicalDevice()
 		const vk::PhysicalDeviceFeatures& vkPhysicalDeviceFeatures = physicalDevice.getFeatures();
 		const vk::PhysicalDeviceProperties& vkPhysicalDeviceProperties = physicalDevice.getProperties();
 
-        bool bShader =  vkPhysicalDeviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu && 
-                        vkPhysicalDeviceFeatures.geometryShader;
+		bool bIntegratedGpu = vkPhysicalDeviceProperties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
+		bool bDiscreteGpu = vkPhysicalDeviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
+        bool bShader =  vkPhysicalDeviceFeatures.geometryShader;
         bool bSamplerAnisotropy = static_cast<bool>( vkPhysicalDeviceFeatures.samplerAnisotropy );
 
         bool bGraphicsFamily = queueFamilyIndices.m_graphicsFamily.has_value();
@@ -485,7 +486,7 @@ void VulkanApplication::pickPhysicalDevice()
         bool bExtensionsSupported =  l_checkDeviceExtensionSupport( physicalDevice, requiredExtensions );
         bool bSwapChainAdequate = l_checkSwapChainAdequacy( physicalDevice, *surface, bExtensionsSupported );
 
-        return bShader && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate & bSamplerAnisotropy;
+        return bShader && ( bIntegratedGpu || bDiscreteGpu ) && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate & bSamplerAnisotropy;
 	};
 
 	for( auto& vkTemporaryDevice : devices )
@@ -524,14 +525,15 @@ void VulkanApplication::createLogicalDevice()
 	using namespace vkrender;
 	QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
 
-	std::set<std::uint32_t> uniqueQueueFamilies{ 
-		queueFamilyIndices.m_graphicsFamily.value(), 
-		queueFamilyIndices.m_presentFamily.value(), 
-		queueFamilyIndices.m_exclusiveTransferFamily.value() 
-	};
+	logQueueFamilyIndices( queueFamilyIndices );
+	
+	std::set<std::uint32_t> uniqueQueueFamilies;
+
+	if( queueFamilyIndices.m_graphicsFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_graphicsFamily.value() );
+	if( queueFamilyIndices.m_presentFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_presentFamily.value() );
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_exclusiveTransferFamily.value() );
 	
 	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos{ uniqueQueueFamilies.size() };
-
 
 	std::vector<float> queuePriorities{1};
 	queuePriorities[0] = 1.0f;
@@ -554,18 +556,23 @@ void VulkanApplication::createLogicalDevice()
 	LOG_INFO("Logical Device created");
 
 	m_vkGraphicsQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_graphicsFamily.value(), 0 );
-	LOG_INFO("Graphics Queue created");
+	LOG_INFO("Graphics Queue Retrieved");
 
 	if( queueFamilyIndices.m_presentFamily.has_value() )
 	{
 		m_vkPresentationQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_presentFamily.value(), 0 );
-		LOG_INFO("Presentation Queue created");
-	}
+		LOG_INFO("Presentation Queue Retrieved");
+	} 
 
 	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
 	{
 		m_vkTransferQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_exclusiveTransferFamily.value(), 0 );	
-		LOG_INFO("Transfer Queue created");
+		LOG_INFO("Transfer Queue Retrieved");
+	}
+	else
+	{
+		m_vkTransferQueue = m_vkLogicalDevice.getQueue( queueFamilyIndices.m_graphicsFamily.value(), 0 );
+		LOG_INFO("Using Graphics Queue for Transfer Operations");
 	}
 }
 
@@ -1779,6 +1786,30 @@ vkrender::QueueFamilyIndices VulkanApplication::findQueueFamilyIndices( const vk
 	}
 
 	return queueFamilyIndices;
+}
+
+void VulkanApplication::logQueueFamilyIndices( const vkrender::QueueFamilyIndices& queueFamilyIndices )
+{
+	LOG_DEBUG("Found Queue Family Indices");
+	if( queueFamilyIndices.m_graphicsFamily.has_value() )
+	{
+		LOG_DEBUG(fmt::format("Has Graphics Queue Index: {}", queueFamilyIndices.m_graphicsFamily.value()));
+	}
+
+	if( queueFamilyIndices.m_presentFamily.has_value() )
+	{
+		LOG_DEBUG(fmt::format("Has Presentation Queue Index: {}", queueFamilyIndices.m_presentFamily.value()));
+	}
+
+	if( queueFamilyIndices.m_computeFamily.has_value() )
+	{
+		LOG_DEBUG(fmt::format("Has Compute Queue Index: {}", queueFamilyIndices.m_computeFamily.value()));
+	}
+
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() )
+	{
+		LOG_DEBUG(fmt::format("Has Exclusive Transfer Queue Index: {}", queueFamilyIndices.m_exclusiveTransferFamily.value()));
+	}
 }
 
 void VulkanApplication::populateDebugUtilsMessengerCreateInfo( vk::DebugUtilsMessengerCreateInfoEXT& vkDebugUtilsMessengerCreateInfo )
