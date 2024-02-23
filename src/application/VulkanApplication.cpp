@@ -531,7 +531,11 @@ void VulkanApplication::createLogicalDevice()
 
 	if( queueFamilyIndices.m_graphicsFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_graphicsFamily.value() );
 	if( queueFamilyIndices.m_presentFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_presentFamily.value() );
-	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() ) uniqueQueueFamilies.emplace( queueFamilyIndices.m_exclusiveTransferFamily.value() );
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() ) 
+	{
+		uniqueQueueFamilies.emplace( queueFamilyIndices.m_exclusiveTransferFamily.value() );
+		m_bHasExclusiveTransferQueue = true;
+	}
 	
 	std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos{ uniqueQueueFamilies.size() };
 
@@ -589,18 +593,17 @@ void VulkanApplication::createSwapchain()
     vk::PresentModeKHR presentMode = chooseSwapPresentMode( swapChainSupportDetails );
 
 	vkrender::QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( m_vkPhysicalDevice, &m_vkSurface );
-    vk::SharingMode sharingMode;
 	std::vector<std::uint32_t> queueFamilyContainer;
     if( queueFamilyIndices.m_graphicsFamily.value() != queueFamilyIndices.m_presentFamily.value() )
     {
-        sharingMode = vk::SharingMode::eConcurrent;
+        m_vkSwapchainImageSharingMode = vk::SharingMode::eConcurrent;
         queueFamilyContainer.push_back( queueFamilyIndices.m_graphicsFamily.value() );
         queueFamilyContainer.push_back( queueFamilyIndices.m_presentFamily.value() );
 		LOG_INFO("Different Queue Familiy for Graphics and Presentation using Concurrent mode for swapchain");
     }
     else
     {
-        sharingMode = vk::SharingMode::eExclusive;
+        m_vkSwapchainImageSharingMode = vk::SharingMode::eExclusive;
 		LOG_INFO("Different Queue Familiy for Graphics and Presentation using Exclusive mode for swapchain");
     }
 	queueFamilyContainer.shrink_to_fit();
@@ -613,7 +616,7 @@ void VulkanApplication::createSwapchain()
     vkSwapChainCreateInfo.imageExtent = imageExtent;
     vkSwapChainCreateInfo.imageArrayLayers = 1;
     vkSwapChainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
-    vkSwapChainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive; // TODO subject to break
+    vkSwapChainCreateInfo.imageSharingMode = m_vkSwapchainImageSharingMode; // TODO subject to break
     vkSwapChainCreateInfo.queueFamilyIndexCount = queueFamilyContainer.size();
     vkSwapChainCreateInfo.pQueueFamilyIndices = queueFamilyContainer.data();
     vkSwapChainCreateInfo.preTransform = capabilities.currentTransform;
@@ -1101,10 +1104,11 @@ void VulkanApplication::createTextureImage()
 
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
-
+	vk::SharingMode stagingBufferSharingMode = m_bHasExclusiveTransferQueue ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
 	createBuffer( 
 		imageSize, 
 		vk::BufferUsageFlagBits::eTransferSrc,
+		stagingBufferSharingMode,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 		stagingBuffer,
 		stagingBufferMemory
@@ -1256,10 +1260,11 @@ void VulkanApplication::createVertexBuffer()
 
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
-
+	vk::SharingMode bufferSharingMode = m_bHasExclusiveTransferQueue ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
 	createBuffer( 
 		static_cast<vk::DeviceSize>( bufferSizeInBytes ),
 		vk::BufferUsageFlagBits::eTransferSrc,
+		bufferSharingMode,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 		stagingBuffer,
 		stagingBufferMemory
@@ -1279,6 +1284,7 @@ void VulkanApplication::createVertexBuffer()
 	createBuffer(
 		bufferSizeInBytes,
 		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+		bufferSharingMode,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkVertexBuffer,
 		m_vkVertexBufferMemory
@@ -1296,10 +1302,12 @@ void VulkanApplication::createIndexBuffer()
 
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
+	vk::SharingMode bufferSharingMode = m_bHasExclusiveTransferQueue ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
 
 	createBuffer(
 		bufferSizeInBytes,
 		vk::BufferUsageFlagBits::eTransferSrc,
+		bufferSharingMode,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 		stagingBuffer,
 		stagingBufferMemory
@@ -1316,6 +1324,7 @@ void VulkanApplication::createIndexBuffer()
 	createBuffer(
 		bufferSizeInBytes,
 		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+		bufferSharingMode,
 		vk::MemoryPropertyFlagBits::eDeviceLocal,
 		m_vkIndexBuffer,
 		m_vkIndexBufferMemory
@@ -1335,10 +1344,13 @@ void VulkanApplication::createUniformBuffers()
 	m_vkUniformBuffersMemory.resize( MAX_FRAMES_IN_FLIGHT );
 	m_uniformBuffersMapped.resize( MAX_FRAMES_IN_FLIGHT );
 
+	vk::SharingMode bufferSharingMode = m_bHasExclusiveTransferQueue ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
+	
 	for( std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ )
 	{
 		createBuffer(
 			bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+			bufferSharingMode,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 			m_vkUniformBuffers[i], m_vkUniformBuffersMemory[i]
 		);
@@ -1626,6 +1638,7 @@ vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& 
 void VulkanApplication::createBuffer(
     const vk::DeviceSize& bufferSizeInBytes,
     const vk::BufferUsageFlags& bufferUsage,
+	const vk::SharingMode& bufferSharingMode,
     const vk::MemoryPropertyFlags& memProps,
     vk::Buffer& buffer,
     vk::DeviceMemory& bufferMemory
@@ -1639,13 +1652,12 @@ void VulkanApplication::createBuffer(
 	vk::BufferCreateInfo bufferInfo{};
 	bufferInfo.size = bufferSizeInBytes;
 	bufferInfo.usage = bufferUsage;
-	bufferInfo.sharingMode = vk::SharingMode::eConcurrent;
-	std::uint32_t queueFamilyToShare[] = { 
-		queueFamilyIndices.m_graphicsFamily.value(),
-		queueFamilyIndices.m_exclusiveTransferFamily.value()
-	};
-	bufferInfo.pQueueFamilyIndices = queueFamilyToShare;
-	bufferInfo.queueFamilyIndexCount = 2;
+	bufferInfo.sharingMode = bufferSharingMode;
+	std::vector<uint32_t> queueFamilyToShare;
+	queueFamilyToShare.emplace_back( queueFamilyIndices.m_graphicsFamily.value() );
+	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() ) queueFamilyToShare.emplace_back( queueFamilyIndices.m_exclusiveTransferFamily.value() );
+	bufferInfo.pQueueFamilyIndices = queueFamilyToShare.data();
+	bufferInfo.queueFamilyIndexCount = queueFamilyToShare.size();
 
 	buffer = m_vkLogicalDevice.createBuffer(
 		bufferInfo

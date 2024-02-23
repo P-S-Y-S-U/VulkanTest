@@ -91,6 +91,7 @@ protected:
     void createBuffer(
         const vk::DeviceSize& bufferSizeInBytes,
         const vk::BufferUsageFlags& bufferUsage,
+        const vk::SharingMode& bufferSharingMode,
         const vk::MemoryPropertyFlags& memProps,
         vk::Buffer& buffer,
         vk::DeviceMemory& bufferMemory
@@ -175,11 +176,14 @@ protected:
     vk::Queue m_vkPresentationQueue;
     vk::Queue m_vkTransferQueue;
 
+    bool m_bHasExclusiveTransferQueue;
+    
     vk::Format m_vkSwapchainImageFormat;
     vk::Extent2D m_vkSwapchainExtent;
     vk::SwapchainKHR m_vkSwapchain;
     std::vector<vk::Image> m_swapchainImages;
     std::vector<vk::ImageView> m_swapchainImageViews;
+    vk::SharingMode m_vkSwapchainImageSharingMode;
 
     vk::Image m_vkColorImage;
     vk::DeviceMemory m_vkColorImageMemory;
