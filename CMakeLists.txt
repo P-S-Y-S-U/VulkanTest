@@ -17,6 +17,23 @@ if(LINUX)
 endif(LINUX)
 
 set(VULKAN_SHADER_COMPILER ${Vulkan_GLSLC_EXECUTABLE})
+
+if( "${VULKAN_SHADER_COMPILER}" STREQUAL "" )
+if(LINUX)
+find_file(VULKAN_SHADER_COMPILER         glslc
+                            HINTS   /usr/
+                            HINTS   ENV VULKAN_SDK
+                            REQUIRED
+)
+else()
+find(VULKAN_SHADER_COMPILER         glslc
+                            HINTS   ENV PATH
+                            HINTS   ENV VULKAN_SDK
+                            REQUIRED
+)
+endif(LINUX)
+endif()
+
 message( "Found Vulkan Shader Compiler ${VULKAN_SHADER_COMPILER}" )
 
 # CMAKE VAR SETUP
