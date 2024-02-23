@@ -674,18 +674,18 @@ void VulkanApplication::createRenderPass()
 	vkDepthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
 	vk::AttachmentDescription vkColorAttachmentResolve{};
-	vkColorAttachment.format = m_vkSwapchainImageFormat;
-	vkColorAttachment.samples = vk::SampleCountFlagBits::e1;
-	vkColorAttachment.loadOp = vk::AttachmentLoadOp::eDontCare;
-	vkColorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	vkColorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-	vkColorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	vkColorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-	vkColorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+	vkColorAttachmentResolve.format = m_vkSwapchainImageFormat;
+	vkColorAttachmentResolve.samples = vk::SampleCountFlagBits::e1;
+	vkColorAttachmentResolve.loadOp = vk::AttachmentLoadOp::eDontCare;
+	vkColorAttachmentResolve.storeOp = vk::AttachmentStoreOp::eStore;
+	vkColorAttachmentResolve.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	vkColorAttachmentResolve.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	vkColorAttachmentResolve.initialLayout = vk::ImageLayout::eUndefined;
+	vkColorAttachmentResolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
 	vk::AttachmentReference vkColorAttachmentResolveRef{};
-	vkColorAttachmentRef.attachment = 2;
-	vkColorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+	vkColorAttachmentResolveRef.attachment = 2;
+	vkColorAttachmentResolveRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
 	vk::SubpassDescription vkSubPassDesc{};
 	vkSubPassDesc.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
