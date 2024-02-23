@@ -6,7 +6,6 @@ elseif(WIN32)
 set(MEDIA_OUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE})
 endif(LINUX)
 
-message("Copying Media files")
 file(COPY ${MEDIA_DIR}/models ${MEDIA_DIR}/textures DESTINATION ${MEDIA_OUT_DIR})
 
 file(GLOB VERTEX_SHADER_FILES "${MEDIA_DIR}/shaders/*.vert")
