@@ -1016,15 +1016,26 @@ void VulkanApplication::createCommandPool()
 	vkGraphicsCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 	vkGraphicsCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_graphicsFamily.value();
 
-	vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
-	vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-	vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.has_value() ? queueFamilyIndices.m_exclusiveTransferFamily.value() : queueFamilyIndices.m_graphicsFamily.value();
+	if( m_bHasExclusiveTransferQueue )
+	{
+		vk::CommandPoolCreateInfo vkTransferCommandPoolInfo{};
+		vkTransferCommandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+		vkTransferCommandPoolInfo.queueFamilyIndex = queueFamilyIndices.m_exclusiveTransferFamily.has_value() ? queueFamilyIndices.m_exclusiveTransferFamily.value() : queueFamilyIndices.m_graphicsFamily.value();
 
-	m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
-	LOG_INFO("Graphics Command Pool created");
+		m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
+		LOG_INFO("Graphics Command Pool created");
 
-	m_vkTransferCommandPool = m_vkLogicalDevice.createCommandPool( vkTransferCommandPoolInfo );
-	LOG_INFO("Transfer Command Pool created");
+		m_vkTransferCommandPool = m_vkLogicalDevice.createCommandPool( vkTransferCommandPoolInfo );
+		LOG_INFO("Transfer Command Pool created");
+	} 
+	else
+	{
+		m_vkGraphicsCommandPool = m_vkLogicalDevice.createCommandPool( vkGraphicsCommandPoolInfo );
+		LOG_INFO("Graphics Command Pool created");
+
+		m_vkTransferCommandPool = m_vkGraphicsCommandPool;
+		LOG_INFO("Using Graphics Command Pool for Transfer Operations");
+	}
 }
 
 void VulkanApplication::createConfigCommandBuffer()
@@ -1482,7 +1493,7 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkScissor.extent = m_vkSwapchainExtent;
 	vkCommandBuffer.setScissor(0, 1, &vkScissor);
 
-#if 0 // REMOVE
+#if 1 // REMOVE
 	vk::Buffer vertexBuffers[] = { m_vkVertexBuffer };
 	vk::DeviceSize offsets[] = { 0 };
 #else 
