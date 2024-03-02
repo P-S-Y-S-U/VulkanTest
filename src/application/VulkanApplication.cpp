@@ -426,6 +426,12 @@ void VulkanApplication::pickPhysicalDevice()
         throw std::runtime_error(errorMsg);
     }
 
+	struct DeviceCandiate
+	{
+		vk::PhysicalDeviceType mDeviceType;
+		bool mbHasGeometryShader;
+	};
+
 	auto l_probePhysicalDeviceHandle = []( const vk::PhysicalDevice& vkPhysicalDevice ) {
 		const vk::PhysicalDeviceProperties& deviceProperties = vkPhysicalDevice.getProperties();
         LOG_INFO(
@@ -445,7 +451,9 @@ void VulkanApplication::pickPhysicalDevice()
 	auto l_isDeviceSuitable = [this](
 		const vk::PhysicalDevice& physicalDevice, 
 		vk::SurfaceKHR* surface,
-		const std::vector<const char*>& requiredExtensions 
+		const std::vector<const char*>& requiredExtensions,
+		const DeviceCandiate& bestCandidate,
+		std::uint32_t& deviceScore
 	) -> bool{
 		QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( physicalDevice, surface );
 
@@ -488,33 +496,57 @@ void VulkanApplication::pickPhysicalDevice()
         bool bExtensionsSupported =  l_checkDeviceExtensionSupport( physicalDevice, requiredExtensions );
         bool bSwapChainAdequate = l_checkSwapChainAdequacy( physicalDevice, *surface, bExtensionsSupported );
 
+		if(bestCandidate.mDeviceType == vkPhysicalDeviceProperties.deviceType)
+			deviceScore += 10;
+		if( vkPhysicalDeviceFeatures.geometryShader == bestCandidate.mbHasGeometryShader )
+			deviceScore += 10;
+
         return bShader && ( bIntegratedGpu || bDiscreteGpu ) && bGraphicsFamily && bExtensionsSupported && bSwapChainAdequate & bSamplerAnisotropy;
 	};
 
-	for( auto& vkTemporaryDevice : devices )
-	{
-		l_probePhysicalDeviceHandle( vkTemporaryDevice );
+	DeviceCandiate bestCandidate{
+		vk::PhysicalDeviceType::eDiscreteGpu,
+		true
+	};
 
-		std::vector<const char*> requiredExtensions{
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME
-		};
+	//for( auto& vkTemporaryDevice : devices )
+	std::uint32_t bestCandidateIndex = 0u;
+	std::uint32_t bestDeviceScore = 0u;
+	std::vector<const char*> requiredExtensions{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+	for( std::uint32_t deviceIndex = 0u; deviceIndex < devices.size(); deviceIndex++ )
+	{
+		vk::PhysicalDevice& vkTemporaryDevice = devices[deviceIndex];
+
+		l_probePhysicalDeviceHandle( vkTemporaryDevice );
 
 		vk::PhysicalDeviceFeatures vkPhysicalDeviceFeatures;
 		vk::PhysicalDeviceProperties vkPhysicalDeviceProperties;
 
 		l_populateDeviceProperties( vkTemporaryDevice, &vkPhysicalDeviceProperties, &vkPhysicalDeviceFeatures );
-
-		if( l_isDeviceSuitable( vkTemporaryDevice, &m_vkSurface, requiredExtensions ) )
+		
+		std::uint32_t deviceScore = 0u;
+		if( l_isDeviceSuitable( vkTemporaryDevice, &m_vkSurface, requiredExtensions, bestCandidate, deviceScore ) )
 		{
-			m_vkPhysicalDevice = vkTemporaryDevice;
-			m_msaaSampleCount = getMaxUsableSampleCount();
-			m_deviceExtensionContainer = requiredExtensions;
-			m_deviceExtensionContainer.shrink_to_fit();
-
-			LOG_INFO("Selected Suitable Vulkan GPU!");
-            l_probePhysicalDeviceHandle( m_vkPhysicalDevice );
-			return;
+			if( deviceScore > bestDeviceScore )
+			{
+				bestDeviceScore = deviceScore;
+				bestCandidateIndex = deviceIndex;
+			}
 		}
+	}
+
+	if( bestDeviceScore > 0u )
+	{
+		m_vkPhysicalDevice = devices[bestCandidateIndex];
+		m_msaaSampleCount = getMaxUsableSampleCount();
+		m_deviceExtensionContainer = requiredExtensions;
+		m_deviceExtensionContainer.shrink_to_fit();
+
+		LOG_INFO("Selected Suitable Vulkan GPU!");
+        l_probePhysicalDeviceHandle( m_vkPhysicalDevice );
+		return;
 	}
 
 	std::string errorMsg = "FAILED TO SELECT A SUITABLE VULKAN GPU!";
