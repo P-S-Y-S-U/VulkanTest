@@ -289,7 +289,8 @@ void VulkanApplication::shutdown()
 		m_vkLogicalDevice.destroySemaphore( m_vkImageAvailableSemaphores[i] );
 	}
 
-	m_vkLogicalDevice.destroyCommandPool( m_vkTransferCommandPool );
+	if( m_bHasExclusiveTransferQueue )
+		m_vkLogicalDevice.destroyCommandPool( m_vkTransferCommandPool );
 	m_vkLogicalDevice.destroyCommandPool( m_vkGraphicsCommandPool );
 
 	destroySwapChain();
