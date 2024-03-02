@@ -76,3 +76,14 @@ void VulkanApplication::logVulkanInstanceCreationInfo(const vk::InstanceCreateIn
 		LOG_INFO( fmt::format("LAYER: {}", instanceCreateInfo.ppEnabledLayerNames[i]) );
 	}
 }
+
+void VulkanApplication::setupDebugMessenger()
+{
+	using namespace vkrender;
+	vk::DebugUtilsMessengerCreateInfoEXT vkDebugUtilsMessengerCreateInfo{};
+	populateDebugUtilsMessengerCreateInfo( vkDebugUtilsMessengerCreateInfo );
+	if ( VulkanDebugMessenger::createDebugUtilsMessengerEXT(m_vkInstance, vkDebugUtilsMessengerCreateInfo, nullptr, m_vkDebugUtilsMessenger) != VK_SUCCESS )
+	{
+		throw std::runtime_error("failed to setup debug messenger!");
+	}
+}

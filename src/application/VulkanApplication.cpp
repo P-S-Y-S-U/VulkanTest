@@ -1872,17 +1872,6 @@ vkrender::SwapChainSupportDetails VulkanApplication::querySwapChainSupport( cons
     return swapChainDetails;
 }
 
-void VulkanApplication::setupDebugMessenger()
-{
-	using namespace vkrender;
-	vk::DebugUtilsMessengerCreateInfoEXT vkDebugUtilsMessengerCreateInfo{};
-	populateDebugUtilsMessengerCreateInfo( vkDebugUtilsMessengerCreateInfo );
-	if ( VulkanDebugMessenger::createDebugUtilsMessengerEXT(m_vkInstance, vkDebugUtilsMessengerCreateInfo, nullptr, m_vkDebugUtilsMessenger) != VK_SUCCESS )
-	{
-		throw std::runtime_error("failed to setup debug messenger!");
-	}
-}
-
 bool VulkanApplication::checkValidationLayerSupport()
 {
 	using namespace vkrender;
