@@ -4,6 +4,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             utilities/VulkanLogger_VulkanValidationLayerLogger.cpp
                             utilities/VulkanLogger_VulkanRendererApiLogger.cpp
                             application/VulkanApplication.cpp
+                            application/VulkanApplication_instance.cpp
 )
 
 # library & executable config #
