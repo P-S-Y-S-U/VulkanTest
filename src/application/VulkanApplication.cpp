@@ -89,6 +89,7 @@ VulkanApplication::VulkanApplication( const std::string& applicationName )
     :m_applicationName{ applicationName }
 	,m_window{ 800, 600 }
 	,m_currentFrame{0}
+	,m_bHasExclusiveTransferQueue{ false }
 {
 	if (utils::VulkanRendererApiLogger::getSingletonPtr() == nullptr)
 	{
