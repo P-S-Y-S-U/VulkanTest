@@ -907,45 +907,6 @@ vk::ShaderModule VulkanApplication::createShaderModule(const std::vector<char>& 
 	return vkShaderModule;
 }
 
-void VulkanApplication::createBuffer(
-    const vk::DeviceSize& bufferSizeInBytes,
-    const vk::BufferUsageFlags& bufferUsage,
-	const vk::SharingMode& bufferSharingMode,
-    const vk::MemoryPropertyFlags& memProps,
-    vk::Buffer& buffer,
-    vk::DeviceMemory& bufferMemory
-)
-{
-	vkrender::QueueFamilyIndices queueFamilyIndices = findQueueFamilyIndices( 
-		m_vkPhysicalDevice,
-		&m_vkSurface
-	);
-
-	vk::BufferCreateInfo bufferInfo{};
-	bufferInfo.size = bufferSizeInBytes;
-	bufferInfo.usage = bufferUsage;
-	bufferInfo.sharingMode = bufferSharingMode;
-	std::vector<uint32_t> queueFamilyToShare;
-	queueFamilyToShare.emplace_back( queueFamilyIndices.m_graphicsFamily.value() );
-	if( queueFamilyIndices.m_exclusiveTransferFamily.has_value() ) queueFamilyToShare.emplace_back( queueFamilyIndices.m_exclusiveTransferFamily.value() );
-	bufferInfo.pQueueFamilyIndices = queueFamilyToShare.data();
-	bufferInfo.queueFamilyIndexCount = queueFamilyToShare.size();
-
-	buffer = m_vkLogicalDevice.createBuffer(
-		bufferInfo
-	);
-
-	vk::MemoryRequirements memRequirements = m_vkLogicalDevice.getBufferMemoryRequirements( buffer );
-
-	vk::MemoryAllocateInfo allocInfo{};
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memProps );
-
-	bufferMemory = m_vkLogicalDevice.allocateMemory( allocInfo );
-
-	m_vkLogicalDevice.bindBufferMemory( buffer, bufferMemory, 0 );
-}
-
 void VulkanApplication::populateShaderBufferFromSourceFile( const std::filesystem::path& filePath, std::vector<char>& shaderSourceBuffer )
 {
 	if( filePath.extension() != std::filesystem::path{ ".spv" } )
