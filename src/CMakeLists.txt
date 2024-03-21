@@ -8,6 +8,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             application/VulkanApplication_swapchain.cpp
                             application/VulkanApplication_image.cpp
                             application/VulkanApplication_device.cpp
+                            application/VulkanApplication_buffer.cpp
 )
 
 # library & executable config #
