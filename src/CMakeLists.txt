@@ -10,6 +10,7 @@ set(PROJECT_SRC_FILES       window/window.cpp
                             application/VulkanApplication_device.cpp
                             application/VulkanApplication_buffer.cpp
                             application/VulkanApplication_utils.cpp
+                            application/VulkanApplication_gfxpipeline.cpp
 )
 
 # library & executable config #
