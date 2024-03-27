@@ -233,7 +233,7 @@ void VulkanApplication::createGraphicsPipeline()
 	vkRasterizerInfo.rasterizerDiscardEnable = VK_FALSE;
 	vkRasterizerInfo.polygonMode = vk::PolygonMode::eFill;
 	vkRasterizerInfo.lineWidth = 1.0f;
-	vkRasterizerInfo.cullMode = vk::CullModeFlagBits::eBack;
+	vkRasterizerInfo.cullMode = vk::CullModeFlagBits::eNone;
 	vkRasterizerInfo.frontFace = vk::FrontFace::eCounterClockwise;
 	vkRasterizerInfo.depthBiasEnable = VK_FALSE;
 	vkRasterizerInfo.depthBiasConstantFactor = 0.0f;

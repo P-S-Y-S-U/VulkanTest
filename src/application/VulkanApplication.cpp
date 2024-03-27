@@ -31,7 +31,7 @@
 
 VulkanApplication::VulkanApplication( const std::string& applicationName )
     :m_applicationName{ applicationName }
-	,m_window{ 800, 600 }
+	,m_window{ 1920, 1080 }
 	,m_currentFrame{0}
 	,m_bHasExclusiveTransferQueue{ false }
 {
@@ -73,15 +73,17 @@ void VulkanApplication::updateUniformBuffer( const std::uint32_t& currentFrame )
 
 	VulkanUniformBufferObject ubo{};
 
+#if 1
 	ubo.model = glm::rotate(
 		glm::mat4{1.0f},
 		duration * glm::radians( 90.0f ),
-		glm::vec3{ 0.0, 0.0, 1.0 }
+		glm::vec3{ 0.0, 1.0, 0.0 }
 	);
+
 	ubo.view = glm::lookAt(
-		glm::vec3{ 2.0f, 2.0f, 2.0f },
+		glm::vec3{ 0.0f, 0.0f, 3.0f },
 		glm::vec3{ 0.0f, 0.0f, 0.0f },
-		glm::vec3{ 0.0f, 0.0f, 1.0f }
+		glm::vec3{ 0.0f, 1.0f, 0.0f }
 	);
 	ubo.projection = glm::perspective(
 		glm::radians( 45.0f ), 
@@ -89,7 +91,12 @@ void VulkanApplication::updateUniformBuffer( const std::uint32_t& currentFrame )
 		0.1f,
 		10.0f
 	);
-	ubo.projection[1][1] *= -1.0f;
+	//ubo.projection[1][1] *= -1.0f;
+#else 
+	ubo.model = glm::identity<glm::mat4>();
+	ubo.view = glm::identity<glm::mat4>();
+	ubo.projection = glm::identity<glm::mat4>();
+#endif 
 
 	std::memcpy( m_uniformBuffersMapped[currentFrame], &ubo, sizeof(ubo) );
 	
@@ -396,7 +403,7 @@ void VulkanApplication::recordCommandBuffer( vk::CommandBuffer& vkCommandBuffer,
 	vkRenderPassBeginInfo.renderArea.extent = m_vkSwapchainExtent;
 	std::array<vk::ClearValue, 2> clearValues{};
 	vk::ClearColorValue clearColorValue;
-	clearColorValue.setFloat32( {0.0f, 0.0f, 0.0f, 1.0f} );
+	clearColorValue.setFloat32( {0.1, 0.1, 0.4, 1.0} );
 	clearValues[0].setColor( clearColorValue );
 	vk::ClearDepthStencilValue clearDepthStencilValue{ 1.0f, 0 };
 	clearValues[1].setDepthStencil(clearDepthStencilValue);
